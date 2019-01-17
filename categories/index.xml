@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on aidodoo blog</title>
+    <link>https://aidodoo.com/categories/</link>
+    <description>Recent content in Categories on aidodoo blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Original, if necessary, please note.</copyright>
+    
+	<atom:link href="https://aidodoo.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+  </channel>
+</rss>

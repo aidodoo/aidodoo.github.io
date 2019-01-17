@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java on aidodoo blog</title>
+    <link>https://aidodoo.com/tags/java/</link>
+    <description>Recent content in Java on aidodoo blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Original, if necessary, please note.</copyright>
+    <lastBuildDate>Wed, 02 Apr 2014 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://aidodoo.com/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>java io</title>
+      <link>https://aidodoo.com/post/java/javaio/</link>
+      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/javaio/</guid>
+      <description>Java IO 本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述 Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：
+ Files Pipes Network Connections In-memory Buffers (e.g. arrays) System.in, System.out, System.error  流从概念上说一个连续的数据流，既可以从流中读取数据，也可以往流中写入数据。主要分为字节流和字符流，字节流指以字节为单位进行读写，字符流指以字符为单位进行读写。 一个程序需要InputStream或者Reader从数据源读取数据，需要OutputStream或者Writer将数据写入到目标媒介中。示意图如下：
+Stream特征和分类 Java IO针对不同的业务场景，不同的功能，设计了不同的类，各类用途如下：
+ File Access Network Access Internal Memory Buffer Access Inter-Thread Communication (Pipes) Buffering Filtering Parsing Reading and Writing Text (Readers / Writers) Reading and Writing Primitive Data (long, int etc.) Reading and Writing Objects  通过输入、输出、基于字节或者字符、以及其他比如缓冲、解析之类的特定用途可以将Java IO流进行如下划分：
+&amp;nbsp; Byte Based Character Based  &amp;nbsp; Input Output Input Output  Basic InputStream OutputStream ReaderInputStreamReader WriterOutputStreamWriter  Arrays ByteArrayInputStream ByteArrayOutputStream CharArrayReader CharArrayWriter  Files FileInputStreamRandomAccessFile FileOutputStreamRandomAccessFile FileReader FileWriter  Pipes PipedInputStream PipedOutputStream PipedReader PipedWriter  Buffering BufferedInputStream BufferedOutputStream BufferedReader BufferedWriter  Filtering FilterInputStream FilterOutputStream FilterReader FilterWriter  Parsing PushbackInputStreamStreamTokenizer &amp;nbsp; PushbackReaderLineNumberReader &amp;nbsp;  Strings &amp;nbsp; &amp;nbsp; StringReader StringWriter  Data DataInputStream DataOutputStream &amp;nbsp;   Data - Formatted &amp;nbsp; PrintStream &amp;nbsp; PrintWriter  Objects ObjectInputStream ObjectOutputStream &amp;nbsp; &amp;nbsp;  Utilities SequenceInputStream &amp;nbsp; &amp;nbsp; &amp;nbsp;   File类 在讨论Stream的具体使用前，我们先看看IO库里面的File类。 Java文件类以抽象的方式代表文件名和目录路径名。该类主要用于文件和目录的创建、文件的查找和文件的删除等，但File对象却不能直接访问文件内容本身，要查看内容，则需要使用IO流。</description>
+    </item>
+    
+  </channel>
+</rss>
