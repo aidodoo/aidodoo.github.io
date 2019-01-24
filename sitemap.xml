@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>https://aidodoo.com/post/druid/druid%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85/</loc>
+    <lastmod>2019-01-20T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://aidodoo.com/resume/</loc>
     <lastmod>2017-12-01T00:00:00+00:00</lastmod>
   </url>
@@ -28,8 +33,8 @@
   </url>
   
   <url>
-    <loc>https://aidodoo.com/tags/hadoop/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
+    <loc>https://aidodoo.com/tags/druid/</loc>
+    <lastmod>2019-01-20T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -41,19 +46,25 @@
   
   <url>
     <loc>https://aidodoo.com/post/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
+    <lastmod>2019-01-20T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://aidodoo.com/tags/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
+    <lastmod>2019-01-20T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://aidodoo.com/</loc>
     <lastmod>2014-04-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-01-20T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
