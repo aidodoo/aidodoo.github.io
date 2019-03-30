@@ -7,15 +7,122 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>© Original, if necessary, please note.</copyright>
-    <lastBuildDate>Wed, 02 Apr 2014 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 07 Apr 2016 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://aidodoo.com/tags/java/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>并发工具类三</title>
+      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</link>
+      <pubDate>Thu, 07 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</guid>
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
+线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
+public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&amp;lt;Runnable&amp;gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
+ 当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
+ 如果创建此线程后，线程数超出maximumPoolSize，此种情况下，任务将会被拒绝。
+  总体流程如下：
+源码解析 数量和状态变量管理
+在ThreadPoolExecutor内部用AtomicInteger类型的ctl变量去维护两个概念上的参数，即有效的线程数量workerCount和线程池的运行状态，其中ctl的高3位表示运行状态，低29位表示数量。
+private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private static final int COUNT_BITS = Integer.SIZE - 3; private static final int CAPACITY = (1 &amp;lt;&amp;lt; COUNT_BITS) - 1; // runState is stored in the high-order bits private static final int RUNNING = -1 &amp;lt;&amp;lt; COUNT_BITS; private static final int SHUTDOWN = 0 &amp;lt;&amp;lt; COUNT_BITS; private static final int STOP = 1 &amp;lt;&amp;lt; COUNT_BITS; private static final int TIDYING = 2 &amp;lt;&amp;lt; COUNT_BITS; private static final int TERMINATED = 3 &amp;lt;&amp;lt; COUNT_BITS; // Packing and unpacking ctl private static int runStateOf(int c) { return c &amp;amp; ~CAPACITY; } private static int workerCountOf(int c) { return c &amp;amp; CAPACITY; } private static int ctlOf(int rs, int wc) { return rs | wc; } 各个状态含义如下:</description>
+    </item>
+    
+    <item>
+      <title>并发工具类二</title>
+      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</link>
+      <pubDate>Wed, 06 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</guid>
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
+Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
+Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
+常用方法
+Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
+运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i++){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.</description>
+    </item>
+    
+    <item>
+      <title>并发工具类一</title>
+      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</link>
+      <pubDate>Tue, 05 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</guid>
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
+其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
+构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
+countDown()方法用来减少计数器的值，每次减1。
+getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;+latch.getCount()); ExecutorService executorService = Executors.</description>
+    </item>
+    
+    <item>
+      <title>同步和锁</title>
+      <link>https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</link>
+      <pubDate>Sun, 03 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</guid>
+      <description>同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
+我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
+假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
+package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.printStackTrace(); } } } SynchronizedDemo类先创建一个账户，然后将账户实例传递给Spender线程(每个月花钱的败家子)和Earner线程(挣钱养家的家庭成员)，然后启动这两个线程。
+其中Account的代码如下：
+public class Account{ private double balance; public double getBalance() { return balance; } public void setBalance(double balance) { this.</description>
+    </item>
+    
+    <item>
+      <title>JAVA并发概念、基础接口以及Thread</title>
+      <link>https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</guid>
+      <description>JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
+优点  提高资源利用率
+如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
+ 程序响应速度好
+单线程模型下，假设一个http请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。
+  缺点  程序设计复杂度
+多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。
+ 上下文切换开销大
+当CPU从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。CPU会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。
+ 资源消耗
+线程在运行的时候需要从计算机里面得到一些资源。除了CPU，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程
+并发模型 并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。
+并行工作者 在并行工作者模型中，委派者（Delegator）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。 假设电商系统中的秒杀活动采用了并行工作者模型，订单-&amp;gt;财务-&amp;gt;仓储-&amp;gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。 在Java应用系统中，并行工作者模型是最常见的并发模型，java.util.concurrent包中的许多并发实用工具都是设计用于这个模型的。
+  优点
+易于理解，可以添加更多的工作者来提高系统的并行度
+缺点
+ 共享状态可能会很复杂
+在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。
+在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。 无状态的工作者
+每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。 任务顺序是不确定的 作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。  流水线模式 流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。 以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。
+在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。
+作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业: 优点  无需共享的状态
+工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题
+ 较好的硬件整合
+单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
+ 合理的作业顺序
+基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
+  缺点  编写难度大
+好在有一些平台框架可以直接使用，如Akka,Node.JS等
+ 跟踪困难 流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。
+  函数式并行 函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人agents或者actor，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。</description>
+    </item>
+    
+    <item>
       <title>Java IO概述</title>
       <link>https://aidodoo.com/post/java/javaio/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 01 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://aidodoo.com/post/java/javaio/</guid>
       <description>Java IO 本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述 Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：
