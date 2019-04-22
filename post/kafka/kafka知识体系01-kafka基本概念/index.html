@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>kafka基本概念</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
+ 发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
+  可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
+ 生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。
+ 消费者API允许应用程序订阅一个或多个主题，并处理这些主题接收到的记录流。 Streams API允许应用程序充当流处理器（stream processor），从一个或多个主题获取输入流，并生产一个输出流至一个或多个的主题，能够有效地变换输入流为输出流。 Connector API允许构建和运行可重用的生产者或消费者，能够把 Kafka主题连接到现有的应用程序或数据系统。例如，一个连接到关系数据库的连接器(connector)可能会获取每个表的变化。  基本概念 主题、日志和分区 kafka的主题(topic)是支持多用户订阅的，一个主题可以有零个，一个或多个消费者订阅写入的数据。
+对于每一个主题，Kafka集群保持一个分区日志文件，看下图：
+每个分区是一个有序的，不可变的消息序列，新的消息不断追加，同时分区会给每个消息记录分配一个顺序ID号 – 偏移量， 用于唯一标识该分区中的每个记录。
+Kafka集群保留所有发布的记录，不管这个记录有没有被消费过，Kafka提供可配置的保留策略去删除旧数据(还有一种策略根据分区大小删除数据)。例如，如果将保留策略设置为两天，在记录公布后两天，它可用于消费，之后它将被丢弃以腾出空间。Kafka的性能跟存储的数据量的大小无关， 所以将数据存储很长一段时间是没有问题的。
+事实上，保留在每个消费者元数据中的最基础的数据就是消费者正在处理的当前记录的偏移量(offset)或位置(position)。这种偏移是由消费者控制：通常偏移会随着消费者读取记录线性前进，但事实上，因为其位置是由消费者进行控制，消费者可以在任何它喜欢的位置读取记录。例如，消费者可以恢复到旧的偏移量对过去的数据再加工或者直接跳到最新的记录，并消费从“现在”开始的新的记录。
+数据日志的分区，有多个目的。首先，每个单独的分区的大小受到承载它的服务器的限制，但一个主题可能有很多分区，允许数据能够扩展到多个服务器，以便它能够支持海量的的数据。其次，更重要的意义是分区是进行并行处理的基础单元。
+日志的分区会跨服务器的分布在Kafka集群中，每个服务器会共享分区进行数据请求的处理。每个分区可以配置一定数量的副本分区以提供容错能力。
+每个分区都有一个服务器充当“leader”和零个或多个服务器充当“followers”。 leader处理所有的读取和写入分区的请求，而followers被动的从leader拷贝数据。如果leader失败了，followers之一将自动成为新的领导者。每个服务器可能充当一些分区的leader和其他分区的follower，这样的负载就会在集群内很好的均衡分配。
+生产者 生产者发布数据到他们所选择的主题。生产者负责选择把记录分配到主题中的哪个分区。这可以使用轮询算法( round-robin)进行简单地平衡负载，也可以根据一些更复杂的语义分区算法（比如基于记录一些键值自定义）来完成。
+消费者 消费者以消费群（consumer group ）的名称来标识自己，每个发布到主题的消息都会发送给订阅了这个主题的消费群里面的一个消费者的一个实例。消费者的实例可以在单独的进程或单独的机器上。 如果所有的消费者实例都属于相同的消费群，那么记录将有效地被均衡到每个消费者实例。 如果所有的消费者实例有不同的消费群，那么每个消息将被广播到所有的消费者进程。 两个服务器的Kafka集群具有四个分区（P0-P3）和两个消费群。A消费群有两个消费者，B群有四个。
+更常见的是，我们会发现主题有少量的消费群，每一个都是“逻辑上的订阅者”。每组都是由很多消费者实例组成，从而实现可扩展性和容错性。这只不过是发布 – 订阅模式的再现，区别是这里的订阅者是一组消费者而不是一个单一的进程的消费者。
+Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。
+Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="kafka基本概念">
+    <meta name="twitter:description" content="kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
+ 发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
+  可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
+ 生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。
+ 消费者API允许应用程序订阅一个或多个主题，并处理这些主题接收到的记录流。 Streams API允许应用程序充当流处理器（stream processor），从一个或多个主题获取输入流，并生产一个输出流至一个或多个的主题，能够有效地变换输入流为输出流。 Connector API允许构建和运行可重用的生产者或消费者，能够把 Kafka主题连接到现有的应用程序或数据系统。例如，一个连接到关系数据库的连接器(connector)可能会获取每个表的变化。  基本概念 主题、日志和分区 kafka的主题(topic)是支持多用户订阅的，一个主题可以有零个，一个或多个消费者订阅写入的数据。
+对于每一个主题，Kafka集群保持一个分区日志文件，看下图：
+每个分区是一个有序的，不可变的消息序列，新的消息不断追加，同时分区会给每个消息记录分配一个顺序ID号 – 偏移量， 用于唯一标识该分区中的每个记录。
+Kafka集群保留所有发布的记录，不管这个记录有没有被消费过，Kafka提供可配置的保留策略去删除旧数据(还有一种策略根据分区大小删除数据)。例如，如果将保留策略设置为两天，在记录公布后两天，它可用于消费，之后它将被丢弃以腾出空间。Kafka的性能跟存储的数据量的大小无关， 所以将数据存储很长一段时间是没有问题的。
+事实上，保留在每个消费者元数据中的最基础的数据就是消费者正在处理的当前记录的偏移量(offset)或位置(position)。这种偏移是由消费者控制：通常偏移会随着消费者读取记录线性前进，但事实上，因为其位置是由消费者进行控制，消费者可以在任何它喜欢的位置读取记录。例如，消费者可以恢复到旧的偏移量对过去的数据再加工或者直接跳到最新的记录，并消费从“现在”开始的新的记录。
+数据日志的分区，有多个目的。首先，每个单独的分区的大小受到承载它的服务器的限制，但一个主题可能有很多分区，允许数据能够扩展到多个服务器，以便它能够支持海量的的数据。其次，更重要的意义是分区是进行并行处理的基础单元。
+日志的分区会跨服务器的分布在Kafka集群中，每个服务器会共享分区进行数据请求的处理。每个分区可以配置一定数量的副本分区以提供容错能力。
+每个分区都有一个服务器充当“leader”和零个或多个服务器充当“followers”。 leader处理所有的读取和写入分区的请求，而followers被动的从leader拷贝数据。如果leader失败了，followers之一将自动成为新的领导者。每个服务器可能充当一些分区的leader和其他分区的follower，这样的负载就会在集群内很好的均衡分配。
+生产者 生产者发布数据到他们所选择的主题。生产者负责选择把记录分配到主题中的哪个分区。这可以使用轮询算法( round-robin)进行简单地平衡负载，也可以根据一些更复杂的语义分区算法（比如基于记录一些键值自定义）来完成。
+消费者 消费者以消费群（consumer group ）的名称来标识自己，每个发布到主题的消息都会发送给订阅了这个主题的消费群里面的一个消费者的一个实例。消费者的实例可以在单独的进程或单独的机器上。 如果所有的消费者实例都属于相同的消费群，那么记录将有效地被均衡到每个消费者实例。 如果所有的消费者实例有不同的消费群，那么每个消息将被广播到所有的消费者进程。 两个服务器的Kafka集群具有四个分区（P0-P3）和两个消费群。A消费群有两个消费者，B群有四个。
+更常见的是，我们会发现主题有少量的消费群，每一个都是“逻辑上的订阅者”。每组都是由很多消费者实例组成，从而实现可扩展性和容错性。这只不过是发布 – 订阅模式的再现，区别是这里的订阅者是一组消费者而不是一个单一的进程的消费者。
+Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。
+Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="kafka基本概念">
+  <meta property="og:description" content="kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
+ 发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
+  可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
+ 生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。
+ 消费者API允许应用程序订阅一个或多个主题，并处理这些主题接收到的记录流。 Streams API允许应用程序充当流处理器（stream processor），从一个或多个主题获取输入流，并生产一个输出流至一个或多个的主题，能够有效地变换输入流为输出流。 Connector API允许构建和运行可重用的生产者或消费者，能够把 Kafka主题连接到现有的应用程序或数据系统。例如，一个连接到关系数据库的连接器(connector)可能会获取每个表的变化。  基本概念 主题、日志和分区 kafka的主题(topic)是支持多用户订阅的，一个主题可以有零个，一个或多个消费者订阅写入的数据。
+对于每一个主题，Kafka集群保持一个分区日志文件，看下图：
+每个分区是一个有序的，不可变的消息序列，新的消息不断追加，同时分区会给每个消息记录分配一个顺序ID号 – 偏移量， 用于唯一标识该分区中的每个记录。
+Kafka集群保留所有发布的记录，不管这个记录有没有被消费过，Kafka提供可配置的保留策略去删除旧数据(还有一种策略根据分区大小删除数据)。例如，如果将保留策略设置为两天，在记录公布后两天，它可用于消费，之后它将被丢弃以腾出空间。Kafka的性能跟存储的数据量的大小无关， 所以将数据存储很长一段时间是没有问题的。
+事实上，保留在每个消费者元数据中的最基础的数据就是消费者正在处理的当前记录的偏移量(offset)或位置(position)。这种偏移是由消费者控制：通常偏移会随着消费者读取记录线性前进，但事实上，因为其位置是由消费者进行控制，消费者可以在任何它喜欢的位置读取记录。例如，消费者可以恢复到旧的偏移量对过去的数据再加工或者直接跳到最新的记录，并消费从“现在”开始的新的记录。
+数据日志的分区，有多个目的。首先，每个单独的分区的大小受到承载它的服务器的限制，但一个主题可能有很多分区，允许数据能够扩展到多个服务器，以便它能够支持海量的的数据。其次，更重要的意义是分区是进行并行处理的基础单元。
+日志的分区会跨服务器的分布在Kafka集群中，每个服务器会共享分区进行数据请求的处理。每个分区可以配置一定数量的副本分区以提供容错能力。
+每个分区都有一个服务器充当“leader”和零个或多个服务器充当“followers”。 leader处理所有的读取和写入分区的请求，而followers被动的从leader拷贝数据。如果leader失败了，followers之一将自动成为新的领导者。每个服务器可能充当一些分区的leader和其他分区的follower，这样的负载就会在集群内很好的均衡分配。
+生产者 生产者发布数据到他们所选择的主题。生产者负责选择把记录分配到主题中的哪个分区。这可以使用轮询算法( round-robin)进行简单地平衡负载，也可以根据一些更复杂的语义分区算法（比如基于记录一些键值自定义）来完成。
+消费者 消费者以消费群（consumer group ）的名称来标识自己，每个发布到主题的消息都会发送给订阅了这个主题的消费群里面的一个消费者的一个实例。消费者的实例可以在单独的进程或单独的机器上。 如果所有的消费者实例都属于相同的消费群，那么记录将有效地被均衡到每个消费者实例。 如果所有的消费者实例有不同的消费群，那么每个消息将被广播到所有的消费者进程。 两个服务器的Kafka集群具有四个分区（P0-P3）和两个消费群。A消费群有两个消费者，B群有四个。
+更常见的是，我们会发现主题有少量的消费群，每一个都是“逻辑上的订阅者”。每组都是由很多消费者实例组成，从而实现可扩展性和容错性。这只不过是发布 – 订阅模式的再现，区别是这里的订阅者是一组消费者而不是一个单一的进程的消费者。
+Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。
+Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB01-kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB01-kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">kafka基本概念</h1>
+      <p class="post-meta">@aidodoo · Apr 1, 2018 · 1 min read</p>
+    </header>
+    <article class="post-content">
+
+<p>kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。
+主要有三大核心能力：</p>
+
+<ul>
+<li>发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。</li>
+<li>持久化收到的记录流，从而具有容错能力。</li>
+<li>处理收到的记录流。<br /></li>
+</ul>
+
+<p>可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/kafka/kafka-apis.png" alt="" /></p>
+
+<p>相关功能主要通过如下四个核心API实现：</p>
+
+<ul>
+<li>生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。<br /></li>
+<li>消费者API允许应用程序订阅一个或多个主题，并处理这些主题接收到的记录流。</li>
+<li>Streams API允许应用程序充当流处理器（stream processor），从一个或多个主题获取输入流，并生产一个输出流至一个或多个的主题，能够有效地变换输入流为输出流。</li>
+<li>Connector API允许构建和运行可重用的生产者或消费者，能够把 Kafka主题连接到现有的应用程序或数据系统。例如，一个连接到关系数据库的连接器(connector)可能会获取每个表的变化。</li>
+</ul>
+
+<h2 id="基本概念">基本概念</h2>
+
+<h3 id="主题-日志和分区">主题、日志和分区</h3>
+
+<p>kafka的主题(topic)是支持多用户订阅的，一个主题可以有零个，一个或多个消费者订阅写入的数据。<br />
+对于每一个主题，Kafka集群保持一个分区日志文件，看下图：</p>
+
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/kafka/log_anatomy.png" alt="" /></p>
+
+<p>每个分区是一个有序的，不可变的消息序列，新的消息不断追加，同时分区会给每个消息记录分配一个顺序ID号 – 偏移量， 用于唯一标识该分区中的每个记录。</p>
+
+<p>Kafka集群保留所有发布的记录，不管这个记录有没有被消费过，Kafka提供可配置的保留策略去删除旧数据(还有一种策略根据分区大小删除数据)。例如，如果将保留策略设置为两天，在记录公布后两天，它可用于消费，之后它将被丢弃以腾出空间。Kafka的性能跟存储的数据量的大小无关， 所以将数据存储很长一段时间是没有问题的。<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/kafka/log_consumer.png" alt="" /><br />
+事实上，保留在每个消费者元数据中的最基础的数据就是消费者正在处理的当前记录的偏移量(offset)或位置(position)。这种偏移是由消费者控制：通常偏移会随着消费者读取记录线性前进，但事实上，因为其位置是由消费者进行控制，消费者可以在任何它喜欢的位置读取记录。例如，消费者可以恢复到旧的偏移量对过去的数据再加工或者直接跳到最新的记录，并消费从“现在”开始的新的记录。<br />
+数据日志的分区，有多个目的。首先，每个单独的分区的大小受到承载它的服务器的限制，但一个主题可能有很多分区，允许数据能够扩展到多个服务器，以便它能够支持海量的的数据。其次，更重要的意义是分区是进行并行处理的基础单元。<br />
+日志的分区会跨服务器的分布在Kafka集群中，每个服务器会共享分区进行数据请求的处理。每个分区可以配置一定数量的副本分区以提供容错能力。<br />
+每个分区都有一个服务器充当“leader”和零个或多个服务器充当“followers”。 leader处理所有的读取和写入分区的请求，而followers被动的从leader拷贝数据。如果leader失败了，followers之一将自动成为新的领导者。每个服务器可能充当一些分区的leader和其他分区的follower，这样的负载就会在集群内很好的均衡分配。</p>
+
+<h3 id="生产者">生产者</h3>
+
+<p>生产者发布数据到他们所选择的主题。生产者负责选择把记录分配到主题中的哪个分区。这可以使用轮询算法( round-robin)进行简单地平衡负载，也可以根据一些更复杂的语义分区算法（比如基于记录一些键值自定义）来完成。</p>
+
+<h3 id="消费者">消费者</h3>
+
+<p>消费者以消费群（consumer group ）的名称来标识自己，每个发布到主题的消息都会发送给订阅了这个主题的消费群里面的一个消费者的一个实例。消费者的实例可以在单独的进程或单独的机器上。
+如果所有的消费者实例都属于相同的消费群，那么记录将有效地被均衡到每个消费者实例。
+如果所有的消费者实例有不同的消费群，那么每个消息将被广播到所有的消费者进程。
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/kafka/consumer-groups.png" alt="" /><br />
+两个服务器的Kafka集群具有四个分区（P0-P3）和两个消费群。A消费群有两个消费者，B群有四个。</p>
+
+<p>更常见的是，我们会发现主题有少量的消费群，每一个都是“逻辑上的订阅者”。每组都是由很多消费者实例组成，从而实现可扩展性和容错性。这只不过是发布 – 订阅模式的再现，区别是这里的订阅者是一组消费者而不是一个单一的进程的消费者。</p>
+
+<p>Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。</p>
+
+<p>Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。</p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/kafka"><span class="tag">Kafka</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.This post was published <strong>386</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

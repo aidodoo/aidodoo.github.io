@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>并发工具类二</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
+Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
+Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
+常用方法
+Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
+运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="并发工具类二">
+    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
+Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
+Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
+常用方法
+Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
+运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="并发工具类二">
+  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
+Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
+Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
+常用方法
+Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
+运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
+  <meta property="og:url" content="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">并发工具类二</h1>
+      <p class="post-meta">@aidodoo · Apr 6, 2016 · 10 min read</p>
+    </header>
+    <article class="post-content">
+
+<h1 id="并发工具类">并发工具类</h1>
+
+<p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /></p>
+
+<p>系列文章列表：</p>
+
+<ul>
+<li><a href="https://www.cnblogs.com/aidodoo/p/9530427.html">Java并发基础-并发模型、基础接口以及Thread</a><br /></li>
+<li><a href="https://www.cnblogs.com/aidodoo/p/9575156.html">Java并发基础-同步和锁</a></li>
+<li><a href="https://www.cnblogs.com/aidodoo/p/9601499.html">Java并发基础-并发工具类(一)</a></li>
+</ul>
+
+<p>本文主要以实例讲解<code>Semaphore</code>、阻塞队列等内容。</p>
+
+<h2 id="semaphore">Semaphore</h2>
+
+<h3 id="基本概念和用途">基本概念和用途</h3>
+
+<p><code>Semaphore</code>常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用<code>acquire()</code>方法去或者许可证，然后执行相关任务，任务完成后，调用<code>release()</code>方法释放该许可证，让其他阻塞的线程可以运行。<br />
+<code>Semaphore</code>可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改<code>mysql</code>数据库,为了避免数据库并发太大，我们进行相关限制。<br />
+<strong>常用方法</strong><br />
+<code>Semaphore(int permits)</code>：构造方法，初始化许可证数量
+<code>void acquire()</code>：获取许可证
+<code>void release()</code>：释放许可证
+<code>int availablePermits()</code> ：返回此信号量中当前可用的许可证数。
+<code>int getQueueLength()</code>：返回正在等待获取许可证的线程数。
+<code>boolean hasQueuedThreads()</code> ：是否有线程正在等待获取许可证。
+<code>void reducePermits(int reduction)</code> ：减少reduction个许可证。是个protected方法。
+<code>Collection getQueuedThreads()</code> ：返回所有等待获取许可证的线程集合。是个protected方法。</p>
+
+<h3 id="运行示例">运行示例</h3>
+
+<p>虽然在代码中设置了<code>20</code>个线程去运行，但同时设置了许可证的数量为<code>5</code>，因而实际的最大并发数还是<code>5</code>。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.aidodoo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> java.util.concurrent.*<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/9/9.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SemaphoreDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">){</span>
+        Semaphore semaphore<span style="color:#f92672">=</span><span style="color:#66d9ef">new</span> Semaphore<span style="color:#f92672">(</span>5<span style="color:#f92672">);</span>
+        ExecutorService executorService <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>20<span style="color:#f92672">);</span>
+        Account account<span style="color:#f92672">=</span><span style="color:#66d9ef">new</span> Account<span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">for</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i<span style="color:#f92672">=</span>0<span style="color:#f92672">;</span>i<span style="color:#f92672">&lt;</span>20<span style="color:#f92672">;</span>i<span style="color:#f92672">++){</span>
+            SpenderWithSemaphore spender <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SpenderWithSemaphore<span style="color:#f92672">(</span>account<span style="color:#f92672">,</span> semaphore<span style="color:#f92672">);</span>
+            executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>spender<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+
+        executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SpenderWithSemaphore</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Account account<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Semaphore semaphore<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">SpenderWithSemaphore</span><span style="color:#f92672">(</span>Account account<span style="color:#f92672">,</span> Semaphore semaphore<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">account</span> <span style="color:#f92672">=</span> account<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">semaphore</span> <span style="color:#f92672">=</span> semaphore<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+            semaphore<span style="color:#f92672">.</span><span style="color:#a6e22e">acquire</span><span style="color:#f92672">();</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%s get a premit at time %s,change and save data to mysql&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()/</span>1000<span style="color:#f92672">));</span>
+            Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>2000<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+<span style="color:#75715e">//            System.out.println(String.format(&#34;%s release a premit&#34;,Thread.currentThread().getName()));
+</span><span style="color:#75715e"></span>            semaphore<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>获取许可证后，模拟操作<code>mysql</code>，我们让线程睡眠<code>2</code>秒，程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 get a premit at time 1536480858<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>5 get a premit at time 1536480858<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>3 get a premit at time 1536480858<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>4 get a premit at time 1536480858<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 get a premit at time 1536480858<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 get a premit at time 1536480860<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 get a premit at time 1536480860<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 get a premit at time 1536480860<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>9 get a premit at time 1536480860<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>10 get a premit at time 1536480860<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>11 get a premit at time 1536480862<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>13 get a premit at time 1536480862<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>12 get a premit at time 1536480862<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>14 get a premit at time 1536480862<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>15 get a premit at time 1536480862<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>16 get a premit at time 1536480864<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>17 get a premit at time 1536480864<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>19 get a premit at time 1536480864<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>18 get a premit at time 1536480864<span style="color:#f92672">,</span>change and save data to mysql
+pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>20 get a premit at time 1536480864<span style="color:#f92672">,</span>change and save data to mysql</code></pre></div>
+<p>可以看到前面<code>5</code>个线程同一时间<code>1536480858</code>获得许可证，然后执行操作，并不是<code>20</code>个线程一起操作，这样能降低对<code>mysql</code>数据库的影响。
+如果把上面<code>Semaphore</code>的构造方法中的许可证数量改为<code>20</code>，大家可以看到<code>20</code>个线程的运行时间基本一致。</p>
+
+<h3 id="源码实现">源码实现</h3>
+
+<p><code>Semaphore</code>实现直接基于<code>AQS</code>，有公平和非公平两种模式。公平模式即按照调用<code>acquire()</code>的顺序依次获得许可证，遵循<code>FIFO</code>(先进先出)，非公平模式是抢占式的，谁先抢到先使用。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Semaphore</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> permits<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> fair<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    sync <span style="color:#f92672">=</span> fair <span style="color:#f92672">?</span> <span style="color:#66d9ef">new</span> FairSync<span style="color:#f92672">(</span>permits<span style="color:#f92672">)</span> <span style="color:#f92672">:</span> <span style="color:#66d9ef">new</span> NonfairSync<span style="color:#f92672">(</span>permits<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+java
+<span style="color:#f92672">**</span>获取许可证<span style="color:#f92672">**</span>     
+<span style="color:#960050;background-color:#1e0010">`</span>acquire<span style="color:#f92672">()</span><span style="color:#960050;background-color:#1e0010">`</span>方法最终调用父类<span style="color:#960050;background-color:#1e0010">`</span>AQS<span style="color:#960050;background-color:#1e0010">`</span>中的<span style="color:#960050;background-color:#1e0010">`</span>acquireSharedInterruptibly<span style="color:#960050;background-color:#1e0010">`</span>方法<span style="color:#960050;background-color:#1e0010">。</span>    
+<span style="color:#960050;background-color:#1e0010">```</span>java
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">acquireSharedInterruptibly</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> arg<span style="color:#f92672">)</span>
+        <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">interrupted</span><span style="color:#f92672">())</span>
+        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> InterruptedException<span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>tryAcquireShared<span style="color:#f92672">(</span>arg<span style="color:#f92672">)</span> <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span>              <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>        doAcquireSharedInterruptibly<span style="color:#f92672">(</span>arg<span style="color:#f92672">);</span>      <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span></code></pre></div>
+<p>(1):调用<code>tryAcquireShared</code>，尝试去获取许可证<br />
+(2):如果获取失败，则调用<code>doAcquireSharedInterruptibly</code>，将线程加入到等待队列中<br />
+<code>tryAcquireShared</code>方法由<code>Semaphore</code>的内部类，同时也是<code>AQS</code>的子类去实现，即<code>NonfairSync</code>和<code>FairSync</code>，下面我们以<code>NonfairSync</code>为例说明其实现。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tryAcquireShared</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> acquires<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> nonfairTryAcquireShared<span style="color:#f92672">(</span>acquires<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>而<code>nonfairTryAcquireShared</code>方法如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">nonfairTryAcquireShared</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> acquires<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(;;)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> available <span style="color:#f92672">=</span> getState<span style="color:#f92672">();</span>             <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> remaining <span style="color:#f92672">=</span> available <span style="color:#f92672">-</span> acquires<span style="color:#f92672">;</span>   <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>remaining <span style="color:#f92672">&lt;</span> 0 <span style="color:#f92672">||</span>
+            compareAndSetState<span style="color:#f92672">(</span>available<span style="color:#f92672">,</span> remaining<span style="color:#f92672">))</span> <span style="color:#f92672">(</span>3<span style="color:#f92672">)</span>
+            <span style="color:#66d9ef">return</span> remaining<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(1):获取<code>state</code>的值，也就是总许可证数量<br />
+(2):计算本次申请后，剩余的许可证数量<br />
+(3):如果剩余的许可证数量大于<code>0</code>且通过<code>CAS</code>将<code>state</code>的值修改成功后，返回剩余的许可证数量,否则继续循环阻塞。</p>
+
+<p><strong>释放许可证</strong><br />
+<code>release()</code>方法的调用最终会调用父类<code>AQS</code>的<code>releaseShared()</code>方法：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">releaseShared</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> arg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>tryReleaseShared<span style="color:#f92672">(</span>arg<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>        <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>        doReleaseShared<span style="color:#f92672">();</span>              <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(1):尝试释放许可证<br />
+(2):如果释放许可证成功，则通知阻塞的线程，让其执行<br />
+<code>tryReleaseShared</code>方法很简单，基本上是<code>nonfairTryAcquireShared</code>的逆过程，即增加许可证的数量，并通过<code>CAS</code>修改<code>state</code>的值。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">tryReleaseShared</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> releases<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(;;)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> current <span style="color:#f92672">=</span> getState<span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">int</span> next <span style="color:#f92672">=</span> current <span style="color:#f92672">+</span> releases<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>next <span style="color:#f92672">&lt;</span> current<span style="color:#f92672">)</span> <span style="color:#75715e">// overflow
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Maximum permit count exceeded&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>compareAndSetState<span style="color:#f92672">(</span>current<span style="color:#f92672">,</span> next<span style="color:#f92672">))</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<h2 id="blockingqueue">BlockingQueue</h2>
+
+<h3 id="基本概念">基本概念</h3>
+
+<p>阻塞队列主要是解决如何高效安全传输数据的问题，此外能降低程序耦合度，让代码逻辑更加清晰。
+其继承了<code>Queue</code>，并在其基础上支持了两个附加的操作：</p>
+
+<ul>
+<li>当队列为空时，获取元素的线程会阻塞，等待队列变为非空</li>
+<li>当队列满时，添加元素的线程会阻塞，等待队列可用<br /></li>
+</ul>
+
+<p>比较典型的使用场景是生产者和消费者。<br />
+<code>BlockingQueue</code>根据对于不能立即满足但可能在将来某一时刻可以满足的操作，提供了不同的处理方法，进而导致众多的<code>api</code>操作：<br />
+<table BORDER CELLPADDING=3 CELLSPACING=1>
+    <tr>
+        <td></td>
+        <td ALIGN=CENTER>Throws exception</td>
+        <td ALIGN=CENTER>Special value</td>
+        <td ALIGN=CENTER>Blocks</td>
+        <td ALIGN=CENTER>Times out</td>
+    </tr>
+    <tr>
+        <td><b>Insert</b></td>
+        <td>add(e)</td>
+        <td>offer(e)</td>
+        <td>put(e)</td>
+        <td>offer(e, time, unit)</td>
+    </tr>
+    <tr>
+        <td><b>Remove</b></td>
+        <td>remove()</td>
+        <td>poll()</td>
+        <td>take()</td>
+        <td>poll(time, unit)</td>
+    </tr>
+    <tr>
+        <td><b>Examine</b></td>
+        <td>element()</td>
+        <td>peek()}</td>
+        <td>not applicable</td>
+        <td>not applicable</td>
+    </tr>
+</table>
+<code>Throws exception</code>:指当阻塞队列满时候，再往队列里插入元素，会抛出<code>IllegalStateException</code>异常。当队列为空时，从队列里获取元素时会抛出<code>NoSuchElementException</code>异常<br />
+<code>Special value</code>:插入方法会返回是否成功，成功则返回<code>true</code>。移除方法，则是从队列里拿出一个元素，如果没有则返回<code>null</code><br />
+<code>Blocks</code>：当阻塞队列满时，如果生产者线程往队列里<code>put</code>元素，队列会一直阻塞生产者线程，直到拿到数据，或者响应中断退出。当队列空时，消费者线程试图从队列里<code>take</code>元素，队列也会阻塞消费者线程，直到队列可用。<br />
+<code>Time out</code>：当阻塞队列满时，队列会阻塞生产者线程一段时间，如果超过一定的时间，生产者线程就会退出。</p>
+
+<h3 id="整体架构和类图">整体架构和类图</h3>
+
+<p><code>Java</code>并发包根据不同的结构和功能提供了不同的阻塞队列，整体类图如下：<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/BlockQueue1.png" alt="" /><br />
+其中<code>BlockingQueue</code>有如下子类：</p>
+
+<ul>
+<li><code>ArrayBlockingQueue</code> ：一个由数组结构组成的有界阻塞队列。</li>
+<li><code>DelayQueue</code>：一个使用优先级队列实现的无界阻塞队列。</li>
+<li><code>PriorityBlockingQueue</code> ：一个支持优先级排序的无界阻塞队列。</li>
+<li><code>SynchronousQueue</code>：一个不存储元素的阻塞队列。</li>
+<li><code>LinkedBlockingQueue</code> ：一个由链表结构组成的有界阻塞队列。<br /></li>
+</ul>
+
+<p>其中<code>BlockingDeque</code>有一个子类：</p>
+
+<ul>
+<li><code>LinkedBlockingDeque</code>：一个由链表结构组成的双向阻塞队列。
+<code>BlockingDeque</code>作为双端队列，针对头部元素，还提供了如下方法：</li>
+</ul>
+
+<table border="" cellpadding="3" cellspacing="1"> 
+    <tr> 
+     <td  align="CENTER" colspan="5"> <b>First Element (Head)</b></td> 
+    </tr> 
+    <tr> 
+     <td></td> 
+     <td >Throws exception</td> 
+     <td >Special value</td> 
+     <td >Blocks</td> 
+     <td >Times out</td> 
+    </tr> 
+    <tr> 
+     <td><b>Insert</b></td> 
+     <td>addFirst(e)</td> 
+     <td>offerFirst(e)</td> 
+     <td>putFirst(e)</td> 
+     <td>offerFirst(e, time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Remove</b></td> 
+     <td>removeFirst()</td> 
+     <td>pollFirst()</td> 
+     <td>takeFirst()</td> 
+     <td>pollFirst(time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Examine</b></td> 
+     <td>getFirst()</code></td> 
+     <td>peekFirst()</code></td> 
+     <td>not applicable</td> 
+     <td>not applicable</td> 
+    </tr>
+</table>
+
+<p>针对尾部元素</p>
+
+<table> 
+    <tr> 
+     <td  align="CENTER" colspan="5"> <b>Last Element (Tail)</b></td> 
+    </tr> 
+    <tr> 
+     <td></td> 
+     <td >Throws exception</td> 
+     <td >Special value</td> 
+     <td >Blocks</td> 
+     <td >Times out</td> 
+    </tr> 
+    <tr> 
+     <td><b>Insert</b></td> 
+     <td>addLast(e)</td> 
+     <td>offerLast(e)</td> 
+     <td>putLast(e)</td> 
+     <td>offerLast(e, time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Remove</b></td> 
+     <td>removeLast()</code></td> 
+     <td>pollLast()</code></td> 
+     <td>takeLast()</code></td> 
+     <td>pollLast(time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Examine</b></td> 
+     <td>getLast()</code></td> 
+     <td>peekLast()</code></td> 
+     <td>not applicable</td> 
+     <td>not applicable</td> 
+    </tr> 
+  </table>
+
+<h3 id="使用示例">使用示例</h3>
+
+<p>一个典型的生产者和消费者实例如下，一个<code>BlockingQueue</code>可以安全地与多个生产者和消费者一起使用，<code>Producer</code>线程调用<code>NumerGenerator</code>.<code>getNextNumber()</code>生成自增整数，不断地写入数字，然后<code>Consumer</code>循环消费。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.aidodoo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> org.slf4j.Logger<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.slf4j.LoggerFactory<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> java.util.concurrent.ArrayBlockingQueue<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.BlockingQueue<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.ExecutorService<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.Executors<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.atomic.AtomicInteger<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/7/17.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BlockingQueueDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+        BlockingQueue queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayBlockingQueue<span style="color:#f92672">(</span>1024<span style="color:#f92672">,</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+        ExecutorService executorService <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>20<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 5<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Producer<span style="color:#f92672">(</span>queue<span style="color:#f92672">));</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 3<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Consumer<span style="color:#f92672">(</span>queue<span style="color:#f92672">));</span>
+        <span style="color:#f92672">}</span>
+        Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>30 <span style="color:#f92672">*</span> 1000L<span style="color:#f92672">);</span>
+        executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Producer</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    Logger logger <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>Producer<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+    <span style="color:#66d9ef">protected</span> BlockingQueue queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Producer</span><span style="color:#f92672">(</span>BlockingQueue queue<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">queue</span> <span style="color:#f92672">=</span> queue<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">for</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i<span style="color:#f92672">=</span>0<span style="color:#f92672">;</span>i<span style="color:#f92672">&lt;</span>3<span style="color:#f92672">;</span>i<span style="color:#f92672">++){</span>
+                <span style="color:#66d9ef">int</span> num <span style="color:#f92672">=</span> NumerGenerator<span style="color:#f92672">.</span><span style="color:#a6e22e">getNextNumber</span><span style="color:#f92672">();</span>
+                queue<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>num<span style="color:#f92672">);</span>
+                Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+                logger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{} producer put {}&#34;</span><span style="color:#f92672">,</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> num<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+
+<span style="color:#960050;background-color:#1e0010">​</span>   
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Consumer</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    Logger logger <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>Consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+
+    <span style="color:#66d9ef">protected</span> BlockingQueue queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Consumer</span><span style="color:#f92672">(</span>BlockingQueue queue<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">queue</span> <span style="color:#f92672">=</span> queue<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">int</span> ele <span style="color:#f92672">=</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span><span style="color:#f92672">)</span> queue<span style="color:#f92672">.</span><span style="color:#a6e22e">take</span><span style="color:#f92672">();</span>
+                logger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{} Consumer take {}&#34;</span><span style="color:#f92672">,</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> ele<span style="color:#f92672">);</span>
+                Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">NumerGenerator</span><span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> AtomicInteger count <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AtomicInteger<span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Integer <span style="color:#a6e22e">getNextNumber</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">return</span> count<span style="color:#f92672">.</span><span style="color:#a6e22e">incrementAndGet</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:33 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 Consumer take 1
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:33 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 Consumer take 2
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:33 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 Consumer take 3
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>3 producer put 3
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 producer put 2
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 producer put 1
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>5 producer put 5
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>4 producer put 4
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 Consumer take 4
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 Consumer take 5
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:34 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 Consumer take 6
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>3 producer put 6
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 producer put 8
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 producer put 7
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>5 producer put 9
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>4 producer put 10
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 Consumer take 7
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 Consumer take 8
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:35 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 Consumer take 9
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 producer put 12
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>3 producer put 11
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>5 producer put 14
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>4 producer put 15
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Producer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 producer put 13
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 Consumer take 10
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 Consumer take 11
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:36 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 Consumer take 12
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:37 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>6 Consumer take 13
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:37 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>7 Consumer take 14
+18<span style="color:#f92672">/</span>09<span style="color:#f92672">/</span>10 14:34:37 INFO concurrent<span style="color:#f92672">.</span><span style="color:#a6e22e">Consumer</span><span style="color:#f92672">:</span> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>8 Consumer take 15</code></pre></div>
+<p>其他<code>BlockingQueue</code>子类的使用可参考对应的<code>Java</code> <code>Api</code>。</p>
+
+<h3 id="源码分析">源码分析</h3>
+
+<p>由于<code>BlockingQueue</code>相关的子类众多，我们仅以<code>ArrayBlockingQueue</code>从源码角度分析相关实现。<br />
+<strong>构造方法</strong><br />
+<code>ArrayBlockingQueue</code>中定义的成员变量如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> items<span style="color:#f92672">;</span> 
+<span style="color:#66d9ef">int</span> takeIndex<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">int</span> putIndex<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">int</span> count<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">final</span> ReentrantLock lock<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Condition notEmpty<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Condition notFull<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">transient</span> Itrs itrs <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span></code></pre></div>
+<p>各变量的解释如下，以便了解后续的代码：</p>
+
+<ul>
+<li><code>items</code>用于存储具体的元素</li>
+<li><code>takeIndex</code>元素索引,用于记录下次获取元素的位置</li>
+<li><code>putIndex</code>元素索引，用于记录下次插入元素的位置</li>
+<li><code>count</code>用于记录当前队列中元素的个数</li>
+<li><code>notEmpty</code>条件变量，此处为获取元素的条件，即队列不能为空，否则线程阻塞</li>
+<li><code>notFull</code>条件变量，此处为插入元素的条件，即队列不能已满，否则线程阻塞</li>
+<li><code>itrs</code>用于维护迭代器相关内容</li>
+</ul>
+
+<p>内部结构如下：</p>
+
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueue1.png" alt="" /></p>
+
+<p>构造方法如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ArrayBlockingQueue</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> capacity<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">this</span><span style="color:#f92672">(</span>capacity<span style="color:#f92672">,</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>  <span style="color:#75715e">//(1)                               
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ArrayBlockingQueue</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> capacity<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> fair<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>capacity <span style="color:#f92672">&lt;=</span> 0<span style="color:#f92672">)</span>
+        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException<span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">items</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[</span>capacity<span style="color:#f92672">];</span>      <span style="color:#75715e">//(2)               
+</span><span style="color:#75715e"></span>    lock <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReentrantLock<span style="color:#f92672">(</span>fair<span style="color:#f92672">);</span>
+    notEmpty <span style="color:#f92672">=</span> lock<span style="color:#f92672">.</span><span style="color:#a6e22e">newCondition</span><span style="color:#f92672">();</span>         <span style="color:#75715e">//(3)
+</span><span style="color:#75715e"></span>    notFull <span style="color:#f92672">=</span>  lock<span style="color:#f92672">.</span><span style="color:#a6e22e">newCondition</span><span style="color:#f92672">();</span>         <span style="color:#75715e">//(4)
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ArrayBlockingQueue</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> capacity<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> fair<span style="color:#f92672">,</span>
+                          Collection<span style="color:#f92672">&lt;?</span> <span style="color:#66d9ef">extends</span> E<span style="color:#f92672">&gt;</span> c<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">this</span><span style="color:#f92672">(</span>capacity<span style="color:#f92672">,</span> fair<span style="color:#f92672">);</span>
+
+    <span style="color:#66d9ef">final</span> ReentrantLock lock <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">;</span>
+    lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">();</span> <span style="color:#75715e">// Lock only for visibility, not mutual exclusion
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>E e <span style="color:#f92672">:</span> c<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>                 <span style="color:#75715e">//(5)
+</span><span style="color:#75715e"></span>                checkNotNull<span style="color:#f92672">(</span>e<span style="color:#f92672">);</span>
+                items<span style="color:#f92672">[</span>i<span style="color:#f92672">++]</span> <span style="color:#f92672">=</span> e<span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>ArrayIndexOutOfBoundsException ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException<span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+        count <span style="color:#f92672">=</span> i<span style="color:#f92672">;</span>
+        putIndex <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>i <span style="color:#f92672">==</span> capacity<span style="color:#f92672">)</span> <span style="color:#f92672">?</span> 0 <span style="color:#f92672">:</span> i<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(1):默认情况下，非公平模式，即抢占式<br />
+(2):数组初始化<br />
+(3)/(4):条件变量初始化<br />
+(5):如果构造方法中，含有初始化集合的话，则将对应元素添加到内部数组，并更改<code>count</code>和<code>putIndex</code>的值。</p>
+
+<p><strong>插入数据</strong><br />
+插入数据，我们主要看<code>put()</code>方法的实现，重点看生产者和消费者插入和获取数据时，线程何时阻塞，同时又何时唤醒。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>E e<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    checkNotNull<span style="color:#f92672">(</span>e<span style="color:#f92672">);</span>                        <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">final</span> ReentrantLock lock <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">;</span>   <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span>    lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lockInterruptibly</span><span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>count <span style="color:#f92672">==</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">)</span>
+            notFull<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>                <span style="color:#75715e">//(3)
+</span><span style="color:#75715e"></span>        enqueue<span style="color:#f92672">(</span>e<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>                      <span style="color:#75715e">//(4)
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">enqueue</span><span style="color:#f92672">(</span>E x<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+<span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> items <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">items</span><span style="color:#f92672">;</span>
+    items<span style="color:#f92672">[</span>putIndex<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> x<span style="color:#f92672">;</span>                    <span style="color:#75715e">//(5)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(++</span>putIndex <span style="color:#f92672">==</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">)</span>         <span style="color:#75715e">//(6)
+</span><span style="color:#75715e"></span>        putIndex <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
+    count<span style="color:#f92672">++;</span>                                <span style="color:#75715e">//(7)
+</span><span style="color:#75715e"></span>    notEmpty<span style="color:#f92672">.</span><span style="color:#a6e22e">signal</span><span style="color:#f92672">();</span>                      <span style="color:#75715e">//(8)
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span></code></pre></div>
+<p>(<code>1</code>):非空检查，插入的元素不能为<code>null</code>,否则抛出<code>NullPointerException</code><br />
+(<code>2</code>):获取互斥锁<br />
+(<code>3</code>):如果当前队列的元素个数等于队列总长度，即队列已满，则通过条件变量，释放和<code>notFull</code>相关的锁，当前线程阻塞。当前线程唤醒的条件如下：</p>
+
+<ul>
+<li>其他某个线程调用此 <code>Condition</code> 的 <code>signal()</code> 方法，并且碰巧将当前线程选为被唤醒的线程；</li>
+<li>或者其他某个线程调用此 <code>Condition</code> 的 <code>signalAll()</code> 方法；</li>
+<li>或者其他某个线程中断当前线程，且支持中断线程的挂起；</li>
+<li>或者发生“虚假唤醒”</li>
+</ul>
+
+<p>(5):如果队列未满，则将元素添加的<code>putIndex</code>索引的位置<br />
+(6):<code>putIndex</code>增加<code>1</code>后和队列长度相等，即已到达队列尾部，则<code>putIndex</code>置<code>0</code><br />
+(7):队列已有元素数量加<code>1</code><br />
+(8):通知<code>notEmpty</code>条件变量，唤醒等待获取元素的线程<br />
+(4):释放互斥锁<br />
+可以看到<code>ArrayBlockingQueue</code>每次插入元素后，都会去唤醒等待获取元素的线程。</p>
+
+<p><strong>获取数据</strong><br />
+<code>take()</code>方法源码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> E <span style="color:#a6e22e">take</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">final</span> ReentrantLock lock <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">;</span>   <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>    lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lockInterruptibly</span><span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>count <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span>                  
+            notEmpty<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>               <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> dequeue<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>                      <span style="color:#75715e">//(9)
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">private</span> E <span style="color:#a6e22e">dequeue</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> items <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">items</span><span style="color:#f92672">;</span>
+    <span style="color:#a6e22e">@SuppressWarnings</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;unchecked&#34;</span><span style="color:#f92672">)</span>
+    E x <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>E<span style="color:#f92672">)</span> items<span style="color:#f92672">[</span>takeIndex<span style="color:#f92672">];</span>             <span style="color:#75715e">//(3)
+</span><span style="color:#75715e"></span>    items<span style="color:#f92672">[</span>takeIndex<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>                <span style="color:#75715e">//(4)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(++</span>takeIndex <span style="color:#f92672">==</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">)</span>
+        takeIndex <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>                      <span style="color:#75715e">//(5)
+</span><span style="color:#75715e"></span>    count<span style="color:#f92672">--;</span>                                <span style="color:#75715e">//(6)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>itrs <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
+        itrs<span style="color:#f92672">.</span><span style="color:#a6e22e">elementDequeued</span><span style="color:#f92672">();</span>             <span style="color:#75715e">//(7)
+</span><span style="color:#75715e"></span>    notFull<span style="color:#f92672">.</span><span style="color:#a6e22e">signal</span><span style="color:#f92672">();</span>                       <span style="color:#75715e">//(8)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> x<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(1):获取互斥锁<br />
+(2):如果<code>count</code>为<code>0</code>，即队列为空，则释放互斥锁，然后挂起当前线程<br />
+(3):根据<code>takeIndex</code>索引到数组中获取具体的值,并赋值给<code>x</code><br />
+(4):赋值完成后，<code>takeIndex</code>索引位置数据置<code>null</code>，便于回收<br />
+(5):<code>takeIndex</code>加<code>1</code>，然后和队列长度比较，如果相等，即已经读取到队列尾部，<code>takeIndex</code>置<code>0</code><br />
+(6):获取后，将队列元素个数<code>count</code>减<code>1</code><br />
+(7):维护和<code>queue</code>相关的迭代器<br />
+(8):唤醒等待插入元素的线程<br />
+(9):释放互斥锁<br />
+可以看到<code>ArrayBlockingQueue</code>每次获取元素后，都会唤醒等待插入元素的线程。</p>
+
+<p><strong>迭代器</strong><br />
+在分析源码前，我们先看在一个迭代器的示例</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.aidodoo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> java.util.Iterator<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.ArrayBlockingQueue<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.BlockingQueue<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/9/10.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ArrayBlockingQueueIterDemo</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException<span style="color:#f92672">{</span>
+            BlockingQueue<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> queue<span style="color:#f92672">=</span><span style="color:#66d9ef">new</span> ArrayBlockingQueue<span style="color:#f92672">(</span>5<span style="color:#f92672">);</span>
+            queue<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hadoop&#34;</span><span style="color:#f92672">);</span>
+            queue<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;spark&#34;</span><span style="color:#f92672">);</span>
+            queue<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;storm&#34;</span><span style="color:#f92672">);</span>
+            queue<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;flink&#34;</span><span style="color:#f92672">);</span>
+
+            Iterator<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> iterator1 <span style="color:#f92672">=</span> queue<span style="color:#f92672">.</span><span style="color:#a6e22e">iterator</span><span style="color:#f92672">();</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span> queue<span style="color:#f92672">.</span><span style="color:#a6e22e">take</span><span style="color:#f92672">());</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>queue<span style="color:#f92672">.</span><span style="color:#a6e22e">take</span><span style="color:#f92672">());</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>queue<span style="color:#f92672">.</span><span style="color:#a6e22e">take</span><span style="color:#f92672">());</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">();</span>
+            <span style="color:#66d9ef">while</span><span style="color:#f92672">(</span>iterator1<span style="color:#f92672">.</span><span style="color:#a6e22e">hasNext</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>iterator1<span style="color:#f92672">.</span><span style="color:#a6e22e">next</span><span style="color:#f92672">());</span>
+            <span style="color:#f92672">}</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">();</span>
+            Iterator<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> iterator2 <span style="color:#f92672">=</span> queue<span style="color:#f92672">.</span><span style="color:#a6e22e">iterator</span><span style="color:#f92672">();</span>
+            <span style="color:#66d9ef">while</span><span style="color:#f92672">(</span>iterator2<span style="color:#f92672">.</span><span style="color:#a6e22e">hasNext</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>iterator2<span style="color:#f92672">.</span><span style="color:#a6e22e">next</span><span style="color:#f92672">());</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">hadoop
+spark
+storm
+
+hadoop
+flink
+
+flink</code></pre></div>
+<p>我们结合这个示例来具体分析数据插入和获取时，内部成员变量的值
+当分别插入<code>hadoop</code>、<code>spark</code>、<code>storm</code>、<code>flink</code>四个元素后，内部变量的值如下：<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter2.png" alt="" /><br />
+此时，<code>ArrayBlockingQueue</code>的成员变量的值<code>itrs</code>为<code>null</code>。<br />
+调用<code>iterator()</code>方法后,源码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Iterator<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">iterator</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Itr<span style="color:#f92672">();</span>                   <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+
+Itr<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    lastRet <span style="color:#f92672">=</span> NONE<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">final</span> ReentrantLock lock <span style="color:#f92672">=</span> ArrayBlockingQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">;</span>
+    lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">();</span>                            <span style="color:#75715e">//(2)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>count <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>                   <span style="color:#75715e">//(3)
+</span><span style="color:#75715e"></span>            cursor <span style="color:#f92672">=</span> NONE<span style="color:#f92672">;</span>
+            nextIndex <span style="color:#f92672">=</span> NONE<span style="color:#f92672">;</span>
+            prevTakeIndex <span style="color:#f92672">=</span> DETACHED<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> takeIndex <span style="color:#f92672">=</span> ArrayBlockingQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">takeIndex</span><span style="color:#f92672">;</span>
+            prevTakeIndex <span style="color:#f92672">=</span> takeIndex<span style="color:#f92672">;</span>
+            nextItem <span style="color:#f92672">=</span> itemAt<span style="color:#f92672">(</span>nextIndex <span style="color:#f92672">=</span> takeIndex<span style="color:#f92672">);</span>   <span style="color:#75715e">//(4)
+</span><span style="color:#75715e"></span>            cursor <span style="color:#f92672">=</span> incCursor<span style="color:#f92672">(</span>takeIndex<span style="color:#f92672">);</span>              <span style="color:#75715e">//(5)
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>itrs <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                itrs <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Itrs<span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>                  <span style="color:#75715e">//(6)
+</span><span style="color:#75715e"></span>            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                itrs<span style="color:#f92672">.</span><span style="color:#a6e22e">register</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>                    <span style="color:#75715e">//(7)
+</span><span style="color:#75715e"></span>                itrs<span style="color:#f92672">.</span><span style="color:#a6e22e">doSomeSweeping</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+            prevCycles <span style="color:#f92672">=</span> itrs<span style="color:#f92672">.</span><span style="color:#a6e22e">cycles</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>                                  <span style="color:#75715e">//(8)
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(1):调用内部类<code>Itr</code>的构造方法<br />
+(2):获取外部类即<code>ArrayBlockingQueue</code>的锁<br />
+(3):没有没有元素，初始化变量值。内部类<code>Itr</code>的成员变量如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/** Index to look for new nextItem; NONE at end */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> cursor<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Element to be returned by next call to next(); null if none */</span>
+<span style="color:#66d9ef">private</span> E nextItem<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Index of nextItem; NONE if none, REMOVED if removed elsewhere */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> nextIndex<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Last element returned; null if none or not detached. */</span>
+<span style="color:#66d9ef">private</span> E lastItem<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Index of lastItem, NONE if none, REMOVED if removed elsewhere */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> lastRet<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Previous value of takeIndex, or DETACHED when detached */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> prevTakeIndex<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/** Previous value of iters.cycles */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> prevCycles<span style="color:#f92672">;</span></code></pre></div>
+<p>(4):将外部类的<code>takeIndex</code>赋值给内部类<code>nextIndex</code>，并获取数组具体的值赋值给<code>nextItem</code><br />
+(5):计算游标<code>cursor</code>的下个值，其中<code>incCursor</code>方法如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">incCursor</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> index<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// assert lock.getHoldCount() == 1;
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(++</span>index <span style="color:#f92672">==</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">)</span>
+        index <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>index <span style="color:#f92672">==</span> putIndex<span style="color:#f92672">)</span>
+        index <span style="color:#f92672">=</span> NONE<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">return</span> index<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>(6):注册，主要是维护链表<br />
+(7):清理<code>itrs</code><br />
+(8):释放外部类的互斥锁<br />
+在上面的示例中，调用<code>iterator()</code>方法后，<code>Itr</code>的内部变量值如下：<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter3.png" alt="" /></p>
+
+<p>由于后面三次调用了<code>queue</code>.<code>take()</code>，依次输出<code>hadoop</code>、<code>spark</code>、<code>storm</code>后，相关成员变量的值见图片标识，重点关注<code>takeIndex</code>=<code>3</code>。</p>
+
+<p>当调用<code>next()</code>方法时，代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> E <span style="color:#a6e22e">next</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">final</span> E x <span style="color:#f92672">=</span> nextItem<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>x <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
+        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NoSuchElementException<span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">final</span> ReentrantLock lock <span style="color:#f92672">=</span> ArrayBlockingQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">;</span>
+    lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>isDetached<span style="color:#f92672">())</span>          <span style="color:#75715e">//(1)
+</span><span style="color:#75715e"></span>            incorporateDequeues<span style="color:#f92672">();</span>
+        lastRet <span style="color:#f92672">=</span> nextIndex<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> cursor <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">cursor</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>cursor <span style="color:#f92672">&gt;=</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            nextItem <span style="color:#f92672">=</span> itemAt<span style="color:#f92672">(</span>nextIndex <span style="color:#f92672">=</span> cursor<span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">cursor</span> <span style="color:#f92672">=</span> incCursor<span style="color:#f92672">(</span>cursor<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+            nextIndex <span style="color:#f92672">=</span> NONE<span style="color:#f92672">;</span>
+            nextItem <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#66d9ef">return</span> x<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>其中(1)处的<code>isDetached</code>方法如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">isDetached</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// assert lock.getHoldCount() == 1;
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> prevTakeIndex <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>由于我们示例中初始化<code>Itr</code>的时候的<code>prevTakeIndex</code>为<code>0</code>，故<code>isDetached</code>返回为<code>false</code>,程序将调用<code>incorporateDequeues</code>方法，根据注释我们也知道，该方法主要是调整和迭代器相关的内部索引。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Adjusts indices to incorporate all dequeues since the last
+</span><span style="color:#75715e"> * operation on this iterator.  Call only from iterating thread.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">incorporateDequeues</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> cycles <span style="color:#f92672">=</span> itrs<span style="color:#f92672">.</span><span style="color:#a6e22e">cycles</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> takeIndex <span style="color:#f92672">=</span> ArrayBlockingQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">takeIndex</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> prevCycles <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">prevCycles</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> prevTakeIndex <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">prevTakeIndex</span><span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>cycles <span style="color:#f92672">!=</span> prevCycles <span style="color:#f92672">||</span> takeIndex <span style="color:#f92672">!=</span> prevTakeIndex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">;</span>
+        <span style="color:#75715e">// how far takeIndex has advanced since the previous
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// operation of this iterator
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">long</span> dequeues <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>cycles <span style="color:#f92672">-</span> prevCycles<span style="color:#f92672">)</span> <span style="color:#f92672">*</span> len
+            <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>takeIndex <span style="color:#f92672">-</span> prevTakeIndex<span style="color:#f92672">);</span>
+
+        <span style="color:#75715e">// Check indices for invalidation
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>invalidated<span style="color:#f92672">(</span>lastRet<span style="color:#f92672">,</span> prevTakeIndex<span style="color:#f92672">,</span> dequeues<span style="color:#f92672">,</span> len<span style="color:#f92672">))</span>
+            lastRet <span style="color:#f92672">=</span> REMOVED<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>invalidated<span style="color:#f92672">(</span>nextIndex<span style="color:#f92672">,</span> prevTakeIndex<span style="color:#f92672">,</span> dequeues<span style="color:#f92672">,</span> len<span style="color:#f92672">))</span>
+            nextIndex <span style="color:#f92672">=</span> REMOVED<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>invalidated<span style="color:#f92672">(</span>cursor<span style="color:#f92672">,</span> prevTakeIndex<span style="color:#f92672">,</span> dequeues<span style="color:#f92672">,</span> len<span style="color:#f92672">))</span>
+            cursor <span style="color:#f92672">=</span> takeIndex<span style="color:#f92672">;</span>
+
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>cursor <span style="color:#f92672">&lt;</span> 0 <span style="color:#f92672">&amp;&amp;</span> nextIndex <span style="color:#f92672">&lt;</span> 0 <span style="color:#f92672">&amp;&amp;</span> lastRet <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span>
+            detach<span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">prevCycles</span> <span style="color:#f92672">=</span> cycles<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">prevTakeIndex</span> <span style="color:#f92672">=</span> takeIndex<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>注意<code>cursor</code> = <code>takeIndex</code>这句代码，将外部内的<code>takeIndex</code>赋值给<code>cursor</code>,这样子将队列和迭代器数据读取进行了同步。<br />
+对于<code>iterator1</code>,第一次调用<code>next()</code>方法时，<code>cursor</code>被赋值为<code>3</code>首先将<code>nextItem</code>的值保持在<code>x</code>变量中，即<code>hadoop</code>字符串。
+然后设置<code>nextItem</code>和<code>cursor</code>的值</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">nextItem <span style="color:#f92672">=</span> itemAt<span style="color:#f92672">(</span>nextIndex <span style="color:#f92672">=</span> cursor<span style="color:#f92672">);</span>
+<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">cursor</span> <span style="color:#f92672">=</span> incCursor<span style="color:#f92672">(</span>cursor<span style="color:#f92672">);</span></code></pre></div>
+<p>设置完成后，<code>nextItem</code>为<code>flink</code>,<code>cursor</code>为-<code>1</code>。
+最后返回保存在<code>x</code>变量中的值，即返回<code>hadoop</code>字符串。
+第二次调用<code>next()</code>方法时，输出的值即上次保存的<code>nextItem</code>值，即<code>flink</code>字符串。<br />
+迭代器运行过程中，相关变量内容如下：<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter4.png" alt="" /><br />
+至于<code>iterator2</code>迭代器，各位可以自己去分析，不再赘述。</p>
+
+<p>本文主要以实例讲解<code>Semaphore</code>、阻塞队列，并分析了相关核心源码实现。</p>
+
+<p>本文参考</p>
+
+<p><a href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+
+<p><a href="http://ifeve.com/concurrency-modle-seven-week-1/">concurrency-modle-seven-week</a></p>
+
+<p><a href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">java-concurrency</a></p>
+
+<p><a href="http://tutorials.jenkov.com/java-util-concurrent/lock.html">java-util-concurrent</a></p>
+
+<p><a href="https://docs.oracle.com/javase/8/docs/api/">java se 8 apidoc</a></p>
+
+<hr />
+
+<p>关于作者<br />
+爱编程、爱钻研、爱分享、爱生活<br />
+关注分布式、高并发、数据挖掘<br />
+如需捐赠，请扫码
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/sqm.jpg" width=256 height=256 /></p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/java"><span class="tag">Java</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.This post was published <strong>1111</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

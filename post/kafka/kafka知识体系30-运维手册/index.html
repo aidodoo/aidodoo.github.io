@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>Kafka常用命令 </title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。
+kafka版本0.10.0，安装步骤见大数据平台搭建-kafka集群的搭建 ##常用脚本 如下所有的命令均基于KAFKA_HOME=/wls/oracle/kafka ,服务器列表如下：
+10.20.112.59 10.20.112.64 10.20.112.65 10.20.116.129 10.20.116.175  ###创建topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  其中replication-factor后数字表示副本个数，partitions的数字表示分区个数。
+###查看topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list  ###更改topic配置
+配置topic级别参数时，相同(参数)属性topic级别会覆盖全局的，否则默认为全局配置属性值,即/wls/oracle/kafka/config/server.properties中topic属性配置。
+topic创建完成后，随着项目的进展，可能存在对特定topic配置的更改，涉及到的常用更改项如下。
+单个消息比较大，需要调整broker能接收消息的最大字节数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000 或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行 /wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000  kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --partitions 6  如果涉及到多个配置的更改，则依次用 --conf key=value并列配置即可
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="Kafka常用命令 ">
+    <meta name="twitter:description" content="本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。
+kafka版本0.10.0，安装步骤见大数据平台搭建-kafka集群的搭建 ##常用脚本 如下所有的命令均基于KAFKA_HOME=/wls/oracle/kafka ,服务器列表如下：
+10.20.112.59 10.20.112.64 10.20.112.65 10.20.116.129 10.20.116.175  ###创建topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  其中replication-factor后数字表示副本个数，partitions的数字表示分区个数。
+###查看topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list  ###更改topic配置
+配置topic级别参数时，相同(参数)属性topic级别会覆盖全局的，否则默认为全局配置属性值,即/wls/oracle/kafka/config/server.properties中topic属性配置。
+topic创建完成后，随着项目的进展，可能存在对特定topic配置的更改，涉及到的常用更改项如下。
+单个消息比较大，需要调整broker能接收消息的最大字节数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000 或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行 /wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000  kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --partitions 6  如果涉及到多个配置的更改，则依次用 --conf key=value并列配置即可
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Kafka常用命令 ">
+  <meta property="og:description" content="本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。
+kafka版本0.10.0，安装步骤见大数据平台搭建-kafka集群的搭建 ##常用脚本 如下所有的命令均基于KAFKA_HOME=/wls/oracle/kafka ,服务器列表如下：
+10.20.112.59 10.20.112.64 10.20.112.65 10.20.116.129 10.20.116.175  ###创建topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  其中replication-factor后数字表示副本个数，partitions的数字表示分区个数。
+###查看topic
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list  ###更改topic配置
+配置topic级别参数时，相同(参数)属性topic级别会覆盖全局的，否则默认为全局配置属性值,即/wls/oracle/kafka/config/server.properties中topic属性配置。
+topic创建完成后，随着项目的进展，可能存在对特定topic配置的更改，涉及到的常用更改项如下。
+单个消息比较大，需要调整broker能接收消息的最大字节数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000 或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行 /wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000  kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --partitions 6  如果涉及到多个配置的更改，则依次用 --conf key=value并列配置即可
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB30-%E8%BF%90%E7%BB%B4%E6%89%8B%E5%86%8C/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB30-%E8%BF%90%E7%BB%B4%E6%89%8B%E5%86%8C/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">Kafka常用命令 </h1>
+      <p class="post-meta">@aidodoo · Apr 10, 2018 · 2 min read</p>
+    </header>
+    <article class="post-content"><p>本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。</p>
+
+<p>kafka版本0.10.0，安装步骤见<a href="http://www.cnblogs.com/aidodoo/p/7151949.html">大数据平台搭建-kafka集群的搭建</a>
+##常用脚本
+如下所有的命令均基于<code>KAFKA_HOME=/wls/oracle/kafka</code> ,服务器列表如下：</p>
+
+<pre><code>10.20.112.59
+10.20.112.64
+10.20.112.65
+10.20.116.129
+10.20.116.175
+</code></pre>
+
+<p>###创建topic</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  
+</code></pre>
+
+<p>其中<code>replication-factor</code>后数字表示副本个数，<code>partitions</code>的数字表示分区个数。</p>
+
+<p>###查看topic</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list
+</code></pre>
+
+<p>###更改topic配置</p>
+
+<p>配置<code>topic</code>级别参数时，相同(参数)属性<code>topic</code>级别会覆盖全局的，否则默认为全局配置属性值,即<code>/wls/oracle/kafka/config/server.properties</code>中<code>topic</code>属性配置。<br />
+<code>topic</code>创建完成后，随着项目的进展，可能存在对特定<code>topic</code>配置的更改，涉及到的常用更改项如下。</p>
+
+<p><strong>单个消息比较大，需要调整broker能接收消息的最大字节数</strong></p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000
+
+或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行
+/wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000
+</code></pre>
+
+<p><strong>kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数</strong></p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --partitions 6  
+</code></pre>
+
+<p><strong>如果涉及到多个配置的更改，则依次用 <code>--conf key=value</code>并列配置即可</strong></p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000  --config flush.messages=1
+</code></pre>
+
+<p><strong>其他可选配置</strong></p>
+
+<table>
+    <tr>
+        <td width=100>Property</td>
+        <td width=80>Default</td>
+        <td>Server Default Property(server.properties)</td>
+        <td>note</td>
+    </tr>
+
+<tr>
+<td>cleanup.policy</td>
+<td>delete</td>
+<td>log.cleanup.policy</td>
+<td>日志清理策略选择有：delete和compact主要针对过期数据的处理，或是日志文件达到限制的额度，会被  topic创建时的指定参数覆盖</td>
+</tr>
+<tr>
+
+<td>delete.retention.ms</td>
+<td>86400000 (24 hours)</td>
+<td>log.cleaner.delete.retention.ms</td>
+<td>对于压缩的日志保留的最长时间，也是客户端消费消息的最长时间，同log.retention.minutes的区别在于一个控制未压缩数据，一个控制压缩后的数据。会被topic创建时的指定参数覆盖</td>
+</tr>
+<tr>
+<td>flush.messages</td>
+<td>None</td>
+<td>log.flush.interval.messages</td>
+<td>log文件”sync”到磁盘之前累积的消息条数,因为磁盘IO操作是一个慢操作,但又是一个”数据可靠性"的必要手段,所以此参数的设置,需要在"数据可靠性"与"性能"之间做必要的权衡.如果此值过大,将会导致每次"fsync"的时间较长(IO阻塞),如果此值过小,将会导致"fsync"的次数较多,这也意味着整体的client请求有一定的延迟.物理server故障,将会导致没有fsync的消息丢失</td>
+</tr>
+<tr>
+<td>flush.ms</td>
+<td>None</td>
+<td>log.flush.interval.ms</td>
+<td>仅仅通过interval来控制消息的磁盘写入时机,是不足的.此参数用于控制"fsync"的时间间隔,如果消息量始终没有达到阀值,但是离上一次磁盘同步的时间间隔达到阀值,也将触发.</td>
+</tr>
+<tr>
+<td>index.interval.bytes</td>
+<td>4096</td>
+<td>log.index.interval.bytes</td>
+<td>当执行一个fetch操作后，需要一定的空间来扫描最近的offset大小，设置越大，代表扫描速度越快，但是也更好内存，一般情况下不需要搭理这个参数</td>
+</tr>
+<tr>
+<td>message.max.bytes</td>
+<td>1,000,000</td>
+<td>message.max.bytes</td>
+<td>表示消息的最大大小，单位是字节</td>
+</tr>
+<tr>
+<td>min.cleanable.dirty.ratio</td>
+<td>0.5</td>
+<td>log.cleaner.min.cleanable.ratio</td>
+<td>日志清理的频率控制，越大意味着更高效的清理，同时会存在一些空间上的浪费，会被topic创建时的指定参数覆盖</td>
+</tr>
+<tr>
+<td>retention.bytes</td>
+<td>None</td>
+<td>log.retention.bytes</td>
+<td>topic每个分区的最大文件大小，一个topic的大小限制  = 分区数*log.retention.bytes。-1没有大小限log.retention.bytes和log.retention.minutes任意一个达到要求，都会执行删除，会被topic创建时的指定参数覆盖</td>
+</tr>
+<tr>
+<td>retention.ms
+<td>None
+<td>log.retention.minutes
+<td>数据存储的最大时间超过这个时间会根据log.cleanup.policy设置的策略处理数据，也就是消费端能够多久去消费数据
+log.retention.bytes和log.retention.minutes达到要求，都会执行删除，会被topic创建时的指定参数覆盖
+</tr>
+<tr>
+<td>segment.bytes
+<td>1 GB
+<td>log.segment.bytes
+<td>topic的分区是以一堆segment文件存储的，这个控制每个segment的大小，会被topic创建时的指定参数覆盖
+</tr>
+<tr>
+<td>segment.index.bytes
+<td>10 MB
+<td>log.index.size.max.bytes
+<td>对于segment日志的索引文件大小限制，会被topic创建时的指定参数覆盖
+</tr>
+<tr>
+<td>log.roll.hours
+<td>7 days
+<td>log.roll.hours
+<td>这个参数会在日志segment没有达到log.segment.bytes设置的大小，也会强制新建一个segment会被  topic创建时的指定参数覆盖</td>
+</tr>
+</table>
+
+<p>###查看topic
+查看<code>topic</code>分区和副本分布情况</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --describe --topic TEST
+</code></pre>
+
+<p>查看topic配置</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --describe
+</code></pre>
+
+<p>###删除topic</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --delete --topic TEST
+</code></pre>
+
+<p>需要注意的是执行这段命令后控制台输出</p>
+
+<pre><code>Topic test is marked for deletion. 
+Note: This will have no impact if delete.topic.enable is not set to true. 
+</code></pre>
+
+<p>也就是说执行删除命令，不是真正删除，而是标记删除，实际只是在<code>zookeeper</code>上添加<code>/admin/delete_topics/test</code>节点，需要确认提前打开<code>delete.topic.enable</code>开关。
+如果遇到标记删除失败，可以考虑手工删除，步骤如下：<br />
+<strong>1.登录<code>zookeeer</code>客户端，删除<code>zookeeper</code>上<code>TEST</code>的<code>topic</code>节点</strong></p>
+
+<pre><code>/wls/oracle/zookeeper/bin/zkCli.sh
+rmr /kafka/brokers/topics/TEST
+</code></pre>
+
+<p>其中<code>/kafka</code>为我们自己kafka在zookeeper的根目录，不同集群可能不太一致。</p>
+
+<p><strong>2.删除<code>kafka</code>数据文件</strong></p>
+
+<pre><code>rm -rf /wls/oracle/bigdata/kafka/kafka-logs-*/TEST*
+</code></pre>
+
+<p>其中<code>/wls/oracle/bigdata/kafka/kafka-logs-*</code>为<code>server.properties</code>中配置的<code>log.dirs</code>目录，具体可参考
+<a href="http://www.cnblogs.com/aidodoo/p/7151949.html">大数据平台搭建-kafka集群的搭建</a></p>
+
+<p>###发送消息<br />
+    /wls/oracle/kafka/bin/kafka-console-producer.sh &ndash;broker-list 10.20.112.59:9092,10.20.112.64:9092,10.20.112.65:9092,10.20.116.129:9092,10.20.116.175:9092 &ndash;topic TEST
+###接收消息
+    /wls/oracle/kafka/bin/kafka-console-consumer.sh &ndash;zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka  &ndash;topic TEST &ndash;from-beginning
+其中<code>--from-beginning</code>表示从头开始消费<code>kafka</code>队列<code>TEST</code>中的消息，如果没有该选项，则消费最新的消息。</p>
+
+<p>###查看topic消费者offset</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-consumer-offset-checker.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka  --topic TEST --group mygroup
+</code></pre>
+
+<p>###性能测试
+<code>kafka</code>官方提供了优化参数的性能测试脚本</p>
+
+<p>生产者</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-producer-perf-test.sh --num-records 100000000 --record-size 10 --topic TEST  --producer-props bootstrap.servers=10.20.112.59:9092,10.20.112.64:9092,10.20.112.65:9092,10.20.116.129:9092,10.20.116.175:9092 acks=all
+</code></pre>
+
+<p><code>num-records</code>表示发送的总消息量，<br />
+<code>record-size</code>表示消息的大小，<br />
+<code>producer-props</code>表示生产者的配置，可以并列写多项</p>
+
+<p>消费者</p>
+
+<pre><code>/wls/oracle/kafka/bin/kafka-consumer-perf-test.sh --messages 100000000 --topic TEST --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka  --threads 3 --num-fetch-threads 3 --compression-codec 0 --group mygroup --message-size
+</code></pre>
+
+<p><code>messages</code>表示消费的消息总量<br />
+<code>threads</code>表示处理消息的线程数<br />
+<code>num-fetch-threads</code>表示拉取消息的线程数
+<code>compression-codec</code>表示压缩方式，0-不压缩，1-<code>GZIP</code>,2-<code>Snappy</code>,3-<code>LZ4</code><br />
+此外还可以使用<code>consumer.config</code>指定其他配置,具体参考<a href="http://kafka.apache.org/0100/documentation.html">http://kafka.apache.org/0100/documentation.html</a></p>
+
+<p>以物理机(非本kafka集群)测试运行结果如下：</p>
+
+<pre><code>start.time,end.time,data.consumed.in.MB,MB.sec,data.consumed.in.nMsg,nMsg.sec
+2017-06-14 17:55:42:312,2017-06-14 17:59:26:754,216230.5107,963.4138,30000000,133664.8221
+</code></pre>
+
+<p>本文详细讲述了kafka日常运维的命令，包括topic管理、性能测试，一一记录，以免忘记。</p>
+
+<p>本文参考：
+<a href="http://kafka.apache.org/0100/documentation.html">http://kafka.apache.org/0100/documentation.html</a></p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/kafka"><span class="tag">Kafka</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.This post was published <strong>377</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

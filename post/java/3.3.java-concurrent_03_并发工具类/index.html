@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>并发工具类一</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
+其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
+构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
+countDown()方法用来减少计数器的值，每次减1。
+getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="并发工具类一">
+    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
+其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
+构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
+countDown()方法用来减少计数器的值，每次减1。
+getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="并发工具类一">
+  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
+ Java并发基础-并发模型、基础接口以及Thread
+ Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
+其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
+构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
+countDown()方法用来减少计数器的值，每次减1。
+getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+  <meta property="og:url" content="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">并发工具类一</h1>
+      <p class="post-meta">@aidodoo · Apr 5, 2016 · 4 min read</p>
+    </header>
+    <article class="post-content">
+
+<h1 id="并发工具类">并发工具类</h1>
+
+<p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /></p>
+
+<p>系列文章列表：</p>
+
+<ul>
+<li><a href="https://www.cnblogs.com/aidodoo/p/9530427.html">Java并发基础-并发模型、基础接口以及Thread</a><br /></li>
+<li><a href="https://www.cnblogs.com/aidodoo/p/9575156.html">Java并发基础-同步和锁</a></li>
+</ul>
+
+<p>本文主要以实例讲解<code>CountDownLatch</code>、<code>CyclicBarrier</code>等内容。</p>
+
+<h2 id="countdownlatch">CountDownLatch</h2>
+
+<h3 id="基本概念和用途">基本概念和用途</h3>
+
+<p><code>CountDownLatch</code>主要是在其他线程执行操作前，允许一个或者多个线程一直等待。<br />
+其源码实现主要采用<code>AQS</code>,具体可参考<a href="`https`://`www`.`imooc`.`com`/`article`/`73898`"><code>Java</code>并发基础-同步和锁</a>。<br />
+构造方法<code>CountDownLatch</code>(<code>int</code> <code>count</code>)用来初始化计数器，实际就是设置<code>count</code>(最终是设置<code>state</code>值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 <code>CyclicBarrier</code>。<br />
+<code>countDown()</code>方法用来减少计数器的值，每次减<code>1</code>。<br />
+<code>getCount()</code>方法用来返回当前计数器的值。
+流程图简化如下
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CountDownLatch.png" alt="" /></p>
+
+<h3 id="运行示例">运行示例</h3>
+
+<p>在<code>SynchronizedDemo</code>代码中，我们使用<code>Thread</code>的<code>join</code>方法等待一个<code>Spender</code>和<code>Earner</code>线程运行完成后，再去获取账户余额<code>balance</code>的值，这里我们利用<code>CountDownLatch</code>计数器，先阻塞主线程，待一组<code>Spender</code>和一组<code>Earner</code>线程完成后，再让主线程获取账户余额的值，代码如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> java.util.concurrent.CountDownLatch<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.ExecutorService<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.Executors<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/7/17.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CountDownLatchDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main thread start&#34;</span><span style="color:#f92672">);</span>
+        Account account <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Account<span style="color:#f92672">();</span>
+        account<span style="color:#f92672">.</span><span style="color:#a6e22e">setBalance</span><span style="color:#f92672">(</span>100000<span style="color:#f92672">);</span>
+        CountDownLatch latch <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CountDownLatch<span style="color:#f92672">(</span>20<span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main latch init=&#34;</span><span style="color:#f92672">+</span>latch<span style="color:#f92672">.</span><span style="color:#a6e22e">getCount</span><span style="color:#f92672">());</span>
+        ExecutorService executorService <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>10<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 10<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            SpenderWithCountDownLatch spender <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SpenderWithCountDownLatch<span style="color:#f92672">(</span>account<span style="color:#f92672">,</span> latch<span style="color:#f92672">);</span>
+            executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>spender<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 10<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            EarnerWithCountDownLatch earner <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> EarnerWithCountDownLatch<span style="color:#f92672">(</span>account<span style="color:#f92672">,</span> latch<span style="color:#f92672">);</span>
+            executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>earner<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main thread block&#34;</span><span style="color:#f92672">);</span>
+        latch<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main latch=&#34;</span><span style="color:#f92672">+</span>latch<span style="color:#f92672">.</span><span style="color:#a6e22e">getCount</span><span style="color:#f92672">());</span>
+
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main thread continue to do&#34;</span><span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;balance=&#34;</span><span style="color:#f92672">+</span>account<span style="color:#f92672">.</span><span style="color:#a6e22e">getBalance</span><span style="color:#f92672">());</span>
+        executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>先初始化<code>CountDownLatch</code>的值为<code>20</code>，然后分布创建一组<code>Spender</code>线程(每组<code>10</code>个)和一组<code>Earner</code>线程(每组<code>10</code>个),并将<code>account</code>和<code>latch</code>传递给这些线程。</p>
+
+<p><code>SpenderWithCountDownLatch</code>代码如下，运行时主要是<code>30</code>次减少账户余额，每次减少<code>1000</code>。运行完成后调用<code>latch</code>.<code>countDown()</code>，减少计数器的值。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SpenderWithCountDownLatch</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Account account<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> CountDownLatch latch<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">SpenderWithCountDownLatch</span><span style="color:#f92672">(</span>Account account<span style="color:#f92672">,</span> CountDownLatch latch<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">account</span> <span style="color:#f92672">=</span> account<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">latch</span> <span style="color:#f92672">=</span> latch<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            account<span style="color:#f92672">.</span><span style="color:#a6e22e">subtractAmount</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        latch<span style="color:#f92672">.</span><span style="color:#a6e22e">countDown</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Spender run ......&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p><code>EarnerWithCountDownLatch</code>代码如下，运行时主要是<code>30</code>次增加账户余额，每次增加<code>1000</code>。运行完成后调用<code>latch</code>.<code>countDown()</code>，减少计数器的值。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EarnerWithCountDownLatch</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Account account<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> CountDownLatch latch<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">EarnerWithCountDownLatch</span><span style="color:#f92672">(</span>Account account<span style="color:#f92672">,</span> CountDownLatch latch<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">account</span> <span style="color:#f92672">=</span> account<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">latch</span> <span style="color:#f92672">=</span> latch<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            account<span style="color:#f92672">.</span><span style="color:#a6e22e">addAmount</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        latch<span style="color:#f92672">.</span><span style="color:#a6e22e">countDown</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Earner run ....&#34;</span> <span style="color:#f92672">);</span>
+
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p><code>Account</code>代码如下，需要利用同步块或者<code>Lock</code>保证<code>addAmount</code>和<code>subtractAmount</code>方法线程安全</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Account</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">double</span> balance<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">getBalance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> balance<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setBalance</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> balance<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">balance</span> <span style="color:#f92672">=</span> balance<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">addAmount</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> amount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Account<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            balance <span style="color:#f92672">=</span> balance <span style="color:#f92672">+</span> amount<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">subtractAmount</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> amount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Account<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            balance <span style="color:#f92672">=</span> balance <span style="color:#f92672">-</span> amount<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>整个程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">main thread start
+main latch init<span style="color:#f92672">=</span>20
+main thread block
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Spender run <span style="color:#f92672">......</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Spender run <span style="color:#f92672">......</span>
+Earner run <span style="color:#f92672">....</span>
+Earner run <span style="color:#f92672">....</span>
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+Spender run <span style="color:#f92672">......</span>
+main latch<span style="color:#f92672">=</span>0
+main thread <span style="color:#66d9ef">continue</span> to <span style="color:#66d9ef">do</span>
+balance<span style="color:#f92672">=</span>100000<span style="color:#f92672">.</span><span style="color:#a6e22e">0</span></code></pre></div>
+<p>满足预期结果为<code>100000</code>，同时主线程一直阻塞直到<code>latch</code>的值为<code>0</code>。</p>
+
+<h2 id="cyclicbarrier">CyclicBarrier</h2>
+
+<h3 id="基本概念和主要方法">基本概念和主要方法</h3>
+
+<p><code>CyclicBarrier</code>允许一组线程互相等待，直到所有的线程到到达公共屏障点(<code>common</code> <code>barrier</code> <code>point</code>)。和<code>CountDownLatch</code>不同的是，<code>CyclicBarrier</code>可以在释放等待线程后重置然后重用。</p>
+
+<p><strong>构造方法</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">CyclicBarrier</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> parties<span style="color:#f92672">,</span> Runnable barrierAction<span style="color:#f92672">)</span></code></pre></div>
+<p>其中<code>parties</code>，表示线程数量，即参与者数量<br />
+<code>barrierAction</code>表示启动<code>barrier</code>时执行指定的操作，该操作由最后一个进入<code>barrier</code>的线程执行<br />
+<strong>await()</strong><br />
+参与者阻塞等待，直到所有的参与者都到达<code>barrier</code>
+流程图简化如下</p>
+
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CyclicBarrier.png" alt="" /></p>
+
+<h3 id="使用示例">使用示例</h3>
+
+<p>我们看下面一个示例，其功能是主线程、<code>Spender</code>线程和<code>Earner</code>线程共用一个<code>barrier</code>，其中<code>barrier</code>初始值为<code>3</code>，三个线程都到达<code>barrier</code>后执行<code>BarrierAction</code>定义的动作。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#f92672">import</span> java.util.concurrent.BrokenBarrierException<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.CyclicBarrier<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.ExecutorService<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.Executors<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/9/5.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CyclicBarrierDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        Account account<span style="color:#f92672">=</span><span style="color:#66d9ef">new</span> Account<span style="color:#f92672">();</span>
+        account<span style="color:#f92672">.</span><span style="color:#a6e22e">setBalance</span><span style="color:#f92672">(</span>100000<span style="color:#f92672">);</span>
+
+        CyclicBarrier barrier <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CyclicBarrier<span style="color:#f92672">(</span>3<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> BarrierAction<span style="color:#f92672">());</span>
+        ExecutorService executorService <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>10<span style="color:#f92672">);</span>
+        SpenderWithCyclicBarrier spender <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SpenderWithCyclicBarrier<span style="color:#f92672">(</span>account<span style="color:#f92672">,</span> barrier<span style="color:#f92672">);</span>
+        executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>spender<span style="color:#f92672">);</span>
+        EarnerWithCyclicBarrier earner <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> EarnerWithCyclicBarrier<span style="color:#f92672">(</span>account<span style="color:#f92672">,</span> barrier<span style="color:#f92672">);</span>
+        executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>earner<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s waiting at barrier&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+            barrier<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>BrokenBarrierException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;balance=&#34;</span><span style="color:#f92672">+</span>account<span style="color:#f92672">.</span><span style="color:#a6e22e">getBalance</span><span style="color:#f92672">());</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s done&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+
+    <span style="color:#f92672">}</span>
+
+<span style="color:#f92672">}</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BarrierAction</span> <span style="color:#66d9ef">implements</span> Runnable<span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s executed&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SpenderWithCyclicBarrier</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Account account<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> CyclicBarrier barrier<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">SpenderWithCyclicBarrier</span><span style="color:#f92672">(</span>Account account<span style="color:#f92672">,</span> CyclicBarrier barrier<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">account</span> <span style="color:#f92672">=</span> account<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">barrier</span> <span style="color:#f92672">=</span> barrier<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            account<span style="color:#f92672">.</span><span style="color:#a6e22e">subtractAmount</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s waiting at barrier&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+            barrier<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>BrokenBarrierException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s done&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EarnerWithCyclicBarrier</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Account account<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> CyclicBarrier barrier<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">EarnerWithCyclicBarrier</span><span style="color:#f92672">(</span>Account account<span style="color:#f92672">,</span> CyclicBarrier barrier<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">account</span> <span style="color:#f92672">=</span> account<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">barrier</span> <span style="color:#f92672">=</span> barrier<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 30<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            account<span style="color:#f92672">.</span><span style="color:#a6e22e">addAmount</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">try</span><span style="color:#f92672">{</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s waiting at barrier&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+            barrier<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">){</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span><span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>BrokenBarrierException e<span style="color:#f92672">){</span>
+         e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%20s done&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">()));</span>
+
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Account</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">double</span> balance<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">getBalance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> balance<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setBalance</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> balance<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">balance</span> <span style="color:#f92672">=</span> balance<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">addAmount</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> amount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Account<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            balance <span style="color:#f92672">=</span> balance <span style="color:#f92672">+</span> amount<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">subtractAmount</span><span style="color:#f92672">(</span><span style="color:#66d9ef">double</span> amount<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Account<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            balance <span style="color:#f92672">=</span> balance <span style="color:#f92672">-</span> amount<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 waiting at barrier
+            main waiting at barrier
+ pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 waiting at barrier
+ pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 executed
+ pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>1 done
+ pool<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>thread<span style="color:#f92672">-</span>2 done
+ balance<span style="color:#f92672">=</span>100000<span style="color:#f92672">.</span><span style="color:#a6e22e">0</span>
+            main done</code></pre></div>
+<p>我们可以看到<code>pool</code>-<code>1</code>-<code>thread</code>-<code>2</code>和<code>main</code>线程执行完对账户余额的操作后，先到达<code>barrier</code>阻塞等待，<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>线程最后到达，然后由<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>线程执行预定义的动作，即输出<code>executed</code>后，这三个线程再继续执行其他信息的输出。<br />
+这里要注意到时，各位输出的内容可能是上面的不太一致，不过第三行和第四行的线程名要么是<code>main</code>、要么是<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>，或者是<code>pool</code>-<code>1</code>-<code>thread</code>-<code>2</code>。不会存在两个线程名不一样的情况。这里说明了到达<code>barrier</code>后预定义的动作是由最后到达的线程去执行的。</p>
+
+<p>本文参考</p>
+
+<p><a href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+
+<p><a href="http://ifeve.com/concurrency-modle-seven-week-1/">concurrency-modle-seven-week</a></p>
+
+<p><a href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">java-concurrency</a></p>
+
+<p><a href="http://tutorials.jenkov.com/java-util-concurrent/lock.html">java-util-concurrent</a></p>
+
+<p><a href="https://docs.oracle.com/javase/8/docs/api/">java se 8 apidoc</a></p>
+
+<hr />
+
+<p>关于作者<br />
+爱编程、爱钻研、爱分享、爱生活<br />
+关注分布式、高并发、数据挖掘<br />
+如需捐赠，请扫码
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg" width=256 height=256 /></p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/java"><span class="tag">Java</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.This post was published <strong>1112</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

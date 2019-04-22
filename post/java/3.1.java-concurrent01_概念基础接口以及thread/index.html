@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>JAVA并发概念、基础接口以及Thread</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
+优点  提高资源利用率
+如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
+ 程序响应速度好
+单线程模型下，假设一个http请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。
+  缺点  程序设计复杂度
+多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。
+ 上下文切换开销大
+当CPU从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。CPU会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。
+ 资源消耗
+线程在运行的时候需要从计算机里面得到一些资源。除了CPU，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程
+并发模型 并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。
+并行工作者 在并行工作者模型中，委派者（Delegator）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。 假设电商系统中的秒杀活动采用了并行工作者模型，订单-&amp;gt;财务-&amp;gt;仓储-&amp;gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。 在Java应用系统中，并行工作者模型是最常见的并发模型，java.util.concurrent包中的许多并发实用工具都是设计用于这个模型的。
+  优点
+易于理解，可以添加更多的工作者来提高系统的并行度
+缺点
+ 共享状态可能会很复杂
+在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。
+在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。 无状态的工作者
+每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。 任务顺序是不确定的 作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。  流水线模式 流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。 以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。
+在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。
+作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业: 优点  无需共享的状态
+工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题
+ 较好的硬件整合
+单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
+ 合理的作业顺序
+基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
+  缺点  编写难度大
+好在有一些平台框架可以直接使用，如Akka,Node.JS等
+ 跟踪困难 流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。
+  函数式并行 函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人agents或者actor，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="JAVA并发概念、基础接口以及Thread">
+    <meta name="twitter:description" content="JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
+优点  提高资源利用率
+如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
+ 程序响应速度好
+单线程模型下，假设一个http请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。
+  缺点  程序设计复杂度
+多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。
+ 上下文切换开销大
+当CPU从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。CPU会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。
+ 资源消耗
+线程在运行的时候需要从计算机里面得到一些资源。除了CPU，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程
+并发模型 并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。
+并行工作者 在并行工作者模型中，委派者（Delegator）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。 假设电商系统中的秒杀活动采用了并行工作者模型，订单-&amp;gt;财务-&amp;gt;仓储-&amp;gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。 在Java应用系统中，并行工作者模型是最常见的并发模型，java.util.concurrent包中的许多并发实用工具都是设计用于这个模型的。
+  优点
+易于理解，可以添加更多的工作者来提高系统的并行度
+缺点
+ 共享状态可能会很复杂
+在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。
+在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。 无状态的工作者
+每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。 任务顺序是不确定的 作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。  流水线模式 流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。 以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。
+在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。
+作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业: 优点  无需共享的状态
+工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题
+ 较好的硬件整合
+单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
+ 合理的作业顺序
+基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
+  缺点  编写难度大
+好在有一些平台框架可以直接使用，如Akka,Node.JS等
+ 跟踪困难 流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。
+  函数式并行 函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人agents或者actor，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JAVA并发概念、基础接口以及Thread">
+  <meta property="og:description" content="JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
+优点  提高资源利用率
+如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
+ 程序响应速度好
+单线程模型下，假设一个http请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。
+  缺点  程序设计复杂度
+多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。
+ 上下文切换开销大
+当CPU从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。CPU会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。
+ 资源消耗
+线程在运行的时候需要从计算机里面得到一些资源。除了CPU，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程
+并发模型 并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。
+并行工作者 在并行工作者模型中，委派者（Delegator）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。 假设电商系统中的秒杀活动采用了并行工作者模型，订单-&amp;gt;财务-&amp;gt;仓储-&amp;gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。 在Java应用系统中，并行工作者模型是最常见的并发模型，java.util.concurrent包中的许多并发实用工具都是设计用于这个模型的。
+  优点
+易于理解，可以添加更多的工作者来提高系统的并行度
+缺点
+ 共享状态可能会很复杂
+在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。
+在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。 无状态的工作者
+每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。 任务顺序是不确定的 作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。  流水线模式 流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。 以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。
+在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。
+作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业: 优点  无需共享的状态
+工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题
+ 较好的硬件整合
+单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
+ 合理的作业顺序
+基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
+  缺点  编写难度大
+好在有一些平台框架可以直接使用，如Akka,Node.JS等
+ 跟踪困难 流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。
+  函数式并行 函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人agents或者actor，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。">
+  <meta property="og:url" content="https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">JAVA并发概念、基础接口以及Thread</h1>
+      <p class="post-meta">@aidodoo · Apr 2, 2016 · 4 min read</p>
+    </header>
+    <article class="post-content">
+
+<h1 id="java并发概念-基础接口以及thread">JAVA并发概念、基础接口以及Thread</h1>
+
+<p>本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ConcurrencyUtils.png" alt="" /></p>
+
+<p>本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。</p>
+
+<h2 id="并发的优点和缺点">并发的优点和缺点</h2>
+
+<p>在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。</p>
+
+<h3 id="优点">优点</h3>
+
+<ul>
+<li><p>提高资源利用率<br />
+如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分<code>CPU</code>用于等待磁盘去读取数据。如果是采用多线程并发执行，则<code>CPU</code>可以在等待<code>IO</code>的时候去做其他的事情，以提高<code>CPU</code>的使用率，减少资源的浪费。</p></li>
+
+<li><p>程序响应速度好<br />
+单线程模型下，假设一个<code>http</code>请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。</p></li>
+</ul>
+
+<h3 id="缺点">缺点</h3>
+
+<ul>
+<li><p>程序设计复杂度<br />
+多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。</p></li>
+
+<li><p>上下文切换开销大<br />
+当<code>CPU</code>从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。<code>CPU</code>会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。</p></li>
+
+<li><p>资源消耗<br />
+线程在运行的时候需要从计算机里面得到一些资源。除了<code>CPU</code>，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程</p>
+
+<h2 id="并发模型">并发模型</h2>
+
+<p>并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。</p>
+
+<h3 id="并行工作者">并行工作者</h3>
+
+<p>在并行工作者模型中，委派者（<code>Delegator</code>）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-2.png" alt="" />
+假设电商系统中的秒杀活动采用了并行工作者模型，订单-&gt;财务-&gt;仓储-&gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。
+在Java应用系统中，并行工作者模型是最常见的并发模型，<code>java.util.concurrent</code>包中的许多并发实用工具都是设计用于这个模型的。</p></li>
+</ul>
+
+<p><strong>优点</strong><br />
+易于理解，可以添加更多的工作者来提高系统的并行度<br />
+<strong>缺点</strong></p>
+
+<ul>
+<li>共享状态可能会很复杂<br />
+在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。<br />
+在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。</li>
+<li>无状态的工作者<br />
+每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。</li>
+<li>任务顺序是不确定的
+作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。</li>
+</ul>
+
+<h3 id="流水线模式">流水线模式</h3>
+
+<p>流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-3.png" alt="" /><br />
+以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。</p>
+
+<p>在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。</p>
+
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-5.png" alt="" /></p>
+
+<p>作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业:
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-6.png" alt="" /></p>
+
+<h4 id="优点-1">优点</h4>
+
+<ul>
+<li><p>无需共享的状态<br />
+工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题</p></li>
+
+<li><p>较好的硬件整合<br />
+单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。</p></li>
+
+<li><p>合理的作业顺序<br />
+基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态</p></li>
+</ul>
+
+<h4 id="缺点-1">缺点</h4>
+
+<ul>
+<li><p>编写难度大<br />
+好在有一些平台框架可以直接使用，如<code>Akka</code>,<code>Node.JS</code>等</p></li>
+
+<li><p>跟踪困难
+流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。</p></li>
+</ul>
+
+<h3 id="函数式并行">函数式并行</h3>
+
+<p>函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人<code>agents</code>或者<code>actor</code>，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。<br />
+函数都是通过拷贝来传递参数的，所以除了接收函数外没有实体可以操作数据。这对于避免共享数据的竞态来说是很有必要的。同样也使得函数的执行类似于原子操作。每个函数调用的执行独立于任何其他函数的调用。</p>
+
+<h2 id="runnable-callable-future-thread-futuretask">Runnable、Callable、Future、Thread、FutureTask</h2>
+
+<p><code>Java</code>并发中主要以<code>Runnable</code>、<code>Callable</code>、<code>Future</code>三个接口作为基础。<br />
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Runnable.png" alt="" /></p>
+
+<h3 id="runnable">Runnable</h3>
+
+<p>实例想要被线程执行，可以通过实现<code>Runnable</code>接口。
+。通过实例化某个 <code>Thread</code> 实例并将自身作为运行目标，就可以运行实现 <code>Runnable</code> 的类而无需创建 <code>Thread</code> 的子类。大多数情况下，如果只想重写 <code>run()</code> 方法，而不重写其他 Thread 方法，那么应使用 <code>Runnable</code> 接口。这很重要，因为除非程序员打算修改或增强类的基本行为，否则不应为该类创建子类。</p>
+
+<h3 id="callable">Callable</h3>
+
+<p><code>Callable</code> 接口类似于 <code>Runnable</code>，两者都是为那些其实例可能被另一个线程执行的类设计的。但是 Runnable不会返回结果，并且无法抛出经过检查的异常。</p>
+
+<h3 id="future">Future</h3>
+
+<p><code>Future</code> 表示异步计算的结果。它提供了检查计算是否完成的方法，以等待计算的完成，并获取计算的结果。计算完成后只能使用 <code>get</code> 方法来获取结果，如有必要，计算完成前可以阻塞此方法。取消则由 cancel 方法来执行。还提供了其他方法，以确定任务是正常完成还是被取消了。一旦计算完成，就不能再取消计算。如果为了可取消性而使用 <code>Future</code> 但又不提供可用的结果，则可以声明 Future&lt;?&gt; 形式类型、并返回 null 作为底层任务的结果。
+主要方法如下：</p>
+
+<ul>
+<li><code>cancel(boolean mayInterruptIfRunning)</code>
+试图取消对此任务的执行。</li>
+<li><code>get()</code><br />
+如有必要，等待计算完成，然后获取其结果。</li>
+<li><code>get(long timeout, TimeUnit unit)</code><br />
+如有必要，最多等待为使计算完成所给定的时间之后，获取其结果（如果结果可用）。</li>
+<li><code>isCancelled()</code><br />
+如果在任务正常完成前将其取消，则返回 true。</li>
+<li><code>isDone()</code><br />
+如果任务已完成，则返回 true。</li>
+</ul>
+
+<h2 id="thread">Thread</h2>
+
+<h3 id="线程的创建">线程的创建</h3>
+
+<p>在<code>Java</code>中，我们有2个方式创建线程：</p>
+
+<ul>
+<li>通过直接继承<code>thread</code>类，然后覆盖<code>run()</code>方法。<br /></li>
+<li>构建一个实现<code>Runnable</code>接口的类, 然后创建一个<code>thread</code>类对象并传递<code>Runnable</code>对象作为构造参数</li>
+</ul>
+
+<h3 id="线程的运行流程">线程的运行流程</h3>
+
+<p>我们在主线程中创建5个子线程，每个子线程通过构造函数初始化number的值,来实现1-5内的乘法表：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/7/18.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThreadTest</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main thread start&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;=</span> 5<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            Calculator calculator <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Calculator<span style="color:#f92672">(</span>i<span style="color:#f92672">);</span>
+            Thread thread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(</span>calculator<span style="color:#f92672">);</span>
+            thread<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;main thread end&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Calculator</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>  
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> number<span style="color:#f92672">;</span> 
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Calculator</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> number<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">number</span> <span style="color:#f92672">=</span> number<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>   
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;=</span> 5<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">printf</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%s: %d * %d = %d \n&#34;</span><span style="color:#f92672">,</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> number<span style="color:#f92672">,</span> i<span style="color:#f92672">,</span> i <span style="color:#f92672">*</span> number<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">main thread start
+Thread-0: <span style="color:#ae81ff">1</span> * 1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> 
+Thread-0: <span style="color:#ae81ff">1</span> * 2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> 
+Thread-0: <span style="color:#ae81ff">1</span> * 3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> 
+Thread-0: <span style="color:#ae81ff">1</span> * 4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> 
+Thread-0: <span style="color:#ae81ff">1</span> * 5 <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span> 
+Thread-4: <span style="color:#ae81ff">5</span> * 1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span> 
+Thread-4: <span style="color:#ae81ff">5</span> * 2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span> 
+Thread-4: <span style="color:#ae81ff">5</span> * 3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">15</span> 
+Thread-4: <span style="color:#ae81ff">5</span> * 4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span> 
+Thread-4: <span style="color:#ae81ff">5</span> * 5 <span style="color:#f92672">=</span> <span style="color:#ae81ff">25</span> 
+Thread-3: <span style="color:#ae81ff">4</span> * 1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> 
+Thread-3: <span style="color:#ae81ff">4</span> * 2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span> 
+Thread-2: <span style="color:#ae81ff">3</span> * 1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> 
+Thread-2: <span style="color:#ae81ff">3</span> * 2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span> 
+Thread-2: <span style="color:#ae81ff">3</span> * 3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">9</span> 
+Thread-2: <span style="color:#ae81ff">3</span> * 4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span> 
+Thread-1: <span style="color:#ae81ff">2</span> * 1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> 
+Thread-1: <span style="color:#ae81ff">2</span> * 2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> 
+Thread-1: <span style="color:#ae81ff">2</span> * 3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span> 
+main thread end
+Thread-1: <span style="color:#ae81ff">2</span> * 4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span> 
+Thread-3: <span style="color:#ae81ff">4</span> * 3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span> 
+Thread-3: <span style="color:#ae81ff">4</span> * 4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span> 
+Thread-3: <span style="color:#ae81ff">4</span> * 5 <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span> 
+Thread-2: <span style="color:#ae81ff">3</span> * 5 <span style="color:#f92672">=</span> <span style="color:#ae81ff">15</span> 
+Thread-1: <span style="color:#ae81ff">2</span> * 5 <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span> </code></pre></div>
+<p>在Java中，每个应用程序最少有一个执行线程，运行程序时，JVM负责调用main()方法的执行线程。
+当全部的非守护线程执行结束时，Java程序才算结束。从输出中也可以看到，主程序输出<code>main thread end</code>后，其他程序还是继续执行，直到执行结束。<br />
+需要注意的是，如果某个线程调用<code>System.exit()</code>指示终结程序，那么全部的线程都会结束执行。</p>
+
+<h3 id="线程中断-睡眠-设置优先级">线程中断、睡眠、设置优先级</h3>
+
+<p>下面的示例中，<code>NumberGenerator</code>中首先创建<code>numberGenetorThread</code>线程，并设置优先级，启动线程后，一直循环运行，打印出<code>number</code>的值，直到5毫秒后主线程调用<code>interrupt()</code>方法让其中断，<code>numberGenetorThread</code>线程其跳出<code>while</code>循环。首次调用方法<code>isInterrupted()</code>返回值为<code>true</code>，表示线程已中断。<br />
+需要注意的是，<code>interrupt()</code>方法测试当前线程是否已经中断，线程的中断状态也由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 <code>false</code>。大家可以打开下面的注释去测试。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/8/23.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThreadTest2</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+        Thread numberGenetorThread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> NumberGenerator<span style="color:#f92672">(</span>0<span style="color:#f92672">);</span>
+        numberGenetorThread<span style="color:#f92672">.</span><span style="color:#a6e22e">setPriority</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">MAX_PRIORITY</span><span style="color:#f92672">);</span>
+        numberGenetorThread<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>5<span style="color:#f92672">);</span>
+        numberGenetorThread<span style="color:#f92672">.</span><span style="color:#a6e22e">interrupt</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;first interrupt,isInterrupted=&#34;</span> <span style="color:#f92672">+</span> numberGenetorThread<span style="color:#f92672">.</span><span style="color:#a6e22e">isInterrupted</span><span style="color:#f92672">());</span>
+
+<span style="color:#75715e">//        Thread.sleep(5);
+</span><span style="color:#75715e">//        numberGenetorThread.interrupt();
+</span><span style="color:#75715e">//        System.out.println(&#34;second interrupt,isInterrupted=&#34; + numberGenetorThread.isInterrupted());
+</span><span style="color:#75715e"></span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">NumberGenerator</span> <span style="color:#66d9ef">extends</span> Thread <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> number<span style="color:#f92672">;</span>
+
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">NumberGenerator</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> number<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">number</span> <span style="color:#f92672">=</span> number<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(!</span>isInterrupted<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;number is &#34;</span> <span style="color:#f92672">+</span> number<span style="color:#f92672">);</span>
+            number<span style="color:#f92672">++;</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;NumberGenerator thread,isInterrupted= &#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">isInterrupted</span><span style="color:#f92672">());</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序部分输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">number is <span style="color:#ae81ff">96</span>
+number is <span style="color:#ae81ff">97</span>
+NumberGenerator thread,isInterrupted<span style="color:#f92672">=</span> true
+first interrupt,isInterrupted<span style="color:#f92672">=</span>true</code></pre></div>
+<h3 id="threadlocal">ThreadLocal</h3>
+
+<p><strong>定义和作用</strong><br />
+<code>ThreadLocal</code>称线程本地变量，并不是为了解决共享对象的多线程访问的问题的，因为如果<code>ThreadLocal.set()</code>放进去的本来就是多线程共享的同一个对象的话，线程通过ThreadLocal.get()方法得到的还是共享对象本身，依旧存在并发访问的问题。其是每个线程所单独持有的，主要是提供了保持对象的方法和避免参数传递，以方便对象的访问。</p>
+
+<ul>
+<li>每个线程中都有一个自己的<code>ThreadLocalMap</code>类对象，可以将线程自己的对象保持到其中，各管各的，线程可以正确的访问到自己的对象。</li>
+<li>将一个共用的<code>ThreadLocal</code>静态实例作为<code>key</code>，将不同对象的引用保存到不同线程的<code>ThreadLocalMap</code>中，然后在线程执行的各处通过这个静态<code>ThreadLocal</code>实例的<code>get()</code>方法取得自己线程保存的那个对象，避免了将这个对象作为参数传递的麻烦。</li>
+</ul>
+
+<p>程序运行时，每个线程都保持对其线程局部变量副本的隐式引用，只要线程是活动的并且 <code>ThreadLocal</code> 实例是可访问的；在线程消失之后，其线程局部实例的所有副本都会被垃圾回收（除非存在对这些副本的其他引用）。</p>
+
+<p><strong>使用示例</strong><br />
+如下我们创建<code>ThreadLocal</code>的实例<code>stringLocal</code>,分别在主线程和子线程中设置其值为当前线程名字。查看输出的结果可以看到线程间彼此不干扰，各自输出自己设置的值。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.java.concurrent<span style="color:#f92672">;</span>
+
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Created by zhangkh on 2018/8/24.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThreadLocalDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+        ThreadLocal<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> stringLocal <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadLocal<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;();</span>
+        stringLocal<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;threadName=%10s,threadLocal valaue=%10s&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span>stringLocal<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">())</span> <span style="color:#f92672">);</span>
+
+        Thread thread1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                stringLocal<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;threadName=%10s,threadLocal valaue=%10s&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span>stringLocal<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">())</span> <span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">};</span>
+        thread1<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        thread1<span style="color:#f92672">.</span><span style="color:#a6e22e">join</span><span style="color:#f92672">();</span>
+
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;threadName=%10s,threadLocal valaue=%10s&#34;</span><span style="color:#f92672">,</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span>stringLocal<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">())</span> <span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>程序输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">threadName<span style="color:#f92672">=</span>      main,threadLocal valaue<span style="color:#f92672">=</span>      main
+threadName<span style="color:#f92672">=</span>  Thread-0,threadLocal valaue<span style="color:#f92672">=</span>  Thread-0
+threadName<span style="color:#f92672">=</span>      main,threadLocal valaue<span style="color:#f92672">=</span>      main</code></pre></div>
+<p><strong>源码实现</strong><br />
+<code>ThreadLocal</code>有3个成员变量</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> threadLocalHashCode <span style="color:#f92672">=</span> nextHashCode<span style="color:#f92672">();</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> AtomicInteger nextHashCode <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AtomicInteger<span style="color:#f92672">();</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> HASH_INCREMENT <span style="color:#f92672">=</span> 0x61c88647<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">nextHashCode</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> nextHashCode<span style="color:#f92672">.</span><span style="color:#a6e22e">getAndAdd</span><span style="color:#f92672">(</span>HASH_INCREMENT<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p><code>nextHashCode</code>是<code>ThreadLocal</code>的静态变量，<code>HASH_INCREMENT</code>是静态常量，只有<code>threadLocalHashCode</code>是<code>ThreadLocal</code>实例的变量。<br />
+在创建<code>ThreadLocal</code>类实例的时候，将<code>ThreadLocal</code>类的下一个<code>hashCode</code>值即<code>nextHashCode</code>的值赋给实例的<code>threadLocalHashCode</code>，然后<code>nextHashCode</code>的值增加<code>HASH_INCREMENT</code>这个值。而实例变量<code>threadLocalHashCode</code>是<code>final</code>的，用来区分不同的<code>ThreadLocal</code>实例。<br />
+<code>ThreadLocal</code>实例<code>stringLocal</code>创建完成后，调用<code>set()</code>方法时，</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>T value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    Thread t <span style="color:#f92672">=</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">();</span>
+    ThreadLocalMap map <span style="color:#f92672">=</span> getMap<span style="color:#f92672">(</span>t<span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>map <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
+        map<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">else</span>
+        createMap<span style="color:#f92672">(</span>t<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>先获取当前线程，即<code>main</code>线程,然后根据线程实例调用<code>getMap()</code>方法获取<code>ThreadLocalMap</code>，
+其中<code>getMap()</code>方法如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ThreadLocalMap <span style="color:#a6e22e">getMap</span><span style="color:#f92672">(</span>Thread t<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> t<span style="color:#f92672">.</span><span style="color:#a6e22e">threadLocals</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p><code>getMap()</code>方法直接返回线程的成员变量<code>threadLocals</code>，其中<code>threadLocals</code>变量是<code>ThreadLocalMap</code>类的实例，而<code>ThreadLocalMap</code>是<code>ThreadLocal</code>的内部类。<br />
+如果<code>map</code>(当前线程的成员变量<code>threadLocals</code>)存在，则将数据写入到<code>ThreadLoclMap</code>用于存储数据的<code>Entry</code>中。
+<code>ThreadLocalMap</code>的<code>set</code>方法如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>ThreadLocal<span style="color:#f92672">&lt;?&gt;</span> key<span style="color:#f92672">,</span> Object value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    Entry<span style="color:#f92672">[]</span> tab <span style="color:#f92672">=</span> table<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> tab<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> key<span style="color:#f92672">.</span><span style="color:#a6e22e">threadLocalHashCode</span> <span style="color:#f92672">&amp;</span> <span style="color:#f92672">(</span>len<span style="color:#f92672">-</span>1<span style="color:#f92672">);</span>
+
+    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>Entry e <span style="color:#f92672">=</span> tab<span style="color:#f92672">[</span>i<span style="color:#f92672">];</span>
+         e <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+         e <span style="color:#f92672">=</span> tab<span style="color:#f92672">[</span>i <span style="color:#f92672">=</span> nextIndex<span style="color:#f92672">(</span>i<span style="color:#f92672">,</span> len<span style="color:#f92672">)])</span> <span style="color:#f92672">{</span>
+        ThreadLocal<span style="color:#f92672">&lt;?&gt;</span> k <span style="color:#f92672">=</span> e<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
+
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>k <span style="color:#f92672">==</span> key<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span> <span style="color:#f92672">=</span> value<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>k <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            replaceStaleEntry<span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> value<span style="color:#f92672">,</span> i<span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+    tab<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Entry<span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">int</span> sz <span style="color:#f92672">=</span> <span style="color:#f92672">++</span>size<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>cleanSomeSlots<span style="color:#f92672">(</span>i<span style="color:#f92672">,</span> sz<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> sz <span style="color:#f92672">&gt;=</span> threshold<span style="color:#f92672">)</span>
+        rehash<span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>其中<code>Entry</code>定义如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Entry</span> <span style="color:#66d9ef">extends</span> WeakReference<span style="color:#f92672">&lt;</span>ThreadLocal<span style="color:#f92672">&lt;?&gt;&gt;</span> <span style="color:#f92672">{</span>
+    Object value<span style="color:#f92672">;</span>
+
+    Entry<span style="color:#f92672">(</span>ThreadLocal<span style="color:#f92672">&lt;?&gt;</span> k<span style="color:#f92672">,</span> Object v<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">super</span><span style="color:#f92672">(</span>k<span style="color:#f92672">);</span>
+        value <span style="color:#f92672">=</span> v<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p><code>key</code>为<code>ThreadLocal</code>实例，值是用户定义的具体对象值。</p>
+
+<p>如果<code>map</code>(当前线程的成员变量<code>threadLocals</code>)不存在，则创建一个<code>ThreadLocalMap</code>实例，并和线程的成员变量<code>threadLocals</code>关联起来。其中<code>ThreadLocalMap</code>实例的<code>key</code>为<code>this</code>，即ThreadLocal实例<code>stringLocal</code>，值是用户定义的具体对象值。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">createMap</span><span style="color:#f92672">(</span>Thread t<span style="color:#f92672">,</span> T firstValue<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    t<span style="color:#f92672">.</span><span style="color:#a6e22e">threadLocals</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadLocalMap<span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> firstValue<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span></code></pre></div>
+<p>总的来说，<code>ThreadLocal</code>的作用是提供线程内的局部变量，这种变量在线程的生命周期内起作用。作用：提供一个线程内公共变量（比如本次请求的用户信息），减少同一个线程内多个函数或者组件之间一些公共变量的传递的复杂度，或者为线程提供一个私有的变量副本，这样每一个线程都可以随意修改自己的变量副本，而不会对其他线程产生影响。</p>
+
+<p>本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。</p>
+
+<p>本文参考</p>
+
+<p><a href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+
+<p><a href="http://ifeve.com/concurrency-modle-seven-week-1/">http://ifeve.com/concurrency-modle-seven-week-1/</a></p>
+
+<p><a href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">http://tutorials.jenkov.com/java-concurrency/concurrency-models.html</a></p>
+
+<hr />
+
+<p>关于作者<br />
+爱编程、爱钻研、爱分享、爱生活<br />
+关注分布式、高并发、数据挖掘<br />
+如需捐赠，请扫码
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg" width=256 height=256 /></p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/java"><span class="tag">Java</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.This post was published <strong>1115</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>
