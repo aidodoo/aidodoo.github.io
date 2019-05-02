@@ -24,40 +24,43 @@
 
   
   
-  <meta name="description" content="Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+  <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
 rack unaware
  随机从broker list选一个开始，然后对每个partition的第一个replica进行round-robin分配 之后对每个partition的其余replicas进行递增1位错位开来  这种策略分配算法核心代码如下：
-private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.nextInt(brokerArray.length) var currentPartitionId = math.max(0, startPartitionId) var nextReplicaShift = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
+private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
 
   
   
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="Kafka集群partitions/replicas默认分配解析 ">
-    <meta name="twitter:description" content="Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+    <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
 rack unaware
  随机从broker list选一个开始，然后对每个partition的第一个replica进行round-robin分配 之后对每个partition的其余replicas进行递增1位错位开来  这种策略分配算法核心代码如下：
-private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.nextInt(brokerArray.length) var currentPartitionId = math.max(0, startPartitionId) var nextReplicaShift = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
+private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="Kafka集群partitions/replicas默认分配解析 ">
-  <meta property="og:description" content="Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+  <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
 rack unaware
  随机从broker list选一个开始，然后对每个partition的第一个replica进行round-robin分配 之后对每个partition的其余replicas进行递增1位错位开来  这种策略分配算法核心代码如下：
-private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.nextInt(brokerArray.length) var currentPartitionId = math.max(0, startPartitionId) var nextReplicaShift = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
-  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB08-kafka%E9%9B%86%E7%BE%A4partitionsreplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">
+private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &amp;gt;= 0) fixedStartIndex else rand.">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E9%9B%86%E7%BE%A4partitionsreplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -66,7 +69,7 @@ private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFact
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB08-kafka%E9%9B%86%E7%BE%A4partitionsreplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E9%9B%86%E7%BE%A4partitionsreplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -225,6 +228,22 @@ private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFact
       <p class="post-meta">@aidodoo · Apr 9, 2018 · 3 min read</p>
     </header>
     <article class="post-content">
+
+<p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/消息模型/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>
+</ul>
 
 <h2 id="kafka集群partitions-replicas默认分配解析">Kafka集群partitions/replicas默认分配解析</h2>
 
@@ -416,7 +435,7 @@ broker和rack映射如下：</p>
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>378</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>388</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     

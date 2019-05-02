@@ -24,7 +24,8 @@
 
   
   
-  <meta name="description" content=" kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
+  <meta name="description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
 如下图所示，Kafka集群中有4个broker, 某topic有3个partition,且复制因子即副本个数也为3： Kafka提供了数据复制算法保证，如果leader发生故障或挂掉，一个新leader被选举并被接受客户端的消息成功写入。Kafka确保从同步副本列表中选举一个副本为leader，或者说follower追赶leader数据。leader负责维护和跟踪ISR(In-Sync Replicas的缩写，表示副本同步队列，具体可参考下节)中所有follower滞后的状态。当producer发送一条消息到broker后，leader写入消息并复制到所有follower。消息提交之后才被成功复制到所有的同步副本。消息复制延迟受最慢的follower限制，重要的是快速检测慢副本，如果follower“落后”太多或者失效，leader将会把它从ISR中删除。
 副本同步队列(ISR)
 所谓同步，必须满足如下两个条件：
@@ -42,7 +43,8 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="kafka副本同步机制 ">
-    <meta name="twitter:description" content=" kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
+    <meta name="twitter:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
 如下图所示，Kafka集群中有4个broker, 某topic有3个partition,且复制因子即副本个数也为3： Kafka提供了数据复制算法保证，如果leader发生故障或挂掉，一个新leader被选举并被接受客户端的消息成功写入。Kafka确保从同步副本列表中选举一个副本为leader，或者说follower追赶leader数据。leader负责维护和跟踪ISR(In-Sync Replicas的缩写，表示副本同步队列，具体可参考下节)中所有follower滞后的状态。当producer发送一条消息到broker后，leader写入消息并复制到所有follower。消息提交之后才被成功复制到所有的同步副本。消息复制延迟受最慢的follower限制，重要的是快速检测慢副本，如果follower“落后”太多或者失效，leader将会把它从ISR中删除。
 副本同步队列(ISR)
 所谓同步，必须满足如下两个条件：
@@ -60,7 +62,8 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="kafka副本同步机制 ">
-  <meta property="og:description" content=" kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
+  <meta property="og:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
 如下图所示，Kafka集群中有4个broker, 某topic有3个partition,且复制因子即副本个数也为3： Kafka提供了数据复制算法保证，如果leader发生故障或挂掉，一个新leader被选举并被接受客户端的消息成功写入。Kafka确保从同步副本列表中选举一个副本为leader，或者说follower追赶leader数据。leader负责维护和跟踪ISR(In-Sync Replicas的缩写，表示副本同步队列，具体可参考下节)中所有follower滞后的状态。当producer发送一条消息到broker后，leader写入消息并复制到所有follower。消息提交之后才被成功复制到所有的同步副本。消息复制延迟受最慢的follower限制，重要的是快速检测慢副本，如果follower“落后”太多或者失效，leader将会把它从ISR中删除。
 副本同步队列(ISR)
 所谓同步，必须满足如下两个条件：
@@ -72,7 +75,7 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
 Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：/brokers/topics/[topic]/partitions/[partition]/state。目前有两个地方会对这个Zookeeper的节点进行维护：
  Controller来维护：Kafka集群中的其中一个Broker会被选举为Controller，主要负责Partition管理和副本状态管理，也会执行类似于重分配partition之类的管理任务。在符合某些特定条件下，Controller下的LeaderSelector会选举新的leader，ISR和新的leader_epoch及controller_epoch写入Zookeeper的相关节点中。同时发起LeaderAndIsrRequest通知所有的replicas。 leader来维护：leader有单独的线程定期检测ISR中follower是否脱离ISR, 如果发现ISR变化，则会将新的ISR的信息返回到Zookeeper的相关节点中。  副本不同步的异常情况
  慢副本：在一定周期时间内follower不能追赶上leader。最常见的原因之一是I / O瓶颈导致follower追加复制消息速度慢于从leader拉取速度。 卡住副本：在一定周期时间内follower停止从leader拉取请求。follower replica卡住了是由于GC暂停或follower失效或死亡。 新启动副本：当用户给主题增加副本因子时，新的follower不在同步副本列表中，直到他们完全赶上了leader日志。  ">
-  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB03-%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -81,7 +84,7 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB03-%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -241,6 +244,22 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
     </header>
     <article class="post-content">
 
+<p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/消息模型/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>
+</ul>
+
 <h2 id="kafka副本同步机制">kafka副本同步机制</h2>
 
 <p>Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。
@@ -295,7 +314,7 @@ Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>383</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>393</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     

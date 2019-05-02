@@ -199,11 +199,12 @@
   
    <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB01-kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" class="post-link">kafka基本概念</a></h3>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" class="post-link">kafka基本概念</a></h3>
     <p class="post-meta">@aidodoo · Apr 1, 2018 · 1 min read</p>
   </header>
   
-  <p class="post-summary">kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
+  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
  发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
   可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
  生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。
@@ -221,7 +222,7 @@ Kafka集群保留所有发布的记录，不管这个记录有没有被消费过
 Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。
 Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB01-kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">

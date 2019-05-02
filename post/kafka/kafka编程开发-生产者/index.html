@@ -24,7 +24,8 @@
 
   
   
-  <meta name="description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+  <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -35,15 +36,15 @@ tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientP
 broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
 双击脚本D:\Program\zookeeper\bin\zkServer.cmd
 启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.10.1.0版本中采用KafkaProducer对象用来向kafka broker集群发送消息。 编写代码前先引入相关依赖包：
-&amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka_2.11&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.10.1.0&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka-clients&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.">
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
 
   
   
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="Kafka编程实践-生产者 ">
-    <meta name="twitter:description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+    <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -54,15 +55,15 @@ tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientP
 broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
 双击脚本D:\Program\zookeeper\bin\zkServer.cmd
 启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.10.1.0版本中采用KafkaProducer对象用来向kafka broker集群发送消息。 编写代码前先引入相关依赖包：
-&amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka_2.11&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.10.1.0&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka-clients&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.">
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="Kafka编程实践-生产者 ">
-  <meta property="og:description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+  <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -73,9 +74,8 @@ tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientP
 broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
 双击脚本D:\Program\zookeeper\bin\zkServer.cmd
 启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.10.1.0版本中采用KafkaProducer对象用来向kafka broker集群发送消息。 编写代码前先引入相关依赖包：
-&amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka_2.11&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.10.1.0&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.kafka&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;kafka-clients&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;0.">
-  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB50-%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -84,7 +84,7 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB50-%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -242,7 +242,23 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
       <h1 class="post-title">Kafka编程实践-生产者 </h1>
       <p class="post-meta">@aidodoo · Apr 11, 2018 · 6 min read</p>
     </header>
-    <article class="post-content"><p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。</p>
+    <article class="post-content"><p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/消息模型/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>
+</ul>
+
+<p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。</p>
 
 <p>##安装
 <code>linux</code>集群安装过程请参考<a href="http://www.cnblogs.com/aidodoo/p/7151949.html">http://www.cnblogs.com/aidodoo/p/7151949.html</a>。<br />
@@ -593,7 +609,7 @@ class ProducerAckCallback&lt;K, V&gt; implements Callback {
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>376</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>386</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     

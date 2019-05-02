@@ -24,7 +24,8 @@
 
   
   
-  <meta name="description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+  <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交 ##kafka安装 前面博文中均已详细介绍，不再赘述。
 linux集群安装参考大数据平台搭建-kafka集群的搭建
 window单机版安装参考kafka知识体系50-生产者编程实践
@@ -42,14 +43,15 @@ kafka允许多个消费者订阅同一个主题并共享同一个消费组，来
 消费者提供两个配置设置来控制轮询循环的行为：
  max.poll.interval.ms：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。
  max.poll.records：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。  ###编码实践 单线程自动提交偏移量
-package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.slf4j.LoggerFactory; import java.util.Arrays; import java.util.Properties; public class SingleKafkaConsumerDemo { static Logger logger= LoggerFactory.getLogger(SingleKafkaConsumerDemo.class.getName()); public static void main(String[] args){ Properties props = new Properties(); props.">
+package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.">
 
   
   
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="Kafka编程实践-消费者">
-    <meta name="twitter:description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+    <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交 ##kafka安装 前面博文中均已详细介绍，不再赘述。
 linux集群安装参考大数据平台搭建-kafka集群的搭建
 window单机版安装参考kafka知识体系50-生产者编程实践
@@ -67,14 +69,15 @@ kafka允许多个消费者订阅同一个主题并共享同一个消费组，来
 消费者提供两个配置设置来控制轮询循环的行为：
  max.poll.interval.ms：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。
  max.poll.records：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。  ###编码实践 单线程自动提交偏移量
-package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.slf4j.LoggerFactory; import java.util.Arrays; import java.util.Properties; public class SingleKafkaConsumerDemo { static Logger logger= LoggerFactory.getLogger(SingleKafkaConsumerDemo.class.getName()); public static void main(String[] args){ Properties props = new Properties(); props.">
+package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="Kafka编程实践-消费者">
-  <meta property="og:description" content="本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+  <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交 ##kafka安装 前面博文中均已详细介绍，不再赘述。
 linux集群安装参考大数据平台搭建-kafka集群的搭建
 window单机版安装参考kafka知识体系50-生产者编程实践
@@ -92,8 +95,8 @@ kafka允许多个消费者订阅同一个主题并共享同一个消费组，来
 消费者提供两个配置设置来控制轮询循环的行为：
  max.poll.interval.ms：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。
  max.poll.records：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。  ###编码实践 单线程自动提交偏移量
-package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.slf4j.LoggerFactory; import java.util.Arrays; import java.util.Properties; public class SingleKafkaConsumerDemo { static Logger logger= LoggerFactory.getLogger(SingleKafkaConsumerDemo.class.getName()); public static void main(String[] args){ Properties props = new Properties(); props.">
-  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB51-%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">
+package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -102,7 +105,7 @@ package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecor
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB51-%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">
+<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -260,7 +263,23 @@ package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecor
       <h1 class="post-title">Kafka编程实践-消费者</h1>
       <p class="post-meta">@aidodoo · Apr 12, 2018 · 5 min read</p>
     </header>
-    <article class="post-content"><p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。<br />
+    <article class="post-content"><p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/消息模型/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>
+</ul>
+
+<p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。<br />
 kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交
 ##kafka安装
 前面博文中均已详细介绍，不再赘述。<br />
@@ -581,7 +600,7 @@ class ConsumerTask&lt;K, V&gt; implements Runnable {
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>375</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>385</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     

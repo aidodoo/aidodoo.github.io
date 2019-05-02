@@ -24,7 +24,9 @@
 
   
   
-  <meta name="description" content=" 消息模型 JMS协议(ActiveMQ) Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
+  <meta name="description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
 消息生产者生产消息发送到queue中，然后消息消费者从queue中取出并且消费消息。这里要注意： 消息被消费以后，queue中不再有存储，所以消息消费者不可能消费到已经被消费的消息。 Queue支持存在多个消费者，但是对一个消息而言，只会有一个消费者可以消费。 生产者发送一条消息到queue，只有一个消费者能收到。
@@ -47,7 +49,9 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="消息队列模型 ">
-    <meta name="twitter:description" content=" 消息模型 JMS协议(ActiveMQ) Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
+    <meta name="twitter:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
 消息生产者生产消息发送到queue中，然后消息消费者从queue中取出并且消费消息。这里要注意： 消息被消费以后，queue中不再有存储，所以消息消费者不可能消费到已经被消费的消息。 Queue支持存在多个消费者，但是对一个消息而言，只会有一个消费者可以消费。 生产者发送一条消息到queue，只有一个消费者能收到。
@@ -70,7 +74,9 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="消息队列模型 ">
-  <meta property="og:description" content=" 消息模型 JMS协议(ActiveMQ) Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
+  <meta property="og:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
 消息生产者生产消息发送到queue中，然后消息消费者从queue中取出并且消费消息。这里要注意： 消息被消费以后，queue中不再有存储，所以消息消费者不可能消费到已经被消费的消息。 Queue支持存在多个消费者，但是对一个消息而言，只会有一个消费者可以消费。 生产者发送一条消息到queue，只有一个消费者能收到。
@@ -87,7 +93,7 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
 当多个消费者同属一个消费组时，对应消息会被同消费组的当个消费组消费使用，类似点对点的消息模型。 即消息Message1只会被消费组GroupA中的Consumer_1、Consumer_2、Consumer_3消费
 发布/订阅
 当每个消费者都属于不同的消费组时，对应的消息会被每个消费者消费使用，类似订阅/发布的消息模型。 ">
-  <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB02-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">
+  <meta property="og:url" content="https://aidodoo.com/post/kafka/%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -96,7 +102,7 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/kafka/kafka%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB02-%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">
+<link rel="canonical" href="https://aidodoo.com/post/kafka/%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -256,9 +262,26 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
     </header>
     <article class="post-content">
 
+<p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/消息模型/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
+
+<li><p><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></p>
+
 <h2 id="消息模型">消息模型</h2>
 
-<h3 id="jms协议-activemq">JMS协议(ActiveMQ)</h3>
+<h3 id="jms协议-activemq">JMS协议(ActiveMQ)</h3></li>
+</ul>
 
 <p>Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。
 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。</p>
@@ -322,7 +345,7 @@ RabbitMQ既支持内存队列也支持持久化队列，消费端为推模型，
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>384</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>394</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     
