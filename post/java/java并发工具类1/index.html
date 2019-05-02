@@ -24,45 +24,45 @@
 
   
   
-  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
 CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
 其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
 构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
 countDown()方法用来减少计数器的值，每次减1。
 getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
-package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.">
 
   
   
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="并发工具类一">
-    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
 CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
 其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
 构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
 countDown()方法用来减少计数器的值，每次减1。
 getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
-package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="并发工具类一">
-  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
 CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
 其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
 构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
 countDown()方法用来减少计数器的值，每次减1。
 getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
-package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.getCount()); ExecutorService executorService = Executors.">
+package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&amp;#34;main thread start&amp;#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&amp;#34;main latch init=&amp;#34;&#43;latch.">
   <meta property="og:url" content="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/">
   <meta property="og:image" content="/images/avatar.png">
 
@@ -237,12 +237,12 @@ package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; 
 <p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
 <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /></p>
 
-<p>系列文章列表：</p>
-
-<ul>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9530427.html">Java并发基础-并发模型、基础接口以及Thread</a><br /></li>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9575156.html">Java并发基础-同步和锁</a></li>
-</ul>
+<p>目录列表如下：<br />
+* <a href="https://aidodoo.com/post/java/java并发-概念、基础接口以及Thread/">java并发-概念、基础接口以及Thread</a>
+* <a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></p>
 
 <p>本文主要以实例讲解<code>CountDownLatch</code>、<code>CyclicBarrier</code>等内容。</p>
 

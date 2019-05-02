@@ -24,9 +24,9 @@
 
   
   
-  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
+  <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解线程池、Concurrent等内容。
 线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
 public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&amp;lt;Runnable&amp;gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
  当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
@@ -41,9 +41,9 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="并发工具类三">
-    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
+    <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解线程池、Concurrent等内容。
 线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
 public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&amp;lt;Runnable&amp;gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
  当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
@@ -58,9 +58,9 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
   
   <meta property="og:type" content="article">
   <meta property="og:title" content="并发工具类三">
-  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
+  <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
+本文主要以实例讲解线程池、Concurrent等内容。
 线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
 public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&amp;lt;Runnable&amp;gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
  当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
@@ -243,14 +243,12 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
 <p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
 <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /></p>
 
-<p>系列文章列表：</p>
-
-<ul>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9530427.html">Java并发基础-并发模型、基础接口以及Thread</a><br /></li>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9575156.html">Java并发基础-同步和锁</a></li>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9601499.html">Java并发基础-并发工具类(一)</a></li>
-<li><a href="https://www.cnblogs.com/aidodoo/p/9627357.html">Java并发基础-并发工具类(二)</a></li>
-</ul>
+<p>目录列表如下：<br />
+* <a href="https://aidodoo.com/post/java/java并发-概念、基础接口以及Thread/">java并发-概念、基础接口以及Thread</a>
+* <a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a>
+* <a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></p>
 
 <p>本文主要以实例讲解线程池、Concurrent等内容。</p>
 
