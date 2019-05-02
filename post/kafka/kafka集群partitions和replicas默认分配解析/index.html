@@ -25,7 +25,7 @@
   
   
   <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
@@ -39,7 +39,7 @@ private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFact
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="Kafka集群partitions/replicas默认分配解析 ">
     <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
@@ -53,7 +53,7 @@ private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFact
   <meta property="og:type" content="article">
   <meta property="og:title" content="Kafka集群partitions/replicas默认分配解析 ">
   <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
 目标
 replica assignment有三个目标：
  在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
@@ -239,7 +239,7 @@ private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFact
 <li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka-leader选举/">kafka leader选举</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
-<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions和replicas默认分配解析/">Kafka集群partitions和replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka集群partitions和replicas默认分配解析/">kafka集群partitions和replicas默认分配解析</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>

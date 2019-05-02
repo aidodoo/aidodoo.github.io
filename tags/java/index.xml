@@ -18,9 +18,8 @@
       <pubDate>Thu, 07 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</guid>
-      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解线程池、Concurrent等内容。
 线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
 public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&amp;lt;Runnable&amp;gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
  当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
@@ -37,9 +36,8 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
       <pubDate>Wed, 06 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</guid>
-      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。
 Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
 Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
 常用方法
@@ -54,9 +52,8 @@ package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Create
       <pubDate>Tue, 05 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/</guid>
-      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
- Java并发基础-并发模型、基础接口以及Thread
- Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
+      <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
 CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
 其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
 构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
@@ -71,22 +68,21 @@ package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; 
       <pubDate>Sun, 03 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</guid>
-      <description>同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
+      <description>同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
 我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
 假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
-package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.printStackTrace(); } } } SynchronizedDemo类先创建一个账户，然后将账户实例传递给Spender线程(每个月花钱的败家子)和Earner线程(挣钱养家的家庭成员)，然后启动这两个线程。
-其中Account的代码如下：
-public class Account{ private double balance; public double getBalance() { return balance; } public void setBalance(double balance) { this.</description>
+package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.</description>
     </item>
     
     <item>
       <title>JAVA并发概念、基础接口以及Thread</title>
-      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8Cthread/</link>
       <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</guid>
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8Cthread/</guid>
       <description>JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- Java并发-概念、基础接口以及Thread Java并发-同步和锁 Java并发工具类 Java并发工具类2 Java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
 并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
 优点  提高资源利用率
 如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
@@ -119,10 +115,10 @@ public class Account{ private double balance; public double getBalance() { retur
     
     <item>
       <title>Java IO概述</title>
-      <link>https://aidodoo.com/post/java/javaio/</link>
+      <link>https://aidodoo.com/post/java/java-io/</link>
       <pubDate>Fri, 01 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/javaio/</guid>
+      <guid>https://aidodoo.com/post/java/java-io/</guid>
       <description>Java IO 本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述 Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：
  Files Pipes Network Connections In-memory Buffers (e.g. arrays) System.in, System.out, System.error  流从概念上说一个连续的数据流，既可以从流中读取数据，也可以往流中写入数据。主要分为字节流和字符流，字节流指以字节为单位进行读写，字符流指以字符为单位进行读写。
 一个程序需要InputStream或者Reader从数据源读取数据，需要OutputStream或者Writer将数据写入到目标媒介中。示意图如下：

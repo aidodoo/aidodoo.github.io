@@ -25,8 +25,7 @@
   
   
   <meta name="description" content="同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
 我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
 假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
 package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.">
@@ -37,8 +36,7 @@ package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ pu
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="同步和锁">
     <meta name="twitter:description" content="同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
 我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
 假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
 package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.">
@@ -49,8 +47,7 @@ package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ pu
   <meta property="og:type" content="article">
   <meta property="og:title" content="同步和锁">
   <meta property="og:description" content="同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
 我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
 假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
 package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.">
@@ -227,12 +224,15 @@ package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ pu
 
 <p>本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
 <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /><br />
-目录列表如下：<br />
-* <a href="https://aidodoo.com/post/java/java并发-概念、基础接口以及Thread/">java并发-概念、基础接口以及Thread</a>
-* <a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></p>
+目录列表如下：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/java/java并发-基础概念和Thread/">java并发-基础概念和Thread</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></li>
+</ul>
 
 <p>本文主要讲解Java内存模型、同步块、重入锁<code>ReentrantLock</code>和读写锁<code>ReentrantReadWriteLock</code>的应用及源码实现。</p>
 

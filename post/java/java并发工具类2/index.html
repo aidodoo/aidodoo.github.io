@@ -25,14 +25,13 @@
   
   
   <meta name="description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要以实例讲解Semaphore、阻塞队列等内容。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。
 Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
 Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
 常用方法
 Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
 运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
-package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.">
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
 
   
   
@@ -40,14 +39,13 @@ package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Create
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="并发工具类二">
     <meta name="twitter:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要以实例讲解Semaphore、阻塞队列等内容。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。
 Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
 Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
 常用方法
 Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
 运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
-package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.">
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
@@ -55,14 +53,13 @@ package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Create
   <meta property="og:type" content="article">
   <meta property="og:title" content="并发工具类二">
   <meta property="og:description" content="并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
-* java并发-概念、基础接口以及Thread * java并发-同步和锁 * java并发工具类1 * java并发工具类2 * java并发工具类3
-本文主要以实例讲解Semaphore、阻塞队列等内容。
+ java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。
 Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
 Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
 常用方法
 Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
 运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
-package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.">
+package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&amp;lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.">
   <meta property="og:url" content="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">
   <meta property="og:image" content="/images/avatar.png">
 
@@ -237,12 +234,15 @@ package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Create
 <p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：
 <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png" alt="" /></p>
 
-<p>目录列表如下：<br />
-* <a href="https://aidodoo.com/post/java/java并发-概念、基础接口以及Thread/">java并发-概念、基础接口以及Thread</a>
-* <a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a>
-* <a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></p>
+<p>目录列表如下：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/java/java并发-基础概念和Thread/">java并发-基础概念和Thread</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发-同步和锁/">java并发-同步和锁</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类1/">java并发工具类1</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类2/">java并发工具类2</a></li>
+<li><a href="https://aidodoo.com/post/java/java并发工具类3/">java并发工具类3</a></li>
+</ul>
 
 <p>本文主要以实例讲解<code>Semaphore</code>、阻塞队列等内容。</p>
 
