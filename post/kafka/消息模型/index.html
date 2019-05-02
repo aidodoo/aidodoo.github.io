@@ -25,7 +25,7 @@
   
   
   <meta name="description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
 消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
@@ -50,7 +50,7 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="消息队列模型 ">
     <meta name="twitter:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
 消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
@@ -75,7 +75,7 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
   <meta property="og:type" content="article">
   <meta property="og:title" content="消息队列模型 ">
   <meta property="og:description" content=" 本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
 消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
 JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
 点对点：
@@ -270,9 +270,9 @@ kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样
 <li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
-<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka-leader选举/">kafka leader选举</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
-<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions和replicas默认分配解析/">Kafka集群partitions和replicas默认分配解析</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
 

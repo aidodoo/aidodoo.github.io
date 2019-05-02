@@ -14,10 +14,10 @@
     
     <item>
       <title>并发工具类三</title>
-      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</link>
       <pubDate>Thu, 07 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</guid>
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/</guid>
       <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
  Java并发基础-并发模型、基础接口以及Thread
  Java并发基础-同步和锁 Java并发基础-并发工具类(一) Java并发基础-并发工具类(二)  本文主要以实例讲解线程池、Concurrent等内容。
@@ -33,10 +33,10 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
     
     <item>
       <title>并发工具类二</title>
-      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</link>
       <pubDate>Wed, 06 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</guid>
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/</guid>
       <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
  Java并发基础-并发模型、基础接口以及Thread
  Java并发基础-同步和锁 Java并发基础-并发工具类(一)  本文主要以实例讲解Semaphore、阻塞队列等内容。
@@ -50,10 +50,10 @@ package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Create
     
     <item>
       <title>并发工具类一</title>
-      <link>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/</link>
       <pubDate>Tue, 05 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</guid>
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/</guid>
       <description>并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 系列文章列表：
  Java并发基础-并发模型、基础接口以及Thread
  Java并发基础-同步和锁  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
@@ -67,10 +67,10 @@ package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; 
     
     <item>
       <title>同步和锁</title>
-      <link>https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</link>
       <pubDate>Sun, 03 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</guid>
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/</guid>
       <description>同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
 我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
 假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
@@ -81,11 +81,12 @@ public class Account{ private double balance; public double getBalance() { retur
     
     <item>
       <title>JAVA并发概念、基础接口以及Thread</title>
-      <link>https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</link>
+      <link>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</link>
       <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>https://aidodoo.com/post/java/3.1.java-concurrent01_%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</guid>
-      <description>JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
+      <guid>https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E6%A6%82%E5%BF%B5%E5%9F%BA%E7%A1%80%E6%8E%A5%E5%8F%A3%E4%BB%A5%E5%8F%8Athread/</guid>
+      <description>JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
+ Java并发-概念、基础接口以及Thread Java并发-同步和锁 Java并发工具类 Java并发工具类2 Java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
 并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
 优点  提高资源利用率
 如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
@@ -113,10 +114,7 @@ public class Account{ private double balance; public double getBalance() { retur
 单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
  合理的作业顺序
 基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
-  缺点  编写难度大
-好在有一些平台框架可以直接使用，如Akka,Node.JS等
- 跟踪困难 流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。
-  函数式并行 函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人agents或者actor，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。</description>
+  缺点  编写难度大</description>
     </item>
     
     <item>

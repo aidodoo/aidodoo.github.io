@@ -25,7 +25,7 @@
   
   
   <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -44,7 +44,7 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
     <meta name="twitter:site" content="@gohugoio">
     <meta name="twitter:title" content="Kafka编程实践-生产者 ">
     <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -63,7 +63,7 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
   <meta property="og:type" content="article">
   <meta property="og:title" content="Kafka编程实践-生产者 ">
   <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
 ##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
@@ -250,9 +250,9 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
 <li><a href="https://aidodoo.com/post/kafka/kafka副本同步机制/">kafka副本同步机制</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka文件存储机制/">kafka文件存储机制</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
-<li><a href="https://aidodoo.com/post/kafka/kafka leader选举/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka-leader选举/">kafka leader选举</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
-<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions/replicas默认分配解析/">Kafka集群partitions/replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions和replicas默认分配解析/">Kafka集群partitions和replicas默认分配解析</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>

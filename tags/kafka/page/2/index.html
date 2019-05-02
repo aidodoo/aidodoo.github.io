@@ -210,7 +210,7 @@
   </header>
   
   <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions/replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
  发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
   可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
  生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。

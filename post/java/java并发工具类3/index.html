@@ -69,7 +69,7 @@ public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveT
 源码解析 数量和状态变量管理
 在ThreadPoolExecutor内部用AtomicInteger类型的ctl变量去维护两个概念上的参数，即有效的线程数量workerCount和线程池的运行状态，其中ctl的高3位表示运行状态，低29位表示数量。
 private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private static final int COUNT_BITS = Integer.SIZE - 3; private static final int CAPACITY = (1 &amp;lt;&amp;lt; COUNT_BITS) - 1; // runState is stored in the high-order bits private static final int RUNNING = -1 &amp;lt;&amp;lt; COUNT_BITS; private static final int SHUTDOWN = 0 &amp;lt;&amp;lt; COUNT_BITS; private static final int STOP = 1 &amp;lt;&amp;lt; COUNT_BITS; private static final int TIDYING = 2 &amp;lt;&amp;lt; COUNT_BITS; private static final int TERMINATED = 3 &amp;lt;&amp;lt; COUNT_BITS; // Packing and unpacking ctl private static int runStateOf(int c) { return c &amp;amp; ~CAPACITY; } private static int workerCountOf(int c) { return c &amp;amp; CAPACITY; } private static int ctlOf(int rs, int wc) { return rs | wc; } 各个状态含义如下:">
-  <meta property="og:url" content="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">
+  <meta property="og:url" content="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -78,7 +78,7 @@ private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private 
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/java/3.3.java-concurrent_03_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">
+<link rel="canonical" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">

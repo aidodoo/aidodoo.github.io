@@ -54,7 +54,7 @@ public class Account{ private double balance; public double getBalance() { retur
 package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&amp;#34;Account : Initial Balance: %f\n&amp;#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&amp;#34;Account : Final Balance: %f\n&amp;#34;,account.getBalance()); } catch (InterruptedException e) { e.printStackTrace(); } } } SynchronizedDemo类先创建一个账户，然后将账户实例传递给Spender线程(每个月花钱的败家子)和Earner线程(挣钱养家的家庭成员)，然后启动这两个线程。
 其中Account的代码如下：
 public class Account{ private double balance; public double getBalance() { return balance; } public void setBalance(double balance) { this.">
-  <meta property="og:url" content="https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">
+  <meta property="og:url" content="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">
   <meta property="og:image" content="/images/avatar.png">
 
 
@@ -63,7 +63,7 @@ public class Account{ private double balance; public double getBalance() { retur
 <meta name="generator" content="Hugo 0.53">
 
 
-<link rel="canonical" href="https://aidodoo.com/post/java/3.2.java-concurrent_02_%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">
+<link rel="canonical" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">
 
 <meta name="renderer" content="webkit">
 <meta name="viewport" content="width=device-width,initial-scale=1">
