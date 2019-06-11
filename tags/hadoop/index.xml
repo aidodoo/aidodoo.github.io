@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Hadoop on aidodoo blog</title>
+    <link>https://aidodoo.com/tags/hadoop/</link>
+    <description>Recent content in Hadoop on aidodoo blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Original, if necessary, please note.</copyright>
+    <lastBuildDate>Wed, 05 Jun 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://aidodoo.com/tags/hadoop/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>hadoop集群的搭建</title>
+      <link>https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Wed, 05 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>zookeeper集群的搭建</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲述zookeeper的安装，日志配置基础优化。
+简介 Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：
+ Naming service Configuration management Synchronization Leader election Message Queue Notification system  其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。
+安装 官网地址zookeeper，本文选择稳定版zookeeper-3.4.14.tar.gz
+资源列表 本文资源列表如下:    bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202  
+解压  切换至主目录 shell cd ~  解压 shell tar -zxvf zookeeper-3.4.14.tar.gz  重命名
+mv zookeeper-3.4.14 zookeeper 配置 生成zoo.cfg文件 切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。
+cd /home/oracle/zookeeper/conf cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="zookeeper集群的搭建">
+    <meta name="twitter:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲述zookeeper的安装，日志配置基础优化。
+简介 Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：
+ Naming service Configuration management Synchronization Leader election Message Queue Notification system  其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。
+安装 官网地址zookeeper，本文选择稳定版zookeeper-3.4.14.tar.gz
+资源列表 本文资源列表如下:    bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202  
+解压  切换至主目录 shell cd ~  解压 shell tar -zxvf zookeeper-3.4.14.tar.gz  重命名
+mv zookeeper-3.4.14 zookeeper 配置 生成zoo.cfg文件 切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。
+cd /home/oracle/zookeeper/conf cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="zookeeper集群的搭建">
+  <meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲述zookeeper的安装，日志配置基础优化。
+简介 Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：
+ Naming service Configuration management Synchronization Leader election Message Queue Notification system  其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。
+安装 官网地址zookeeper，本文选择稳定版zookeeper-3.4.14.tar.gz
+资源列表 本文资源列表如下:    bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202  
+解压  切换至主目录 shell cd ~  解压 shell tar -zxvf zookeeper-3.4.14.tar.gz  重命名
+mv zookeeper-3.4.14 zookeeper 配置 生成zoo.cfg文件 切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。
+cd /home/oracle/zookeeper/conf cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.">
+  <meta property="og:url" content="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">zookeeper集群的搭建</h1>
+      <p class="post-meta">@aidodoo · Jun 2, 2019 · 2 min read</p>
+    </header>
+    <article class="post-content">
+
+<p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka集群的搭建/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop集群的搭建/">hadoop集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase集群的搭建/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark集群的搭建/">spark集群的搭建</a></li>
+</ul>
+
+<p>本文主要讲述zookeeper的安装，日志配置基础优化。</p>
+
+<h1 id="简介">简介</h1>
+
+<p>Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：</p>
+
+<ul>
+<li>Naming service</li>
+<li>Configuration management</li>
+<li>Synchronization</li>
+<li>Leader election</li>
+<li>Message Queue</li>
+<li>Notification system</li>
+</ul>
+
+<p>其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。</p>
+
+<h1 id="安装">安装</h1>
+
+<p>官网地址<a href="http://zookeeper.apache.org/releases.html">zookeeper</a>，本文选择稳定版zookeeper-3.4.14.tar.gz</p>
+
+<h2 id="资源列表">资源列表</h2>
+
+<p>本文资源列表如下:
+<table>
+</tr>
+<tr>
+    <td>bigdata1</td>
+    <td>192.168.220.200</td>
+</tr>
+<tr>
+    <td>bigdata2</td>
+    <td>192.168.220.201</td>
+</tr>
+<tr>
+    <td>bigdata3</td>
+    <td>192.168.220.202</td>
+</tr>
+</table></p>
+
+<h2 id="解压">解压</h2>
+
+<ul>
+<li>切换至主目录
+<code>shell
+cd ~
+</code></li>
+<li>解压
+<code>shell
+tar -zxvf zookeeper-3.4.14.tar.gz
+</code></li>
+
+<li><p>重命名</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mv zookeeper-3.4.14 zookeeper</code></pre></div>
+<h2 id="配置">配置</h2>
+
+<h3 id="生成zoo-cfg文件">生成zoo.cfg文件</h3>
+
+<p>切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd /home/oracle/zookeeper/conf
+cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.cfg</code></pre></div>
+<h3 id="配置zoo-cfg文件">配置zoo.cfg文件</h3>
+
+<p>编辑zoo.cfg文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi /home/oracle/zookeeper/conf/zoo.cfg</code></pre></div>
+<p>修改后内容如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">tickTime<span style="color:#f92672">=</span><span style="color:#ae81ff">2000</span>
+initLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
+syncLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>
+dataDir<span style="color:#f92672">=</span>/home/oracle/zookeeper/data
+clientPort<span style="color:#f92672">=</span><span style="color:#ae81ff">2181</span>
+maxClientCnxns<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>
+<span style="color:#75715e">#autopurge.snapRetainCount=3</span>
+<span style="color:#75715e">#autopurge.purgeInterval=1</span>
+server.1<span style="color:#f92672">=</span><span style="color:#ae81ff">192</span>.168.220.200:2888:3888
+server.2<span style="color:#f92672">=</span><span style="color:#ae81ff">192</span>.168.220.201:2888:3888
+server.3<span style="color:#f92672">=</span><span style="color:#ae81ff">192</span>.168.220.202:2888:3888</code></pre></div>
+<p>其中dataDir主要用于存储zookeeper的数据文件和快照信息。<br />
+server.x中的数字1,2,3)，是zookeeper的主机标识，不同的主机均应保持唯一。</p></li>
+</ul>
+
+<h3 id="配置myid文件">配置myid文件</h3>
+
+<p>zookeeper集群中机器均需要在对应的dataDir目录新建myid文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi /home/oracle/zookeeper/data/myid</code></pre></div>
+<p>bigdata1的myid为1,bigdata2的myid为2,bigdata3的myid为3，如果还有其他主机，依次类推，具体的数字和zoo.cfg中的保持一致即可。</p>
+
+<h3 id="配置zkenv-sh文件">配置zkEnv.sh文件</h3>
+
+<p>默认情况下，zookeeper的日志信息输出到zookeeper.out文件中，本文目录<code>/home/oracle/zookeeper/bin/zookeeper.out</code>。但是随着程序的进行，其日志文件会相当大，为便于后续的维护，优化相关配置，将日志输出到指定目录。<br />
+编辑zkEnv.sh文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi /home/oracle/zookeeper/bin/zkEnv.sh</code></pre></div>
+<p>新增ZOO_LOG_DIR路径配置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ZOO_LOG_DIR<span style="color:#f92672">=</span>/home/oracle/zookeeper/logs</code></pre></div>
+<h3 id="配置log4j-properties文件">配置log4j.properties文件</h3>
+
+<p>虽然日志目录已更改，但是日志还是一直输出到一个文件中，不便于后续日志的查找和维护。
+编辑log4j.properties文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi /home/oracle/zookeeper/conf/log4j.properties</code></pre></div>
+<p>更改zookeeper.root.logger的配置为ROLLINGFILE</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">zookeeper.root.logger<span style="color:#f92672">=</span>INFO,ROLLINGFILE</code></pre></div>
+<p>指定具体的日志目录</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">zookeeper.log.dir<span style="color:#f92672">=</span>/home/oracle/zookeeper/logs</code></pre></div>
+<p>同时更改appender.ROLLINGFILE的属性</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">log4j.appender.ROLLINGFILE.MaxFileSize<span style="color:#f92672">=</span>50MB
+log4j.appender.ROLLINGFILE.MaxBackupIndex<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span></code></pre></div>
+<p>上述配置表每个日志文件最多50M,最多10个备份文件，这样日志目录最多就500M。
+生产环境基本上会根据天或者小时去切分日志文件，不再赘述，具体的可以去看log4j官网。<br />
+完整的log4j.properties文件如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># Define some default values that can be overridden by system properties</span>
+<span style="color:#75715e">#zookeeper.root.logger=INFO, CONSOLE</span>
+zookeeper.root.logger<span style="color:#f92672">=</span>INFO,ROLLINGFILE
+zookeeper.console.threshold<span style="color:#f92672">=</span>INFO
+zookeeper.log.dir<span style="color:#f92672">=</span>/home/oracle/zookeeper/logs
+zookeeper.log.file<span style="color:#f92672">=</span>zookeeper.log
+zookeeper.log.threshold<span style="color:#f92672">=</span>DEBUG
+zookeeper.tracelog.dir<span style="color:#f92672">=</span>.
+zookeeper.tracelog.file<span style="color:#f92672">=</span>zookeeper_trace.log
+log4j.rootLogger<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper.root.logger<span style="color:#e6db74">}</span>
+log4j.appender.CONSOLE<span style="color:#f92672">=</span>org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.Threshold<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper.console.threshold<span style="color:#e6db74">}</span>
+log4j.appender.CONSOLE.layout<span style="color:#f92672">=</span>org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern<span style="color:#f92672">=</span>%d<span style="color:#f92672">{</span>ISO8601<span style="color:#f92672">}</span> <span style="color:#f92672">[</span>myid:%X<span style="color:#f92672">{</span>myid<span style="color:#f92672">}]</span> - %-5p <span style="color:#f92672">[</span>%t:%C<span style="color:#f92672">{</span><span style="color:#ae81ff">1</span><span style="color:#f92672">}</span>@%L<span style="color:#f92672">]</span> - %m%n
+log4j.appender.ROLLINGFILE<span style="color:#f92672">=</span>org.apache.log4j.RollingFileAppender
+log4j.appender.ROLLINGFILE.Threshold<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper.log.threshold<span style="color:#e6db74">}</span>
+log4j.appender.ROLLINGFILE.File<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper.log.dir<span style="color:#e6db74">}</span>/<span style="color:#e6db74">${</span>zookeeper.log.file<span style="color:#e6db74">}</span>
+<span style="color:#75715e"># Max log file size of 10MB</span>
+log4j.appender.ROLLINGFILE.MaxFileSize<span style="color:#f92672">=</span>50MB
+<span style="color:#75715e"># uncomment the next line to limit number of backup files</span>
+log4j.appender.ROLLINGFILE.MaxBackupIndex<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
+log4j.appender.ROLLINGFILE.layout<span style="color:#f92672">=</span>org.apache.log4j.PatternLayout
+log4j.appender.ROLLINGFILE.layout.ConversionPattern<span style="color:#f92672">=</span>%d<span style="color:#f92672">{</span>ISO8601<span style="color:#f92672">}</span> <span style="color:#f92672">[</span>myid:%X<span style="color:#f92672">{</span>myid<span style="color:#f92672">}]</span> - %-5p <span style="color:#f92672">[</span>%t:%C<span style="color:#f92672">{</span><span style="color:#ae81ff">1</span><span style="color:#f92672">}</span>@%L<span style="color:#f92672">]</span> - %m%n
+
+log4j.appender.TRACEFILE<span style="color:#f92672">=</span>org.apache.log4j.FileAppender
+log4j.appender.TRACEFILE.Threshold<span style="color:#f92672">=</span>TRACE
+log4j.appender.TRACEFILE.File<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper.tracelog.dir<span style="color:#e6db74">}</span>/<span style="color:#e6db74">${</span>zookeeper.tracelog.file<span style="color:#e6db74">}</span>
+
+log4j.appender.TRACEFILE.layout<span style="color:#f92672">=</span>org.apache.log4j.PatternLayout
+log4j.appender.TRACEFILE.layout.ConversionPattern<span style="color:#f92672">=</span>%d<span style="color:#f92672">{</span>ISO8601<span style="color:#f92672">}</span> <span style="color:#f92672">[</span>myid:%X<span style="color:#f92672">{</span>myid<span style="color:#f92672">}]</span> - %-5p <span style="color:#f92672">[</span>%t:%C<span style="color:#f92672">{</span><span style="color:#ae81ff">1</span><span style="color:#f92672">}</span>@%L<span style="color:#f92672">][</span>%x<span style="color:#f92672">]</span> - %m%n</code></pre></div>
+<h3 id="同步">同步</h3>
+
+<p>bigdata1配置更改完成后，直接将整个zookeeper目录同步到bigdata2和bigdata3</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scp -r /home/oracle/zookeeper  oracle@bigdata2:/home/oracle/
+scp -r /home/oracle/zookeeper  oracle@bigdata3:/home/oracle/</code></pre></div>
+<p>同步完成后，记得更改bigdata2和bigdat3的myid文件中的数值。</p>
+
+<h1 id="启动和验证">启动和验证</h1>
+
+<h2 id="启动">启动</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 conf<span style="color:#f92672">]</span>$ /home/oracle/zookeeper/bin/zkServer.sh start
+ZooKeeper JMX enabled by default
+Using config: /home/oracle/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED</code></pre></div>
+<h2 id="查看各节点的主从情况">查看各节点的主从情况</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 conf<span style="color:#f92672">]</span>$ /home/oracle/zookeeper/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /home/oracle/zookeeper/bin/../conf/zoo.cfg
+Mode: follower
+<span style="color:#f92672">[</span>oracle@bigdata1 conf<span style="color:#f92672">]</span>$ 
+
+<span style="color:#f92672">[</span>oracle@bigdata2 logs<span style="color:#f92672">]</span>$ /home/oracle/zookeeper/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /home/oracle/zookeeper/bin/../conf/zoo.cfg
+Mode: follower
+<span style="color:#f92672">[</span>oracle@bigdata2 logs<span style="color:#f92672">]</span>$ 
+
+<span style="color:#f92672">[</span>oracle@bigdata3 logs<span style="color:#f92672">]</span>$ /home/oracle/zookeeper/bin/zkServer.sh status
+ZooKeeper JMX enabled by default
+Using config: /home/oracle/zookeeper/bin/../conf/zoo.cfg
+Mode: leader
+<span style="color:#f92672">[</span>oracle@bigdata3 logs<span style="color:#f92672">]</span>$ </code></pre></div>
+<p>可以看到bigdata3为主节点，bigdata1和bigdata2为从节点。</p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/others"><span class="tag">Others</span></a></li>
+        
+          <li><a href="https://aidodoo.com/tags/zookeeper"><span class="tag">Zookeeper</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

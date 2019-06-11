@@ -164,6 +164,48 @@
           
           
           ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
           <a href="https://aidodoo.com/links/">Links</a>
         </li>
       
@@ -199,242 +241,92 @@
   
    <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/" class="post-link">Kafka编程实践-消费者</a></h3>
-    <p class="post-meta">@aidodoo · Apr 12, 2018 · 5 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="post-link">pinpoint底层存储数据结构</a></h3>
+    <p class="post-meta">@aidodoo · Jun 7, 2019 · 9 min read</p>
   </header>
   
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
-kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交 ##kafka安装 前面博文中均已详细介绍，不再赘述。
-linux集群安装参考大数据平台搭建-kafka集群的搭建
-window单机版安装参考kafka知识体系50-生产者编程实践
-##实践 ###依赖 kafka 0.10.1.0版本中采用KafkaConsumer对象用来向kafka broker集群拉取消息。 编写代码前先引入相关依赖包：
-&lt;dependency&gt; &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt; &lt;artifactId&gt;kafka_2.11&lt;/artifactId&gt; &lt;version&gt;0.10.1.0&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt; &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt; &lt;version&gt;0.10.1.0&lt;/version&gt; &lt;/dependency&gt;  ###基本概念 消费者位置和偏移量
-消费者的位置表示下一条消息的偏移量，其比消费者在分区中已经消费的消息的偏移量还要大1。
-提交的偏移量表示消费完成后，安全记录保存的偏移量，也是消费进程失败或者重启后的恢复点。可以同步提交commitSync或者异步提交偏移量commitAsync，也可以让消费者通过线程定时提交偏移量。
-消费组和订阅主题
-kafka允许多个消费者订阅同一个主题并共享同一个消费组，来实现多个进程来消费和处理消息。其中这些进程可以可以在同一台机器上运行，也可以分布在多台机器上，为处理提供可扩展性和容错能力。
-组中的每个消费者都可以通过其subscribe方法动态设置要订阅的主题列表 。Kafka将订阅主题中的每条消息传递给每个消费者组中的一个进程。这是通过平衡消费者组中所有成员之间的分区来实现的，这样每个分区就只分配给该组中的一个使用者。因此，如果存在具有四个分区的主题和具有两个进程的使用者组，则每个进程将使用两个分区。
-当消费者失败或者新增消费者，以及新增分区都会发生消费组内均衡操作。同时当均衡操作发生时，可以通过ConsumerRebalanceListener去监听，以便完成必要的应用程序级逻辑，例如状态清理，手动偏移提交等。
-消费者故障检测
-消费者在订阅主题后，调用poll方法时将自动加入组，poll方法旨在确保消费者的活力。只要继续调用poll方法，消费者将留在组中并继续从分配的分区中接收消息。在底层，是消费者会定期向服务端发送心跳。当消费者崩溃或者无法再持续的时间内(session.timeout.ms)发送心跳，则消费者被视为死亡，其占用的分区也会被重新分配。
-此外，消费者可能遇到活锁的情况，即仍在发送心跳，但没有消费消息。 为了防止消费者在这种情况下无限期地占用其分区，我们使用该max.poll.interval.ms设置提供了活跃度检测机制。基本上，如果您不至少与配置的最大间隔一样频繁地调用轮询，则客户端将主动离开该组，以便其他使用者可以接管其分区。发生这种情况时，您可能会看到偏移提交失败（如CommitFailedException异常）。这是一种安全机制，可确保只有组中的活动成员才能提交偏移量。
-消费者提供两个配置设置来控制轮询循环的行为：
- max.poll.interval.ms：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。
- max.poll.records：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。  ###编码实践 单线程自动提交偏移量
-package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.</p>
+  <p class="post-summary">本文主要基于源码整理pinpoint的hbase的表结构，以便于作为参考，二次开发或者定义我们自己的架构数据结构。
+AgentInfo 用途 主键 总共32字节，前24字节为agentId,后8字节为Long.MAX_VALUE-time
+byte[] agentId = Bytes.toBytes(agentInfo.getAgentId()); long reverseKey = TimeUtils.reverseTimeMillis(agentInfo.getStartTimestamp()); byte[] rowKey = RowKeyUtils.concatFixedByteAndLong(agentId, HBaseTables.AGENT_NAME_MAX_LEN, reverseKey);  列簇和列 列簇：Info public static final byte[] AGENTINFO_CF_INFO = Bytes.toBytes(&#34;Info&#34;);  列：i public static final byte[] AGENTINFO_CF_INFO_IDENTIFIER = Bytes.toBytes(&#34;i&#34;);  可能包含的信息如下：
+  i  hostName    ip    ports    agentId    applicationName    serviceTypeCode    pid    vmVersion    agentVersion    startTime    endTimeStamp    endStatus    serverMetaData    jvmInfo</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/" class="post-link">Kafka编程实践-生产者 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 11, 2018 · 6 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="post-link">spark集群的搭建</a></h3>
+    <p class="post-meta">@aidodoo · Jun 6, 2019 · 6 min read</p>
   </header>
   
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
-##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
-window安装过程如下：
-下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
- 添加系统变量ZOOKEEPER_HOME=D:\Program\zookeeper，并在path后面添加:%ZOOKEEPER_HOME%\bin 将zoo_sample.cfg重命名为zoo.cfg，修改内容如下：
-tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1
-  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
- 添加系统变量KAFKA_HOME=D:\Program\kafka，并在path后面添加:%KAFKA_HOME%\bin 修改D:\Program\kafka\config\server.properties配置文件如下：
-broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
-双击脚本D:\Program\zookeeper\bin\zkServer.cmd
-启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.</p>
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E5%AE%89%E8%A3%85%E5%92%8C%E6%97%A5%E5%B8%B8%E8%BF%90%E7%BB%B4/" class="post-link">Kafka常用命令 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 10, 2018 · 2 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="post-link">hbase集群的搭建</a></h3>
+    <p class="post-meta">@aidodoo · Jun 5, 2019 · 3 min read</p>
   </header>
   
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。
-kafka版本0.10.0，安装步骤见大数据平台搭建-kafka集群的搭建 ##常用脚本 如下所有的命令均基于KAFKA_HOME=/wls/oracle/kafka ,服务器列表如下：
-10.20.112.59 10.20.112.64 10.20.112.65 10.20.116.129 10.20.116.175  ###创建topic
-/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  其中replication-factor后数字表示副本个数，partitions的数字表示分区个数。
-###查看topic
-/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list  ###更改topic配置
-配置topic级别参数时，相同(参数)属性topic级别会覆盖全局的，否则默认为全局配置属性值,即/wls/oracle/kafka/config/server.properties中topic属性配置。
-topic创建完成后，随着项目的进展，可能存在对特定topic配置的更改，涉及到的常用更改项如下。
-单个消息比较大，需要调整broker能接收消息的最大字节数
-/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000 或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行 /wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000  kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数</p>
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hbase的分布式搭建过程。
+版本要求  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 见链接免密登录
+java安装 见链接java安装
+zookeeper安装 见链接zookeeper安装
+hadoop安装 见链接hadoop安装
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为master,bigdata3、bigdat4、bigdata5作为regionserver，安装完成后各节点进程名如下：
+  主机名 ip地址 HMaster HRegionServer   bigdata1 192.168.220.200 Y N   bigdata2 192.168.220.201 N Y   bigdata3 192.168.220.202 N Y   bigdata4 192.168.220.203 N Y   bigdata5 192.</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E5%AE%89%E8%A3%85%E5%92%8C%E6%97%A5%E5%B8%B8%E8%BF%90%E7%BB%B4/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E9%9B%86%E7%BE%A4partitions%E5%92%8Creplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/" class="post-link">Kafka集群partitions/replicas默认分配解析 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 9, 2018 · 3 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="post-link">hadoop集群的搭建</a></h3>
+    <p class="post-meta">@aidodoo · Jun 5, 2019 · 5 min read</p>
   </header>
   
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  Kafka集群partitions/replicas默认分配解析 kafka在创建topic，需要指定分区数和副本的数量，本节探讨分区、副本在broker上的分配情况。
-目标
-replica assignment有三个目标：
- 在brokers之间均分replicas partition与它的其他replicas不再同一个broker上 如果broker有rack信息，则partition的replicas尽量分配在不同rack上面  kafka0.10版本支持了2种replica assignment策略(对于partition来说，它也是由n个replica组成的)，一种是rack unware，一种是rack-ware，这里的rack就是机架的意思。
-rack unaware
- 随机从broker list选一个开始，然后对每个partition的第一个replica进行round-robin分配 之后对每个partition的其余replicas进行递增1位错位开来  这种策略分配算法核心代码如下：
-private def assignReplicasToBrokersRackUnaware(nPartitions: Int, replicationFactor: Int, brokerList: Seq[Int], fixedStartIndex: Int, startPartitionId: Int): Map[Int, Seq[Int]] = { val ret = mutable.Map[Int, Seq[Int]]() val brokerArray = brokerList.toArray val startIndex = if (fixedStartIndex &gt;= 0) fixedStartIndex else rand.</p>
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E9%9B%86%E7%BE%A4partitions%E5%92%8Creplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E6%B6%88%E6%81%AF%E4%BC%A0%E9%80%92%E8%AF%AD%E4%B9%89/" class="post-link">kafka消息传递语义 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 8, 2018 · 1 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="post-link">kafka集群的搭建</a></h3>
+    <p class="post-meta">@aidodoo · Jun 2, 2019 · 1 min read</p>
   </header>
   
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  消息传递语义 消息传递保障 本节讨论Kafka如何确保消息在producer和consumer之间传输。有以下三种可能的传输保障（delivery guarantee）:
- At most once: 消息可能会丢，但绝不会重复传输 At least once：消息绝不会丢，但可能会重复传输 Exactly once：每条消息肯定会被传输一次且仅传输一次  Kafka的消息传输保障机制非常直观。当producer向broker发送消息时，一旦这条消息被commit，由于副本机制（replication）的存在，它就不会丢失。但是如果producer发送数据给broker后，遇到的网络问题而造成通信中断，那producer就无法判断该条消息是否已经提交（commit）。虽然Kafka无法确定网络故障期间发生了什么，但是producer可以retry多次，确保消息已经正确传输到broker中，所以目前Kafka实现的是at least once。
-consumer从broker中读取消息后，可以选择commit，该操作会在Zookeeper中存下该consumer在该partition下读取的消息的offset。该consumer下一次再读该partition时会从下一条开始读取。如未commit，下一次读取的开始位置会跟上一次commit之后的开始位置相同。当然也可以将consumer设置为autocommit，即consumer一旦读取到数据立即自动commit。如果只讨论这一读取消息的过程，那Kafka是确保了exactly once, 但是如果由于前面producer与broker之间的某种原因导致消息的重复，那么这里就是at least once。
-考虑这样一种情况，当consumer读完消息之后先commit再处理消息，在这种模式下，如果consumer在commit后还没来得及处理消息就crash了，下次重新开始工作后就无法读到刚刚已提交而未处理的消息，这就对应于at most once了。
-读完消息先处理再commit。这种模式下，如果处理完了消息在commit之前consumer crash了，下次重新开始工作时还会处理刚刚未commit的消息，实际上该消息已经被处理过了，这就对应于at least once。
-要做到exactly once就需要引入消息去重机制。
-消息去重 如上一节所述，Kafka在producer端和consumer端都会出现消息的重复，这就需要去重处理。
-Kafka文档中提及GUID(Globally Unique Identifier)的概念，通过客户端生成算法得到每个消息的unique id，同时可映射至broker上存储的地址，即通过GUID便可查询提取消息内容，也便于发送方的幂等性保证，需要在broker上提供此去重处理模块，目前版本尚不支持。
-针对GUID, 如果从客户端的角度去重，那么需要引入集中式缓存，必然会增加依赖复杂度，另外缓存的大小难以界定。
-不只是Kafka, 类似RabbitMQ以及RocketMQ这类商业级中间件也只保障at least once, 且也无法从自身去进行消息去重。所以我们建议业务方根据自身的业务特点进行去重，比如业务消息本身具备幂等性，或者借助Redis等其他产品进行去重处理。
-高可用性配置 Kafka提供了很高的数据冗余弹性，对于需要数据高可靠性的场景，我们可以增加数据冗余备份数（replication.factor），调高最小写入副本数的个数（min.insync.replicas）等等，但是这样会影响性能。反之，性能提高而可靠性则降低，用户需要自身业务特性在彼此之间做一些权衡性选择。
-要保证数据写入到Kafka是安全的，高可靠的，需要如下的配置： * topic的配置：replication.factor&gt;=3,即副本数至少是3个；2&lt;=min.insync.replicas&lt;=replication.factor * broker的配置：leader的选举条件unclean.leader.election.enable=false * producer的配置：request.required.acks=-1(all)，producer.type=sync</p>
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解kafka集群的搭建步骤。
+下载 kafka官网下载安装包kafka_2.11-2.2.0.tgz
+安装 cd ~ tar -zxvf kafka_2.11-2.2.0.tgz mv kafka_2.11-2.2.0 kafka 配置更改 编辑kafka.server配置文件 vi /home/oracle/kafka/config/server.properties 不同机器配置的broker.id 、advertised.listeners不一样，根据对应的主机名配置。以服务器bigdata1，则其server.properties需更改的配置如下：
+broker.id=1 advertised.listeners=PLAINTEXT://bigdata1:9092 num.network.threads=3 num.io.threads=8 socket.send.buffer.bytes=102400 socket.receive.buffer.bytes=102400 socket.request.max.bytes=104857600 log.dirs=/home/oracle/kafka/kafka-logs num.partitions=1 num.recovery.threads.per.data.dir=1 offsets.topic.replication.factor=1 transaction.state.log.replication.factor=1 transaction.state.log.min.isr=1 log.retention.hours=8 log.segment.bytes=1073741824 log.retention.check.interval.ms=300000 zookeeper.connect=192.168.220.200:2181,192.168.220.201:2181,192.168.220.202:2181/kafka zookeeper.connection.timeout.ms=6000 group.initial.rebalance.delay.ms=0 其他配置项参考后续文章或者官方文档，本文只概述集群模式的安装。
+建立kafka日志相关目录 mkdir -p /home/oracle/kafka/kafka-logs 复制kafka目录到其他服务器，并更改对应的broker.id 、advertised.listeners配置
+scp -r /home/oracle/kafka oracle@bigdata2:/home/oracle scp -r /home/oracle/kafka oracle@bigdata3:/home/oracle 启动和验证 建立日志目录
+mkdir -p /home/oracle/kafka/logs 依次启动集群中的kafka，执行脚本如下：
+cd /home/oracle/kafka/logs nohup /home/oracle/kafka/bin/kafka-server-start.</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E6%B6%88%E6%81%AF%E4%BC%A0%E9%80%92%E8%AF%AD%E4%B9%89/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka-leader%E9%80%89%E4%B8%BE/" class="post-link">kafka leader选举 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 7, 2018 · 1 min read</p>
-  </header>
-  
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka leader选举 一条消息只有被ISR中的所有follower都从leader复制过去才会被认为已提交。这样就避免了部分数据被写进了leader，还没来得及被任何follower复制就宕机了，而造成数据丢失。而对于producer而言，它可以选择是否等待消息commit，这可以通过request.required.acks来设置。这种机制确保了只要ISR中有一个或者以上的follower，一条被commit的消息就不会丢失。
-有一个很重要的问题是当leader宕机了，怎样在follower中选举出新的leader，因为follower可能落后很多或者直接crash了，所以必须确保选择“最新”的follower作为新的leader。一个基本的原则就是，如果leader不在了，新的leader必须拥有原来的leader commit的所有消息。这就需要做一个折中，如果leader在表名一个消息被commit前等待更多的follower确认，那么在它挂掉之后就有更多的follower可以成为新的leader，但这也会造成吞吐率的下降。
-一种非常常用的选举leader的方式是“少数服从多数”，Kafka并不是采用这种方式。这种模式下，如果我们有2f&#43;1个副本，那么在commit之前必须保证有f&#43;1个replica复制完消息，同时为了保证能正确选举出新的leader，失败的副本数不能超过f个。这种方式有个很大的优势，系统的延迟取决于最快的几台机器，也就是说比如副本数为3，那么延迟就取决于最快的那个follower而不是最慢的那个。“少数服从多数”的方式也有一些劣势，为了保证leader选举的正常进行，它所能容忍的失败的follower数比较少，如果要容忍1个follower挂掉，那么至少要3个以上的副本，如果要容忍2个follower挂掉，必须要有5个以上的副本。也就是说，在生产环境下为了保证较高的容错率，必须要有大量的副本，而大量的副本又会在大数据量下导致性能的急剧下降。这种算法更多用在Zookeeper这种共享集群配置的系统中而很少在需要大量数据的系统中使用的原因。HDFS的HA功能也是基于“少数服从多数”的方式，但是其数据存储并不是采用这样的方式。
-实际上，leader选举的算法非常多，比如Zookeeper的Zab、Raft以及Viewstamped Replication。而Kafka所使用的leader选举算法更像是微软的PacificA算法。
-Kafka在Zookeeper中为每一个partition动态的维护了一个ISR，这个ISR里的所有replica都跟上了leader，只有ISR里的成员才能有被选为leader的可能（unclean.leader.election.enable=false）。在这种模式下，对于f&#43;1个副本，一个Kafka topic能在保证不丢失已经commit消息的前提下容忍f个副本的失败，在大多数使用场景下，这种模式是十分有利的。事实上，为了容忍f个副本的失败，“少数服从多数”的方式和ISR在commit前需要等待的副本的数量是一样的，但是ISR需要的总的副本的个数几乎是“少数服从多数”的方式的一半。
-上文提到，在ISR中至少有一个follower时，Kafka可以确保已经commit的数据不丢失，但如果某一个partition的所有replica都挂了，就无法保证数据不丢失了。这种情况下有两种可行的方案：
- 等待ISR中任意一个replica“活”过来，并且选它作为leader 选择第一个“活”过来的replica（并不一定是在ISR中）作为leader
-  如果一定要等待ISR中的replica“活”过来，那不可用的时间就可能会相对较长。而且如果ISR中所有的replica都无法“活”过来了，或者数据丢失了，这个partition将永远不可用。选择第一个“活”过来的replica作为leader,而这个replica不是ISR中的replica,那即使它并不保障已经包含了所有已commit的消息，它也会成为leader而作为consumer的数据源。默认情况下，Kafka采用第二种策略，即unclean.leader.election.enable=true，也可以将此参数设置为false来启用第一种策略。
-unclean.leader.election.enable这个参数对于leader的选举、系统的可用性以及数据的可靠性都有至关重要的影响。下面我们来分析下几种典型的场景。
-如果上图所示，假设某个partition中的副本数为3，replica-0, replica-1, replica-2分别存放在broker0, broker1和broker2中。AR=(0,1,2)，ISR=(0,1)。 设置request.required.acks=-1, min.insync.replicas=2，unclean.leader.election.enable=false。这里讲broker0中的副本也称之为broker0起初broker0为leader，broker1为follower。
-1. 当ISR中的replica-0出现crash的情况时，broker1选举为新的leader[ISR=(1)] 因为受min.insync.replicas=2影响，write不能服务，但是read能继续正常服务。此种情况恢复方案：
- 尝试恢复(重启)replica-0，如果能起来，系统正常；
- 如果replica-0不能恢复，要将min.insync.replicas设置为1，恢复write功能。
-  2. 当ISR中的replica-0出现crash，紧接着replica-1也出现了crash, 此时[ISR=(1),leader=-1] 不能对外提供服务，此种情况恢复方案：
- 尝试恢复replica-0和replica-1，如果都能起来，则系统恢复正常；
- 如果replica-0起来，而replica-1不能起来，这时候仍然不能选出leader，因为当设置unclean.leader.election.enable=false时，leader只能从ISR中选举，当ISR中所有副本都失效之后，需要ISR中最后失效的那个副本能恢复之后才能选举leader, 即replica-0先失效，replica-1后失效，需要replica-1恢复后才能选举leader。保守的方案建议把unclean.leader.election.enable设置为true,但是这样会有丢失数据的情况发生，这样可以恢复read服务。同样需要将min.insync.replicas设置为1，恢复write功能；
- replica-1恢复，replica-0不能恢复，这个情况上面遇到过，read服务可用，需要将min.insync.replicas设置为1，恢复write功能；
- replica-0和replica-1都不能恢复，这种情况可以参考情形2.
-  3. 当ISR中的replica-0, replica-1同时宕机,此时[ISR=(0,1)]
-不能对外提供服务，此种情况恢复方案：尝试恢复replica-0和replica-1，当其中任意一个副本恢复正常时，对外可以提供read服务。直到2个副本恢复正常，write功能才能恢复，或者将将min.insync.replicas设置为1。</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka-leader%E9%80%89%E4%B8%BE/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E6%95%B0%E6%8D%AE%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%92%8C%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81/" class="post-link">kafka数据可靠性和一致性保证 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 6, 2018 · 1 min read</p>
-  </header>
-  
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka数据可靠性和一致性保证 当producer向leader发送数据时，可以通过request.required.acks参数来设置数据可靠性的级别：
- 1（默认）：这意味着producer在ISR中的leader已成功收到的数据并得到确认后发送下一条message。如果leader宕机了，则会丢失数据。
- 0：这意味着producer无需等待来自broker的确认而继续发送下一批消息。这种情况下数据传输效率最高，但是数据可靠性确是最低的。
- -1：producer需要等待ISR中的所有follower都确认接收到数据后才算一次发送完成，可靠性最高。但是这样也不能保证数据不丢失，比如当ISR中只有leader时（前面ISR那一节讲到，ISR中的成员由于某些情况会增加也会减少，最少就只剩一个leader），这样就变成了acks=1的情况.
-  如果要提高数据的可靠性，在设置request.required.acks=-1的同时，也要min.insync.replicas这个参数(可以在broker或者topic层面进行设置)的配合，这样才能发挥最大的功效。min.insync.replicas这个参数设定ISR中的最小副本数是多少，默认值为1，当且仅当request.required.acks参数设置为-1时，此参数才生效。如果ISR中的副本数少于min.insync.replicas配置的数量时，客户端会返回异常：
-org.apache.kafka.common.errors.NotEnoughReplicasExceptoin: Messages are rejected since there are fewer in-sync replicas than required。 接下来对acks=1和-1的两种情况进行详细分析。
-request.required.acks=1 producer发送数据到leader，leader写本地日志成功，返回客户端成功；此时ISR中的副本还没有来得及拉取该消息，leader就宕机了，那么此次发送的消息就会丢失。 request.required.acks=-1 同步（Kafka默认为同步，即producer.type=sync）的发送模式，replication.factor&gt;=2且min.insync.replicas&gt;=2的情况下，不会丢失数据。 有两种典型情况，一种是follower完全同步，一种的follower部分同步。 **完全同步 ** acks=-1的情况下（如无特殊说明，以下acks都表示为参数request.required.acks），数据发送到leader, ISR的follower全部完成数据同步后，leader此时挂掉，那么会选举出新的leader，数据不会丢失。 部分同步 acks=-1的情况下，数据发送到leader后 ，部分ISR的副本同步，leader此时挂掉。比如follower1h和follower2都有可能变成新的leader, producer端会得到返回异常，producer端会重新发送数据，数据可能会重复。 当然上图中如果在leader crash的时候，follower2还没有同步到任何数据，而且follower2被选举为新的leader的话，这样消息就不会重复。
-HW深入讨论 考虑上图（即acks=-1,部分ISR副本同步）中的另一种情况，如果在Leader挂掉的时候，follower1同步了消息4,5，follower2同步了消息4，与此同时follower2被选举为leader，那么此时follower1中的多出的消息5该做如何处理呢？
-这里就需要HW的协同配合了。如前所述，一个partition中的ISR列表中，leader的HW是所有ISR列表里副本中最小的那个的LEO。类似于木桶原理，水位取决于最低那块短板。 如上图，某个topic的某partition有三个副本，分别为A、B、C。A作为leader肯定是LEO最高，B紧随其后，C机器由于配置比较低，网络比较差，故而同步最慢。这个时候A机器宕机，这时候如果B成为leader，假如没有HW，在A重新恢复之后会做同步(makeFollower)操作，在宕机时log文件之后直接做追加操作，而假如B的LEO已经达到了A的LEO，会产生数据不一致的情况，所以使用HW来避免这种情况。
-A在做同步操作的时候，先将log文件截断到之前自己的HW的位置，即3，之后再从B中拉取消息进行同步。 如果失败的follower恢复过来，它首先将自己的log文件截断到上次checkpointed时刻的HW的位置，之后再从leader中同步消息。leader挂掉会重新选举，新的leader会发送“指令”让其余的follower截断至自身的HW的位置然后再拉取新的消息。
-当ISR中的个副本的LEO不一致时，如果此时leader挂掉，选举新的leader时并不是按照LEO的高低进行选举，而是按照ISR中的顺序选举。</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E6%95%B0%E6%8D%AE%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%92%8C%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6/" class="post-link">kafka文件存储机制 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 5, 2018 · 1 min read</p>
-  </header>
-  
-  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka文件存储机制 topic中partition存储分布 假设实验环境中Kafka集群只有一个broker，xxx/message-folder为数据文件存储根目录，在Kafka broker中server.properties文件配置(参数log.dirs=xxx/message-folder)，例如创建topic名称分别为test, partitions数量都为partitions=4，副本为1 存储路径和目录规则为：xxx/logs
-test-0 test-1 test-2 test-3 在Kafka文件存储中，同一个topic下有多个不同的partition，每个partiton为一个目录，partition的名称规则为：topic名称&#43;有序序号，第一个序号从0开始计，最大的序号为partition数量减1，partition是实际物理上的概念，而topic是逻辑上的概念。
-partition中文件存储方式 下面示意图形象说明了partition中文件存储方式:  每个partion(目录)相当于一个巨型文件被平均分配到多个大小相等segment(段)数据文件中。但每个段segment file消息数量不一定相等，这种特性方便old segment file快速被删除。 每个partiton只需要支持顺序读写就行了，segment文件生命周期由服务端配置参数决定。  这样做的好处就是能快速删除无用文件，有效提高磁盘利用率。
-partition中segment文件存储结构 segment文件由两部分组成，分别为“.index”文件和“.log”文件，分别表示为segment索引文件和数据文件。这两个文件的命令规则为：partition全局的第一个segment从0开始，后续每个segment文件名为上一个segment文件最后一条消息的offset值，数值大小为64位，20位数字字符长度，没有数字用0填充。 下面文件列表是笔者在Kafka broker上做的一个实验，创建一个topicXXX包含1 partition，设置每个segment大小为500MB,并启动producer向Kafka broker写入大量数据,如下图所示segment文件列表形象说明了上述2个规则：
-以上述图2一对segment file文件为例，说明segment中index&lt;—-&gt;data file对应关系物理结构如下： 上述图3索引文件存储大量元数据，数据文件存储大量消息，索引文件中元数据指向对应数据文件中message的物理偏移地址。 其中以索引文件中元数据3,497为例，依次在数据文件中表示第3个message(在全局partiton表示第368772个message)、以及该消息的物理偏移地址为497。
-从上图了解到segment data file由许多message组成，下面详细说明message物理结构如下：
-相关字段含义对应如下： 通过offset查找message 例如读取offset=368776的message，需要通过下面2个步骤查找。
- 第一步查找segment file 上图为例，其中00000000000000000000.index表示最开始的文件，起始偏移量(offset)为0.第二个文件00000000000000368769.index的消息量起始偏移量为368770 = 368769 &#43; 1.同样，第三个文件00000000000000737337.index的起始偏移量为737338=737337 &#43; 1，其他后续文件依次类推，以起始偏移量命名并排序这些文件，只要根据offset二分查找文件列表，就可以快速定位到具体文件。 当offset=368776时定位到00000000000000368769.index|log
- 第二步通过segment file查找message 通过第一步定位到segment file，当offset=368776时，依次定位到00000000000000368769.index的元数据物理位置和00000000000000368769.log的物理偏移地址，然后再通过00000000000000368769.log顺序查找直到offset=368776为止。</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/" class="post-link">kafka副本同步机制 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 4, 2018 · 1 min read</p>
-  </header>
-  
-  <p class="post-summary"> 本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka副本同步机制 Kafka中主题的每个Partition有一个预写式日志文件，每个Partition都由一系列有序的、不可变的消息组成，这些消息被连续的追加到Partition中，Partition中的每个消息都有一个连续的序列号叫做offset， 确定它在分区日志中唯一的位置。 Kafka每个topic的partition有N个副本，其中N是topic的复制因子。Kafka通过多副本机制实现故障自动转移，当Kafka集群中一个Broker失效情况下仍然保证服务可用。在Kafka中发生复制时确保partition的预写式日志有序地写到其他节点上。N个replicas中。其中一个replica为leader，其他都为follower，leader处理partition的所有读写请求，与此同时，follower会被动定期地去复制leader上的数据。
-如下图所示，Kafka集群中有4个broker, 某topic有3个partition,且复制因子即副本个数也为3： Kafka提供了数据复制算法保证，如果leader发生故障或挂掉，一个新leader被选举并被接受客户端的消息成功写入。Kafka确保从同步副本列表中选举一个副本为leader，或者说follower追赶leader数据。leader负责维护和跟踪ISR(In-Sync Replicas的缩写，表示副本同步队列，具体可参考下节)中所有follower滞后的状态。当producer发送一条消息到broker后，leader写入消息并复制到所有follower。消息提交之后才被成功复制到所有的同步副本。消息复制延迟受最慢的follower限制，重要的是快速检测慢副本，如果follower“落后”太多或者失效，leader将会把它从ISR中删除。
-副本同步队列(ISR)
-所谓同步，必须满足如下两个条件：
- 副本节点必须能与zookeeper保持会话（心跳机制）
- 副本能复制leader上的所有写操作，并且不能落后太多。(卡住或滞后的副本控制是由 replica.lag.time.max.ms 配置)
-  默认情况下Kafka对应的topic的replica数量为1，即每个partition都有一个唯一的leader，为了确保消息的可靠性，通常应用中将其值(由broker的参数offsets.topic.replication.factor指定)大小设置为大于1，比如3。 所有的副本（replicas）统称为Assigned Replicas，即AR。ISR是AR中的一个子集，由leader维护ISR列表，follower从leader同步数据有一些延迟。任意一个超过阈值都会把follower剔除出ISR, 存入OSR（Outof-Sync Replicas）列表，新加入的follower也会先存放在OSR中。AR=ISR&#43;OSR。
-上一节中的HW俗称高水位，是HighWatermark的缩写，取一个partition对应的ISR中最小的LEO作为HW，consumer最多只能消费到HW所在的位置。另外每个replica都有HW,leader和follower各自负责更新自己的HW的状态。对于leader新写入的消息，consumer不能立刻消费，leader会等待该消息被所有ISR中的replicas同步后更新HW，此时消息才能被consumer消费。这样就保证了如果leader所在的broker失效，该消息仍然可以从新选举的leader中获取。对于来自内部broKer的读取请求，没有HW的限制。
-下图详细的说明了当producer生产消息至broker后，ISR以及HW和LEO的流转过程： 由此可见，Kafka的复制机制既不是完全的同步复制，也不是单纯的异步复制。事实上，同步复制要求所有能工作的follower都复制完，这条消息才会被commit，这种复制方式极大的影响了吞吐率。而异步复制方式下，follower异步的从leader复制数据，数据只要被leader写入log就被认为已经commit，这种情况下如果follower都还没有复制完，落后于leader时，突然leader宕机，则会丢失数据。而Kafka的这种使用ISR的方式则很好的均衡了确保数据不丢失以及吞吐率。
-Kafka的ISR的管理最终都会反馈到Zookeeper节点上。具体位置为：/brokers/topics/[topic]/partitions/[partition]/state。目前有两个地方会对这个Zookeeper的节点进行维护：
- Controller来维护：Kafka集群中的其中一个Broker会被选举为Controller，主要负责Partition管理和副本状态管理，也会执行类似于重分配partition之类的管理任务。在符合某些特定条件下，Controller下的LeaderSelector会选举新的leader，ISR和新的leader_epoch及controller_epoch写入Zookeeper的相关节点中。同时发起LeaderAndIsrRequest通知所有的replicas。 leader来维护：leader有单独的线程定期检测ISR中follower是否脱离ISR, 如果发现ISR变化，则会将新的ISR的信息返回到Zookeeper的相关节点中。  副本不同步的异常情况
- 慢副本：在一定周期时间内follower不能追赶上leader。最常见的原因之一是I / O瓶颈导致follower追加复制消息速度慢于从leader拉取速度。 卡住副本：在一定周期时间内follower停止从leader拉取请求。follower replica卡住了是由于GC暂停或follower失效或死亡。 新启动副本：当用户给主题增加副本因子时，新的follower不在同步副本列表中，直到他们完全赶上了leader日志。  </p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/" class="post-link">消息队列模型 </a></h3>
-    <p class="post-meta">@aidodoo · Apr 3, 2018 · 1 min read</p>
-  </header>
-  
-  <p class="post-summary"> 本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者
-消息模型 JMS协议(ActiveMQ)  Java消息服务（Java Message Service，JMS）应用程序接口是一个Java平台中关于面向消息中间件的API，用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。 点对点与发布订阅最初是由JMS定义的。这两种模式主要区别或解决的问题就是发送到队列的消息能否重复消费(多订阅)。
-JMS规范目前支持两种消息模型：点对点（point to point， queue）和发布/订阅（publish/subscribe，topic）。
-点对点：
-消息生产者生产消息发送到queue中，然后消息消费者从queue中取出并且消费消息。这里要注意： 消息被消费以后，queue中不再有存储，所以消息消费者不可能消费到已经被消费的消息。 Queue支持存在多个消费者，但是对一个消息而言，只会有一个消费者可以消费。 生产者发送一条消息到queue，只有一个消费者能收到。
-发布/订阅
-消息生产者（发布）将消息发布到topic中，同时有多个消息消费者（订阅）消费该消息。和点对点方式不同，发布到topic的消息会被所有订阅者消费。
-发布者发送到topic的消息，订阅了topic的所有订阅者都会收到消息。
-AQMP协议(RabbitMQ) RabbitMQ实现了AQMP协议，AQMP协议定义了消息路由规则和方式。生产端通过路由规则发送消息到不同queue，消费端根据queue名称消费消息。此外RabbitMQ是向消费端推送消息，订阅关系和消费状态保存在服务端。
-点对点
-生产端发送一条消息通过路由投递到Queue，只有一个消费者能消费到。
-发布/订阅
-当RabbitMQ需要支持多订阅时，发布者发送的消息通过路由同时写到多个Queue，不同订阅组消费此消息。 RabbitMQ既支持内存队列也支持持久化队列，消费端为推模型，消费状态和订阅关系由服务端负责维护，消息消费完后立即删除，不保留历史消息。所以支持多订阅时，消息会多个拷贝。
-kafka kafka没有实现JMS协议，但其消费组可以像点对点模型一样让消息被一组进程处理，同时也可以像发布/订阅模式一样，让你发送广播消息到多个消费组。
-点对点
-当多个消费者同属一个消费组时，对应消息会被同消费组的当个消费组消费使用，类似点对点的消息模型。 即消息Message1只会被消费组GroupA中的Consumer_1、Consumer_2、Consumer_3消费
-发布/订阅
-当每个消费者都属于不同的消费组时，对应的消息会被每个消费者消费使用，类似订阅/发布的消息模型。 </p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">Read More →</a>
   </footer>
 </article>
  

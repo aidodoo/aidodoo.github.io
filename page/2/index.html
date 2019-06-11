@@ -164,6 +164,48 @@
           
           
           ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
           <a href="https://aidodoo.com/links/">Links</a>
         </li>
       
@@ -199,157 +241,109 @@
   
    <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" class="post-link">kafka基本概念</a></h3>
-    <p class="post-meta">@aidodoo · Apr 1, 2018 · 1 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="post-link">zookeeper集群的搭建</a></h3>
+    <p class="post-meta">@aidodoo · Jun 2, 2019 · 2 min read</p>
+  </header>
+  
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲述zookeeper的安装，日志配置基础优化。
+简介 Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：
+ Naming service Configuration management Synchronization Leader election Message Queue Notification system  其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。
+安装 官网地址zookeeper，本文选择稳定版zookeeper-3.4.14.tar.gz
+资源列表 本文资源列表如下:    bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202  
+解压  切换至主目录 shell cd ~  解压 shell tar -zxvf zookeeper-3.4.14.tar.gz  重命名
+mv zookeeper-3.4.14 zookeeper 配置 生成zoo.cfg文件 切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。
+cd /home/oracle/zookeeper/conf cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.</p>
+  <footer class="post-footer">
+    <a class="read-more" href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">Read More →</a>
+  </footer>
+</article>
+  <article class="post-entry">
+  <header class="post-header">
+    <h3 class="post-title"><a href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/" class="post-link">基础环境安装</a></h3>
+    <p class="post-meta">@aidodoo · Jun 1, 2019 · 3 min read</p>
+  </header>
+  
+  <p class="post-summary">本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop/hbase集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。
+免密登录 由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建Hadoop环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为”公私钥”认证的方式来进行ssh登录。
+” 公私钥”认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：~/.ssh/id_rsa.pub； 私钥文件：~/.ssh/id_rsa）。然后把公钥放到服务器上（~/.ssh/authorized_keys）, 自己保留好私钥.在使用ssh登录时,ssh程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。
+操作前确认系统已经安装了SSH。
+rpm –qa | grep openssh rpm –qa | grep rsync  如果没有安装ssh和rsync，可以通过下面命令进行安装。
+yum install ssh --&gt;安装SSH协议 yum install rsync --&gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台 主机间的文件
+service sshd restart --&gt;启动服务 资源列表如下：   主机名 ip地址   bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202   bigdata4 192.168.220.203   bigdata5 192.168.220.204</p>
+  <footer class="post-footer">
+    <a class="read-more" href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">Read More →</a>
+  </footer>
+</article>
+  <article class="post-entry">
+  <header class="post-header">
+    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/" class="post-link">Kafka编程实践-消费者</a></h3>
+    <p class="post-meta">@aidodoo · Apr 12, 2018 · 5 min read</p>
   </header>
   
   <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
- 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  kafka在1.0版本以前，官方主要定义为分布式多分区多副本的消息队列，而1.0后定义为分布式流处理平台，就是说处理传递消息外，kafka还能进行流式计算，类似Strom和SparkStreaming。 主要有三大核心能力：
- 发布和订阅记录流。在这方面，它类似于一个消息队列或企业消息系统。 持久化收到的记录流，从而具有容错能力。 处理收到的记录流。
-  可以看到其主要分为两类应用，即系统或应用程序之间的数据共享，以及构建实时流应用程序并进行相应的处理。 相关功能主要通过如下四个核心API实现：
- 生产者 API 允许应用程序发布记录流至一个或多个Kafka的话题(Topics)。
- 消费者API允许应用程序订阅一个或多个主题，并处理这些主题接收到的记录流。 Streams API允许应用程序充当流处理器（stream processor），从一个或多个主题获取输入流，并生产一个输出流至一个或多个的主题，能够有效地变换输入流为输出流。 Connector API允许构建和运行可重用的生产者或消费者，能够把 Kafka主题连接到现有的应用程序或数据系统。例如，一个连接到关系数据库的连接器(connector)可能会获取每个表的变化。  基本概念 主题、日志和分区 kafka的主题(topic)是支持多用户订阅的，一个主题可以有零个，一个或多个消费者订阅写入的数据。
-对于每一个主题，Kafka集群保持一个分区日志文件，看下图：
-每个分区是一个有序的，不可变的消息序列，新的消息不断追加，同时分区会给每个消息记录分配一个顺序ID号 – 偏移量， 用于唯一标识该分区中的每个记录。
-Kafka集群保留所有发布的记录，不管这个记录有没有被消费过，Kafka提供可配置的保留策略去删除旧数据(还有一种策略根据分区大小删除数据)。例如，如果将保留策略设置为两天，在记录公布后两天，它可用于消费，之后它将被丢弃以腾出空间。Kafka的性能跟存储的数据量的大小无关， 所以将数据存储很长一段时间是没有问题的。
-事实上，保留在每个消费者元数据中的最基础的数据就是消费者正在处理的当前记录的偏移量(offset)或位置(position)。这种偏移是由消费者控制：通常偏移会随着消费者读取记录线性前进，但事实上，因为其位置是由消费者进行控制，消费者可以在任何它喜欢的位置读取记录。例如，消费者可以恢复到旧的偏移量对过去的数据再加工或者直接跳到最新的记录，并消费从“现在”开始的新的记录。
-数据日志的分区，有多个目的。首先，每个单独的分区的大小受到承载它的服务器的限制，但一个主题可能有很多分区，允许数据能够扩展到多个服务器，以便它能够支持海量的的数据。其次，更重要的意义是分区是进行并行处理的基础单元。
-日志的分区会跨服务器的分布在Kafka集群中，每个服务器会共享分区进行数据请求的处理。每个分区可以配置一定数量的副本分区以提供容错能力。
-每个分区都有一个服务器充当“leader”和零个或多个服务器充当“followers”。 leader处理所有的读取和写入分区的请求，而followers被动的从leader拷贝数据。如果leader失败了，followers之一将自动成为新的领导者。每个服务器可能充当一些分区的leader和其他分区的follower，这样的负载就会在集群内很好的均衡分配。
-生产者 生产者发布数据到他们所选择的主题。生产者负责选择把记录分配到主题中的哪个分区。这可以使用轮询算法( round-robin)进行简单地平衡负载，也可以根据一些更复杂的语义分区算法（比如基于记录一些键值自定义）来完成。
-消费者 消费者以消费群（consumer group ）的名称来标识自己，每个发布到主题的消息都会发送给订阅了这个主题的消费群里面的一个消费者的一个实例。消费者的实例可以在单独的进程或单独的机器上。 如果所有的消费者实例都属于相同的消费群，那么记录将有效地被均衡到每个消费者实例。 如果所有的消费者实例有不同的消费群，那么每个消息将被广播到所有的消费者进程。 两个服务器的Kafka集群具有四个分区（P0-P3）和两个消费群。A消费群有两个消费者，B群有四个。
-更常见的是，我们会发现主题有少量的消费群，每一个都是“逻辑上的订阅者”。每组都是由很多消费者实例组成，从而实现可扩展性和容错性。这只不过是发布 – 订阅模式的再现，区别是这里的订阅者是一组消费者而不是一个单一的进程的消费者。
-Kafka消费群的实现方式是通过分割日志的分区，分给每个Consumer实例，使每个实例在任何时间点的都可以“公平分享”独占的分区。维持消费群中的成员关系的这个过程是通过Kafka动态协议处理。如果新的实例加入该组，他将接管该组的其他成员的一些分区; 如果一个实例死亡，其分区将被分配到剩余的实例。
-Kafka只保证一个分区内的消息有序，不能保证一个主题的不同分区之间的消息有序。分区的消息有序与依靠主键进行数据分区的能力相结合足以满足大多数应用的要求。但是，如果你想要保证所有的消息都绝对有序可以只为一个主题分配一个分区，虽然这将意味着每个消费群同时只能有一个消费进程在消费。</p>
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交 ##kafka安装 前面博文中均已详细介绍，不再赘述。
+linux集群安装参考大数据平台搭建-kafka集群的搭建
+window单机版安装参考kafka知识体系50-生产者编程实践
+##实践 ###依赖 kafka 0.10.1.0版本中采用KafkaConsumer对象用来向kafka broker集群拉取消息。 编写代码前先引入相关依赖包：
+&lt;dependency&gt; &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt; &lt;artifactId&gt;kafka_2.11&lt;/artifactId&gt; &lt;version&gt;0.10.1.0&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt; &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt; &lt;version&gt;0.10.1.0&lt;/version&gt; &lt;/dependency&gt;  ###基本概念 消费者位置和偏移量
+消费者的位置表示下一条消息的偏移量，其比消费者在分区中已经消费的消息的偏移量还要大1。
+提交的偏移量表示消费完成后，安全记录保存的偏移量，也是消费进程失败或者重启后的恢复点。可以同步提交commitSync或者异步提交偏移量commitAsync，也可以让消费者通过线程定时提交偏移量。
+消费组和订阅主题
+kafka允许多个消费者订阅同一个主题并共享同一个消费组，来实现多个进程来消费和处理消息。其中这些进程可以可以在同一台机器上运行，也可以分布在多台机器上，为处理提供可扩展性和容错能力。
+组中的每个消费者都可以通过其subscribe方法动态设置要订阅的主题列表 。Kafka将订阅主题中的每条消息传递给每个消费者组中的一个进程。这是通过平衡消费者组中所有成员之间的分区来实现的，这样每个分区就只分配给该组中的一个使用者。因此，如果存在具有四个分区的主题和具有两个进程的使用者组，则每个进程将使用两个分区。
+当消费者失败或者新增消费者，以及新增分区都会发生消费组内均衡操作。同时当均衡操作发生时，可以通过ConsumerRebalanceListener去监听，以便完成必要的应用程序级逻辑，例如状态清理，手动偏移提交等。
+消费者故障检测
+消费者在订阅主题后，调用poll方法时将自动加入组，poll方法旨在确保消费者的活力。只要继续调用poll方法，消费者将留在组中并继续从分配的分区中接收消息。在底层，是消费者会定期向服务端发送心跳。当消费者崩溃或者无法再持续的时间内(session.timeout.ms)发送心跳，则消费者被视为死亡，其占用的分区也会被重新分配。
+此外，消费者可能遇到活锁的情况，即仍在发送心跳，但没有消费消息。 为了防止消费者在这种情况下无限期地占用其分区，我们使用该max.poll.interval.ms设置提供了活跃度检测机制。基本上，如果您不至少与配置的最大间隔一样频繁地调用轮询，则客户端将主动离开该组，以便其他使用者可以接管其分区。发生这种情况时，您可能会看到偏移提交失败（如CommitFailedException异常）。这是一种安全机制，可确保只有组中的活动成员才能提交偏移量。
+消费者提供两个配置设置来控制轮询循环的行为：
+ max.poll.interval.ms：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。
+ max.poll.records：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。  ###编码实践 单线程自动提交偏移量
+package com.molyeo.kafka; import org.apache.kafka.clients.consumer.ConsumerRecord; import org.apache.kafka.clients.consumer.ConsumerRecords; import org.apache.kafka.clients.consumer.KafkaConsumer; import org.slf4j.Logger; import org.</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/" class="post-link">并发工具类三</a></h3>
-    <p class="post-meta">@aidodoo · Apr 7, 2016 · 5 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/" class="post-link">Kafka编程实践-生产者 </a></h3>
+    <p class="post-meta">@aidodoo · Apr 11, 2018 · 6 min read</p>
   </header>
   
-  <p class="post-summary">并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解线程池、Concurrent等内容。
-线程池 基本概念和用途 当面对大量异步任务时，可以将任务提交给线程池，其通过预先创建并重复使用的一定数量的线程，避免创建过多的线程，降低系统资源消耗,减少任务的调用开销。 构造方法中，主要参数如下：
-public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue&lt;Runnable&gt; workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) ThreadPoolExecutor根据corePoolSize和maximunPoolSize参数自动调整线程池的大小。
- 当新任务通过execute(Runnable command)提交时，如果运行的线程小于corePoolSize，则创建新线程来处理请求 如果运行线程等于或者大于corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。 如果无法将请求添加到阻塞队列，则尝试创建新的线程
- 如果创建此线程后，线程数超出maximumPoolSize，此种情况下，任务将会被拒绝。
-  总体流程如下：
-源码解析 数量和状态变量管理
-在ThreadPoolExecutor内部用AtomicInteger类型的ctl变量去维护两个概念上的参数，即有效的线程数量workerCount和线程池的运行状态，其中ctl的高3位表示运行状态，低29位表示数量。
-private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0)); private static final int COUNT_BITS = Integer.SIZE - 3; private static final int CAPACITY = (1 &lt;&lt; COUNT_BITS) - 1; // runState is stored in the high-order bits private static final int RUNNING = -1 &lt;&lt; COUNT_BITS; private static final int SHUTDOWN = 0 &lt;&lt; COUNT_BITS; private static final int STOP = 1 &lt;&lt; COUNT_BITS; private static final int TIDYING = 2 &lt;&lt; COUNT_BITS; private static final int TERMINATED = 3 &lt;&lt; COUNT_BITS; // Packing and unpacking ctl private static int runStateOf(int c) { return c &amp; ~CAPACITY; } private static int workerCountOf(int c) { return c &amp; CAPACITY; } private static int ctlOf(int rs, int wc) { return rs | wc; } 各个状态含义如下:</p>
+  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
+安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
+window安装过程如下：
+下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
+ 添加系统变量ZOOKEEPER_HOME=D:\Program\zookeeper，并在path后面添加:%ZOOKEEPER_HOME%\bin 将zoo_sample.cfg重命名为zoo.cfg，修改内容如下：
+shell tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
+ 添加系统变量KAFKA_HOME=D:\Program\kafka，并在path后面添加:%KAFKA_HOME%\bin 修改D:\Program\kafka\config\server.properties配置文件如下：
+shell broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000  启动zookeeper
+双击脚本D:\Program\zookeeper\bin\zkServer.cmd  启动kafka
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  实践 依赖 kafka 0.</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">Read More →</a>
   </footer>
 </article>
   <article class="post-entry">
   <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/" class="post-link">并发工具类二</a></h3>
-    <p class="post-meta">@aidodoo · Apr 6, 2016 · 10 min read</p>
+    <h3 class="post-title"><a href="https://aidodoo.com/post/kafka/kafka%E5%AE%89%E8%A3%85%E5%92%8C%E6%97%A5%E5%B8%B8%E8%BF%90%E7%BB%B4/" class="post-link">Kafka常用命令 </a></h3>
+    <p class="post-meta">@aidodoo · Apr 10, 2018 · 2 min read</p>
   </header>
   
-  <p class="post-summary">并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。
-Semaphore 基本概念和用途 Semaphore常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用acquire()方法去或者许可证，然后执行相关任务，任务完成后，调用release()方法释放该许可证，让其他阻塞的线程可以运行。
-Semaphore可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改mysql数据库,为了避免数据库并发太大，我们进行相关限制。
-常用方法
-Semaphore(int permits)：构造方法，初始化许可证数量 void acquire()：获取许可证 void release()：释放许可证 int availablePermits() ：返回此信号量中当前可用的许可证数。 int getQueueLength()：返回正在等待获取许可证的线程数。 boolean hasQueuedThreads() ：是否有线程正在等待获取许可证。 void reducePermits(int reduction) ：减少reduction个许可证。是个protected方法。 Collection getQueuedThreads() ：返回所有等待获取许可证的线程集合。是个protected方法。
-运行示例 虽然在代码中设置了20个线程去运行，但同时设置了许可证的数量为5，因而实际的最大并发数还是5。
-package com.aidodoo.java.concurrent; import java.util.concurrent.*; /** * Created by zhangkh on 2018/9/9. */ public class SemaphoreDemo { public static void main(String[] args){ Semaphore semaphore=new Semaphore(5); ExecutorService executorService = Executors.newFixedThreadPool(20); Account account=new Account(); for(int i=0;i&lt;20;i&#43;&#43;){ SpenderWithSemaphore spender = new SpenderWithSemaphore(account, semaphore); executorService.</p>
+  <p class="post-summary">本系列主要讲解kafka基本设计和原理分析，分如下内容：
+ 基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要讲解kafka日常运维的命令，包括topic管理、性能测试脚本。
+kafka版本0.10.0，安装步骤见大数据平台搭建-kafka集群的搭建
+常用脚本 如下所有的命令均基于KAFKA_HOME=/wls/oracle/kafka ,服务器列表如下：
+10.20.112.59 10.20.112.64 10.20.112.65 10.20.116.129 10.20.116.175  创建topic /wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --create --topic TEST --replication-factor 2 --partitions 3  其中replication-factor后数字表示副本个数，partitions的数字表示分区个数。
+查看topic /wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --list  更改topic配置 配置topic级别参数时，相同(参数)属性topic级别会覆盖全局的，否则默认为全局配置属性值,即/wls/oracle/kafka/config/server.properties中topic属性配置。
+topic创建完成后，随着项目的进展，可能存在对特定topic配置的更改，涉及到的常用更改项如下。
+单个消息比较大，需要调整broker能接收消息的最大字节数
+/wls/oracle/kafka/bin/kafka-topics.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --alter --topic TEST --config max.message.bytes=128000 或者使用/wls/oracle/kafka/bin/kafka-configs.sh脚本也行 /wls/oracle/kafka/bin/kafka-configs.sh --zookeeper 10.20.112.59:2181,10.20.112.64:2181,10.20.112.65:2181,10.20.116.129:2181,10.20.116.175:2181/kafka --entity-type topics --entity-name TEST --alter --add-config max.message.bytes=128000  kafka扩容或者读取性能遇到瓶颈时，可能会考虑增加分区数</p>
   <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/" class="post-link">并发工具类一</a></h3>
-    <p class="post-meta">@aidodoo · Apr 5, 2016 · 4 min read</p>
-  </header>
-  
-  <p class="post-summary">并发工具类 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。
-CountDownLatch 基本概念和用途 CountDownLatch主要是在其他线程执行操作前，允许一个或者多个线程一直等待。
-其源码实现主要采用AQS,具体可参考Java并发基础-同步和锁。
-构造方法CountDownLatch(int count)用来初始化计数器，实际就是设置count(最终是设置state值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 CyclicBarrier。
-countDown()方法用来减少计数器的值，每次减1。
-getCount()方法用来返回当前计数器的值。 流程图简化如下 运行示例 在SynchronizedDemo代码中，我们使用Thread的join方法等待一个Spender和Earner线程运行完成后，再去获取账户余额balance的值，这里我们利用CountDownLatch计数器，先阻塞主线程，待一组Spender和一组Earner线程完成后，再让主线程获取账户余额的值，代码如下：
-package com.molyeo.java.concurrent; import java.util.concurrent.CountDownLatch; import java.util.concurrent.ExecutorService; import java.util.concurrent.Executors; /** * Created by zhangkh on 2018/7/17. */ public class CountDownLatchDemo { public static void main(String[] args) throws InterruptedException { System.out.println(&#34;main thread start&#34;); Account account = new Account(); account.setBalance(100000); CountDownLatch latch = new CountDownLatch(20); System.out.println(&#34;main latch init=&#34;&#43;latch.getCount()); ExecutorService executorService = Executors.</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/" class="post-link">同步和锁</a></h3>
-    <p class="post-meta">@aidodoo · Apr 3, 2016 · 17 min read</p>
-  </header>
-  
-  <p class="post-summary">同步和锁 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解Java内存模型、同步块、重入锁ReentrantLock和读写锁ReentrantReadWriteLock的应用及源码实现。
-我们之所以要用多线程并发，是为了更好地利用服务器资源，使程序的响应速度更好。然而，如果多个线程访问了相同的资源，如同一内存区的变量、数组和对象，以及外部数据库或者文件等，可能导致程序的运行结果和我们预期的不一致。
-假设你家庭成员都用同一个银行账户，每天都有收入或者支出，我们来看如下的代码：
-package com.molyeo.java.concurrent; /** * Created by zhangkh on 2018/8/24. */ public class SynchronizedDemo { public static void main(String[] args){ Account account=new Account(); account.setBalance(100000); System.out.printf(&#34;Account : Initial Balance: %f\n&#34;,account.getBalance()); Spender spender=new Spender(account); Thread spenderThread=new Thread(spender); spenderThread.start(); Earner earner=new Earner(account); Thread earnerThread=new Thread(earner); earnerThread.start(); try { spenderThread.join(); earnerThread.join(); System.out.printf(&#34;Account : Final Balance: %f\n&#34;,account.getBalance()); } catch (InterruptedException e) { e.</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8Cthread/" class="post-link">JAVA并发概念、基础接口以及Thread</a></h3>
-    <p class="post-meta">@aidodoo · Apr 2, 2016 · 4 min read</p>
-  </header>
-  
-  <p class="post-summary">JAVA并发概念、基础接口以及Thread 本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下： 目录列表如下：
- java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。
-并发的优点和缺点 在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。
-优点  提高资源利用率
-如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分CPU用于等待磁盘去读取数据。如果是采用多线程并发执行，则CPU可以在等待IO的时候去做其他的事情，以提高CPU的使用率，减少资源的浪费。
- 程序响应速度好
-单线程模型下，假设一个http请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。
-  缺点  程序设计复杂度
-多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。
- 上下文切换开销大
-当CPU从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。CPU会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。
- 资源消耗
-线程在运行的时候需要从计算机里面得到一些资源。除了CPU，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程
-并发模型 并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。
-并行工作者 在并行工作者模型中，委派者（Delegator）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。 假设电商系统中的秒杀活动采用了并行工作者模型，订单-&gt;财务-&gt;仓储-&gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。 在Java应用系统中，并行工作者模型是最常见的并发模型，java.util.concurrent包中的许多并发实用工具都是设计用于这个模型的。
-  优点
-易于理解，可以添加更多的工作者来提高系统的并行度
-缺点
- 共享状态可能会很复杂
-在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。
-在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。 无状态的工作者
-每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。 任务顺序是不确定的 作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。  流水线模式 流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。 以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。
-在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。
-作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业: 优点  无需共享的状态
-工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题
- 较好的硬件整合
-单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。
- 合理的作业顺序
-基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态
-  缺点  编写难度大</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8Cthread/">Read More →</a>
-  </footer>
-</article>
-  <article class="post-entry">
-  <header class="post-header">
-    <h3 class="post-title"><a href="https://aidodoo.com/post/java/java-io/" class="post-link">Java IO概述</a></h3>
-    <p class="post-meta">@aidodoo · Apr 1, 2016 · 9 min read</p>
-  </header>
-  
-  <p class="post-summary">Java IO 本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述 Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：
- Files Pipes Network Connections In-memory Buffers (e.g. arrays) System.in, System.out, System.error  流从概念上说一个连续的数据流，既可以从流中读取数据，也可以往流中写入数据。主要分为字节流和字符流，字节流指以字节为单位进行读写，字符流指以字符为单位进行读写。
-一个程序需要InputStream或者Reader从数据源读取数据，需要OutputStream或者Writer将数据写入到目标媒介中。示意图如下：
-Stream特征和分类 Java IO针对不同的业务场景，不同的功能，设计了不同的类，各类用途如下：
- File Access Network Access Internal Memory Buffer Access Inter-Thread Communication (Pipes) Buffering Filtering Parsing Reading and Writing Text (Readers / Writers) Reading and Writing Primitive Data (long, int etc.) Reading and Writing Objects  通过输入、输出、基于字节或者字符、以及其他比如缓冲、解析之类的特定用途可以将Java IO流进行如下划分：
-  Byte Based Character Based    Input Output Input Output  Basic InputStream OutputStream ReaderInputStreamReader WriterOutputStreamWriter  Arrays ByteArrayInputStream ByteArrayOutputStream CharArrayReader CharArrayWriter  Files FileInputStreamRandomAccessFile FileOutputStreamRandomAccessFile FileReader FileWriter  Pipes PipedInputStream PipedOutputStream PipedReader PipedWriter  Buffering BufferedInputStream BufferedOutputStream BufferedReader BufferedWriter  Filtering FilterInputStream FilterOutputStream FilterReader FilterWriter  Parsing PushbackInputStreamStreamTokenizer   PushbackReaderLineNumberReader    Strings     StringReader StringWriter  Data DataInputStream DataOutputStream     Data - Formatted   PrintStream   PrintWriter  Objects ObjectInputStream ObjectOutputStream      Utilities SequenceInputStream         File类 在讨论Stream的具体使用前，我们先看看IO库里面的File类。 Java文件类以抽象的方式代表文件名和目录路径名。该类主要用于文件和目录的创建、文件的查找和文件的删除等，但File对象却不能直接访问文件内容本身，要查看内容，则需要使用IO流。 通过以下构造方法创建一个File对象。</p>
-  <footer class="post-footer">
-    <a class="read-more" href="https://aidodoo.com/post/java/java-io/">Read More →</a>
+    <a class="read-more" href="https://aidodoo.com/post/kafka/kafka%E5%AE%89%E8%A3%85%E5%92%8C%E6%97%A5%E5%B8%B8%E8%BF%90%E7%BB%B4/">Read More →</a>
   </footer>
 </article>
  
@@ -362,6 +356,10 @@ Stream特征和分类 Java IO针对不同的业务场景，不同的功能，设
         >← Newer Posts</a
       >
        
+      <a class="pagination-next" href="https://aidodoo.com/page/3/"
+        >Older Posts →</a
+      >
+      
     </nav>
   </footer>
   

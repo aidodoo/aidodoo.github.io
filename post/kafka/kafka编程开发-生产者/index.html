@@ -26,17 +26,15 @@
   
   <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
  基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
-##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
+安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
  添加系统变量ZOOKEEPER_HOME=D:\Program\zookeeper，并在path后面添加:%ZOOKEEPER_HOME%\bin 将zoo_sample.cfg重命名为zoo.cfg，修改内容如下：
-tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1
-  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
+shell tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
  添加系统变量KAFKA_HOME=D:\Program\kafka，并在path后面添加:%KAFKA_HOME%\bin 修改D:\Program\kafka\config\server.properties配置文件如下：
-broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
-双击脚本D:\Program\zookeeper\bin\zkServer.cmd
-启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
+shell broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000  启动zookeeper
+双击脚本D:\Program\zookeeper\bin\zkServer.cmd  启动kafka
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  实践 依赖 kafka 0.">
 
   
   
@@ -45,17 +43,15 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
     <meta name="twitter:title" content="Kafka编程实践-生产者 ">
     <meta name="twitter:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
  基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
-##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
+安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
  添加系统变量ZOOKEEPER_HOME=D:\Program\zookeeper，并在path后面添加:%ZOOKEEPER_HOME%\bin 将zoo_sample.cfg重命名为zoo.cfg，修改内容如下：
-tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1
-  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
+shell tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
  添加系统变量KAFKA_HOME=D:\Program\kafka，并在path后面添加:%KAFKA_HOME%\bin 修改D:\Program\kafka\config\server.properties配置文件如下：
-broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
-双击脚本D:\Program\zookeeper\bin\zkServer.cmd
-启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
+shell broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000  启动zookeeper
+双击脚本D:\Program\zookeeper\bin\zkServer.cmd  启动kafka
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  实践 依赖 kafka 0.">
     <meta name="twitter:image" content="/images/avatar.png">
   
 
@@ -64,17 +60,15 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
   <meta property="og:title" content="Kafka编程实践-生产者 ">
   <meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：
  基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafka生产者相关内容，版本kafka_2.11-0.10.1.0。
-##安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
+安装 linux集群安装过程请参考http://www.cnblogs.com/aidodoo/p/7151949.html。
 window安装过程如下：
 下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量
  添加系统变量ZOOKEEPER_HOME=D:\Program\zookeeper，并在path后面添加:%ZOOKEEPER_HOME%\bin 将zoo_sample.cfg重命名为zoo.cfg，修改内容如下：
-tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1
-  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
+shell tickTime=4000 initLimit=10 syncLimit=5 dataDir=D:/Program/zookeeper/data clientPort=2181 maxClientCnxns=60 server.1=localhost:2888:3888  D:/Program/zookeeper/data目录下新建文件myid,并用文本软件打开，填入数字1  下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量
  添加系统变量KAFKA_HOME=D:\Program\kafka，并在path后面添加:%KAFKA_HOME%\bin 修改D:\Program\kafka\config\server.properties配置文件如下：
-broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000   启动zookeeper
-双击脚本D:\Program\zookeeper\bin\zkServer.cmd
-启动kafka
-命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  ##实践 ###依赖 kafka 0.">
+shell broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.port=9092 advertised.host.name=LAPTOP-2CBRDCI0 log.dirs=D:/Program/kafka/data/kafka-logs zookeeper.connect=localhost:2181/kafka zookeeper.connection.timeout.ms=60000  启动zookeeper
+双击脚本D:\Program\zookeeper\bin\zkServer.cmd  启动kafka
+命令行运行 D:\Program\kafka\bin\windows\kafka-server-start.bat D:/Program/kafka/config/server.properties kafka创建topic D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --create --topic TEST1 --replication-factor 1 --partitions 3 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST  实践 依赖 kafka 0.">
   <meta property="og:url" content="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">
   <meta property="og:image" content="/images/avatar.png">
 
@@ -210,6 +204,48 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
           
           
           ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
           <a href="https://aidodoo.com/links/">Links</a>
         </li>
       
@@ -242,7 +278,9 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
       <h1 class="post-title">Kafka编程实践-生产者 </h1>
       <p class="post-meta">@aidodoo · Apr 11, 2018 · 6 min read</p>
     </header>
-    <article class="post-content"><p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
+    <article class="post-content">
+
+<p>本系列主要讲解kafka基本设计和原理分析，分如下内容：</p>
 
 <ul>
 <li><a href="https://aidodoo.com/post/kafka/kafka基本概念/">基本概念</a></li>
@@ -252,7 +290,7 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
 <li><a href="https://aidodoo.com/post/kafka/kafka数据可靠性和一致性保证/">kafka数据可靠性和一致性保证</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka-leader选举/">kafka leader选举</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka消息传递语义/">kafka消息传递语义</a></li>
-<li><a href="https://aidodoo.com/post/kafka/Kafka集群partitions和replicas默认分配解析/">Kafka集群partitions和replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka集群partitions和replicas默认分配解析/">Kafka集群partitions和replicas默认分配解析</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka安装和日常运维/">kafka安装和日常运维</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-生产者/">kafka编程开发-生产者</a></li>
 <li><a href="https://aidodoo.com/post/kafka/kafka编程开发-消费者/">kafka编程开发-消费者</a></li>
@@ -260,48 +298,45 @@ broker.id=0 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092 advertised.por
 
 <p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。</p>
 
-<p>##安装
-<code>linux</code>集群安装过程请参考<a href="http://www.cnblogs.com/aidodoo/p/7151949.html">http://www.cnblogs.com/aidodoo/p/7151949.html</a>。<br />
+<h2 id="安装">安装</h2>
+
+<p><code>linux</code>集群安装过程请参考<a href="http://www.cnblogs.com/aidodoo/p/7151949.html">http://www.cnblogs.com/aidodoo/p/7151949.html</a>。<br />
 <code>window</code>安装过程如下：</p>
 
 <p><strong>下载zookeeper安装包(zookeeper-3.4.6)，解压到D:\Program\zookeeper，并设置环境变量</strong></p>
 
 <ul>
 <li>添加系统变量<code>ZOOKEEPER_HOME=D:\Program\zookeeper</code>，并在<code>path</code>后面添加:<code>%ZOOKEEPER_HOME%\bin</code></li>
-
-<li><p>将<code>zoo_sample.cfg</code>重命名为<code>zoo.cfg</code>，修改内容如下：</p>
-
-<pre><code>tickTime=4000
+<li>将<code>zoo_sample.cfg</code>重命名为<code>zoo.cfg</code>，修改内容如下：<br />
+<code>shell
+tickTime=4000
 initLimit=10
 syncLimit=5
 dataDir=D:/Program/zookeeper/data
 clientPort=2181
 maxClientCnxns=60
 server.1=localhost:2888:3888
-</code></pre></li>
-
-<li><p><code>D:/Program/zookeeper/data</code>目录下新建文件<code>myid</code>,并用文本软件打开，填入数字1</p></li>
+</code></li>
+<li><code>D:/Program/zookeeper/data</code>目录下新建文件<code>myid</code>,并用文本软件打开，填入数字1</li>
 </ul>
 
 <p><strong>下载kafka安装包(kafka_2.11-0.10.1.0)，解压到D:\Program\kafka，并设置环境变量</strong></p>
 
 <ul>
 <li>添加系统变量<code>KAFKA_HOME=D:\Program\kafka</code>，并在<code>path</code>后面添加:<code>%KAFKA_HOME%\bin</code></li>
-
-<li><p>修改<code>D:\Program\kafka\config\server.properties</code>配置文件如下：</p>
-
-<pre><code>broker.id=0
+<li>修改<code>D:\Program\kafka\config\server.properties</code>配置文件如下：<br />
+<code>shell
+broker.id=0
 advertised.listeners=PLAINTEXT://LAPTOP-2CBRDCI0:9092
 advertised.port=9092
 advertised.host.name=LAPTOP-2CBRDCI0
 log.dirs=D:/Program/kafka/data/kafka-logs
 zookeeper.connect=localhost:2181/kafka
 zookeeper.connection.timeout.ms=60000
-</code></pre></li>
+</code>
+<strong>启动zookeeper</strong><br />
+双击脚本<code>D:\Program\zookeeper\bin\zkServer.cmd</code></li>
 </ul>
-
-<p><strong>启动zookeeper</strong><br />
-双击脚本<code>D:\Program\zookeeper\bin\zkServer.cmd</code></p>
 
 <p><strong>启动kafka</strong></p>
 
@@ -314,12 +349,13 @@ D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/k
 D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/kafka --describe --topic TEST 
 </code></pre>
 
-<p>##实践
-###依赖
-<code>kafka 0.10.1.0</code>版本中采用<code>KafkaProducer</code>对象用来向<code>kafka broker</code>集群发送消息。
-编写代码前先引入相关依赖包：</p>
+<h2 id="实践">实践</h2>
 
-<pre><code>&lt;dependency&gt;
+<h3 id="依赖">依赖</h3>
+
+<p><code>kafka 0.10.1.0</code>版本中采用<code>KafkaProducer</code>对象用来向<code>kafka broker</code>集群发送消息。
+编写代码前先引入相关依赖包：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&lt;dependency&gt;
     &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;
     &lt;artifactId&gt;kafka_2.11&lt;/artifactId&gt;
     &lt;version&gt;0.10.1.0&lt;/version&gt;
@@ -328,44 +364,40 @@ D:\Program\kafka\bin\windows\kafka-topics.bat --zookeeper LAPTOP-2CBRDCI0:2181/k
     &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;
     &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;
     &lt;version&gt;0.10.1.0&lt;/version&gt;
-&lt;/dependency&gt;
-</code></pre>
+&lt;/dependency&gt;</code></pre></div>
+<h3 id="基本配置和发送流程">基本配置和发送流程</h3>
 
-<p>###基本配置和发送流程
-<code>KafkaProducer</code>是线程安全的，即可以跨线程共享单个<code>KafkaProducer</code>实例，我们先看单线程发送消息的示例，以了解<code>kafka</code>发送消息的流程。</p>
+<p><code>KafkaProducer</code>是线程安全的，即可以跨线程共享单个<code>KafkaProducer</code>实例，我们先看单线程发送消息的示例，以了解<code>kafka</code>发送消息的流程。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.kafka<span style="color:#f92672">;</span>
 
-<pre><code>package com.molyeo.kafka;
+<span style="color:#f92672">import</span> org.apache.kafka.clients.producer.KafkaProducer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.producer.Producer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.producer.ProducerRecord<span style="color:#f92672">;</span>
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+<span style="color:#f92672">import</span> java.util.Properties<span style="color:#f92672">;</span>
 
-import java.util.Properties;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e">* Created by zhangkh on 2018/7/11.
+</span><span style="color:#75715e">*/</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SinglekafkaProducerDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span>  <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">){</span>
+        Properties props <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Properties<span style="color:#f92672">();</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;bootstrap.servers&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;localhost:9092&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;acks&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;all&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;retries&#34;</span><span style="color:#f92672">,</span> 0<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;batch.size&#34;</span><span style="color:#f92672">,</span> 16384<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;linger.ms&#34;</span><span style="color:#f92672">,</span> 1<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;buffer.memory&#34;</span><span style="color:#f92672">,</span> 33554432<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;key.serializer&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringSerializer&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value.serializer&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringSerializer&#34;</span><span style="color:#f92672">);</span>
 
-/**
- * Created by zhangkh on 2018/7/11.
- */
-public class SinglekafkaProducerDemo {
-    public static void  main(String[] args){
-        Properties props = new Properties();
-        props.put(&quot;bootstrap.servers&quot;, &quot;localhost:9092&quot;);
-        props.put(&quot;acks&quot;, &quot;all&quot;);
-        props.put(&quot;retries&quot;, 0);
-        props.put(&quot;batch.size&quot;, 16384);
-        props.put(&quot;linger.ms&quot;, 1);
-        props.put(&quot;buffer.memory&quot;, 33554432);
-        props.put(&quot;key.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
-        props.put(&quot;value.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
-
-        Producer&lt;String, String&gt; producer = new KafkaProducer&lt;&gt;(props);
-        for (int i = 0; i &lt; 100; i++)
-            producer.send(new ProducerRecord&lt;String, String&gt;(&quot;my-topic&quot;, Integer.toString(i), Integer.toString(i)));
-        producer.flush();
-        producer.close();
-    }
-}
-</code></pre>
-
+        Producer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> producer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaProducer<span style="color:#f92672">&lt;&gt;(</span>props<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 100<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span>
+        producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ProducerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;(</span><span style="color:#e6db74">&#34;my-topic&#34;</span><span style="color:#f92672">,</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>i<span style="color:#f92672">),</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>i<span style="color:#f92672">)));</span>
+        producer<span style="color:#f92672">.</span><span style="color:#a6e22e">flush</span><span style="color:#f92672">();</span>
+        producer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span></code></pre></div>
 <p>我们先构建一个props实例，用于保存kafka配置。<br />
 <strong>acks</strong><br />
 <code>acks</code>配置项表示消息的确认机制。<br />
@@ -390,203 +422,187 @@ public class SinglekafkaProducerDemo {
 <p>生产者其他配置项可参考<a href="http://kafka.apache.org/0101/documentation.html#brokerconfigs">http://kafka.apache.org/0101/documentation.html#brokerconfigs</a></p>
 
 <p>重点说一下KafkaProducer的send方法</p>
-
-<pre><code>public Future&lt;RecordMetadata&gt; send(ProducerRecord&lt;K, V&gt; record)
-public Future&lt;RecordMetadata&gt; send(ProducerRecord&lt;K, V&gt; record, Callback callback)
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Future<span style="color:#f92672">&lt;</span>RecordMetadata<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>ProducerRecord<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> record<span style="color:#f92672">)</span>
+<span style="color:#66d9ef">public</span> Future<span style="color:#f92672">&lt;</span>RecordMetadata<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>ProducerRecord<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> record<span style="color:#f92672">,</span> Callback callback<span style="color:#f92672">)</span></code></pre></div>
 <p>这两个send方法均是异步发送，一旦将记录存储在待发送的缓冲区中，均立即返回，这允许并行发送许多记录而不会阻塞，以便在每个记录之后等待响应。
 下面的send(ProducerRecord<K, V> record, Callback callback)方法提供了当消息发送成功时的回调，返回的结果RecordMetadata指定记录发送到的分区，分配的偏移量和记录的时间戳。<br />
 如果想阻塞同步发送，可以调用Future的get方法：</p>
-
-<pre><code> byte[] key = &quot;key&quot;.getBytes();
- byte[] value = &quot;value&quot;.getBytes();
- ProducerRecord&lt;byte[],byte[]&gt; record = new ProducerRecord&lt;byte[],byte[]&gt;(&quot;my-topic&quot;, key, value)
- producer.send(record).get();
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;key&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;value&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">();</span>
+ProducerRecord<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[],</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]&gt;</span> record <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ProducerRecord<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[],</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]&gt;(</span><span style="color:#e6db74">&#34;my-topic&#34;</span><span style="color:#f92672">,</span> key<span style="color:#f92672">,</span> value<span style="color:#f92672">)</span>
+producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>record<span style="color:#f92672">).</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span></code></pre></div>
 <p>完全异步发送，则采用Callback参数来提供请求完成用的回调：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ProducerRecord<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[],</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]&gt;</span> record <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ProducerRecord<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[],</span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]&gt;(</span><span style="color:#e6db74">&#34;the-topic&#34;</span><span style="color:#f92672">,</span> key<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+    producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>myRecord<span style="color:#f92672">,</span>
+    <span style="color:#66d9ef">new</span> Callback<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCompletion</span><span style="color:#f92672">(</span>RecordMetadata metadata<span style="color:#f92672">,</span> Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>e <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;The offset of the record we just sent is: &#34;</span> <span style="color:#f92672">+</span> metadata<span style="color:#f92672">.</span><span style="color:#a6e22e">offset</span><span style="color:#f92672">());</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">});</span></code></pre></div>
+<h3 id="多线程并发发送">多线程并发发送</h3>
 
-<pre><code> ProducerRecord&lt;byte[],byte[]&gt; record = new ProducerRecord&lt;byte[],byte[]&gt;(&quot;the-topic&quot;, key, value);
- producer.send(myRecord,
-               new Callback() {
-                   public void onCompletion(RecordMetadata metadata, Exception e) {
-                       if(e != null) {
-                          e.printStackTrace();
-                       } else {
-                          System.out.println(&quot;The offset of the record we just sent is: &quot; + metadata.offset());
-                       }
-                   }
-               });
-</code></pre>
-
-<p>###多线程并发发送<br />
-为充分利用kafka的高吞吐量，生产端可以采用多线程并发发送消息，前文已提到过<code>KafkaProducer</code>是线程安全的，即可以跨线程共享单个<code>KafkaProducer</code>实例。
+<p>为充分利用kafka的高吞吐量，生产端可以采用多线程并发发送消息，前文已提到过<code>KafkaProducer</code>是线程安全的，即可以跨线程共享单个<code>KafkaProducer</code>实例。
 kafka实际配置类KafkaCommonConfig：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.molyeo.kafka<span style="color:#f92672">;</span>
 
-<pre><code>package com.molyeo.kafka;
-
-/**
- * Created by zhangkh on 2018/7/10.
- */
-public class KafkaCommonConfig {
-    public static String BOOTSTRAP_SERVERS=&quot;LAPTOP-2CBRDCI0:9092&quot;;
-    public static String ACKS=&quot;all&quot;;
-    public static int RETRIES=0;
-    public static int BATCH_SIZE=16384;
-    public static int LINGER_MS=1;
-    public static int BUFFER_MEMORY=33554432;
-    public static String KEY_SERIALIZER_CLASS=&quot;org.apache.kafka.common.serialization.StringSerializer&quot;;
-    public static String VALUE_SERIALIZER_CLASS= &quot;org.apache.kafka.common.serialization.StringSerializer&quot;;
-}
-</code></pre>
-
+<span style="color:#75715e">/**
+</span><span style="color:#75715e">* Created by zhangkh on 2018/7/10.
+</span><span style="color:#75715e">*/</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">KafkaCommonConfig</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String BOOTSTRAP_SERVERS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;LAPTOP-2CBRDCI0:9092&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String ACKS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;all&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> RETRIES<span style="color:#f92672">=</span>0<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> BATCH_SIZE<span style="color:#f92672">=</span>16384<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> LINGER_MS<span style="color:#f92672">=</span>1<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> BUFFER_MEMORY<span style="color:#f92672">=</span>33554432<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String KEY_SERIALIZER_CLASS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringSerializer&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String VALUE_SERIALIZER_CLASS<span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringSerializer&#34;</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span></code></pre></div>
 <p>消息发送</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#f92672">package</span> com.molyeo.kafka<span style="color:#f92672">;</span>
+    
+    <span style="color:#f92672">import</span> org.apache.kafka.clients.producer.*<span style="color:#f92672">;</span>
+    <span style="color:#f92672">import</span> org.slf4j.Logger<span style="color:#f92672">;</span>
+    <span style="color:#f92672">import</span> org.slf4j.LoggerFactory<span style="color:#f92672">;</span>
+    
+    <span style="color:#f92672">import</span> java.util.Properties<span style="color:#f92672">;</span>
+    <span style="color:#f92672">import</span> java.util.concurrent.ExecutorService<span style="color:#f92672">;</span>
+    <span style="color:#f92672">import</span> java.util.concurrent.Executors<span style="color:#f92672">;</span>
+    
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * Created by zhangkh on 2018/7/5.
+</span><span style="color:#75715e">     */</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MultiKafkaProducerDemo</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> PRODUCER_THREAD_NUM <span style="color:#f92672">=</span> 5<span style="color:#f92672">;</span>
+    
+        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            ExecutorService executorService <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>PRODUCER_THREAD_NUM<span style="color:#f92672">);</span>
+            Producer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> producer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaProducer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;(</span>getProducerConfig<span style="color:#f92672">());</span>
+            String topic <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TEST&#34;</span><span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 20<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+                    Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>20<span style="color:#f92672">);</span>
+                    String key <span style="color:#f92672">=</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>i<span style="color:#f92672">);</span>
+                    String value <span style="color:#f92672">=</span> Long<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">());</span>
+                    ProducerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> record <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ProducerRecord<span style="color:#f92672">&lt;&gt;(</span>topic<span style="color:#f92672">,</span>i<span style="color:#f92672">%</span>3<span style="color:#f92672">,</span> key<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+                    executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> CommonProducerThread<span style="color:#f92672">&lt;&gt;(</span>producer<span style="color:#f92672">,</span> record<span style="color:#f92672">));</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span>
+            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+                <span style="color:#75715e">//Block for a while
+</span><span style="color:#75715e"></span>                Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>60 <span style="color:#f92672">*</span> 1000L<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+                producer<span style="color:#f92672">.</span><span style="color:#a6e22e">flush</span><span style="color:#f92672">();</span>
+                producer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+                executorService<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    
+        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Properties <span style="color:#a6e22e">getProducerConfig</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            Properties props <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Properties<span style="color:#f92672">();</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BOOTSTRAP_SERVERS_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BOOTSTRAP_SERVERS</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">ACKS_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">ACKS</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">RETRIES_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">RETRIES</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BATCH_SIZE_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BATCH_SIZE</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">LINGER_MS_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">LINGER_MS</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BUFFER_MEMORY_CONFIG</span><span style="color:#f92672">,</span> KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BUFFER_MEMORY</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">KEY_SERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span>KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">KEY_SERIALIZER_CLASS</span><span style="color:#f92672">);</span>
+            props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">VALUE_SERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span>KafkaCommonConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">VALUE_SERIALIZER_CLASS</span><span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">return</span> props<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
-<pre><code>package com.molyeo.kafka;
 
-import org.apache.kafka.clients.producer.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-/**
- * Created by zhangkh on 2018/7/5.
- */
-public class MultiKafkaProducerDemo {
-    private static final int PRODUCER_THREAD_NUM = 5;
-
-    public static void main(String[] args) {
-        ExecutorService executorService = Executors.newFixedThreadPool(PRODUCER_THREAD_NUM);
-        Producer&lt;String, String&gt; producer = new KafkaProducer&lt;String, String&gt;(getProducerConfig());
-        String topic = &quot;TEST&quot;;
-        try {
-            for (int i = 0; i &lt; 20; i++) {
-                Thread.sleep(20);
-                String key = Integer.toString(i);
-                String value = Long.toString(System.currentTimeMillis());
-                ProducerRecord&lt;String, String&gt; record = new ProducerRecord&lt;&gt;(topic,i%3, key, value);
-                executorService.submit(new CommonProducerThread&lt;&gt;(producer, record));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            //Block for a while
-            Thread.sleep(60 * 1000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            producer.flush();
-            producer.close();
-            executorService.shutdown();
-        }
-    }
-
-    public static Properties getProducerConfig() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaCommonConfig.BOOTSTRAP_SERVERS);
-        props.put(ProducerConfig.ACKS_CONFIG, KafkaCommonConfig.ACKS);
-        props.put(ProducerConfig.RETRIES_CONFIG, KafkaCommonConfig.RETRIES);
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, KafkaCommonConfig.BATCH_SIZE);
-        props.put(ProducerConfig.LINGER_MS_CONFIG, KafkaCommonConfig.LINGER_MS);
-        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, KafkaCommonConfig.BUFFER_MEMORY);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,KafkaCommonConfig.KEY_SERIALIZER_CLASS);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,KafkaCommonConfig.VALUE_SERIALIZER_CLASS);
-        return props;
-    }
-}
-
-
-class CommonProducerThread&lt;K, V&gt; implements Runnable {
-    Logger logger = LoggerFactory.getLogger(CommonProducerThread.class.getSimpleName());
-
-    private final Producer producer;
-    private final ProducerRecord&lt;K, V&gt; record;
-
-    public CommonProducerThread(Producer producer, ProducerRecord record) {
-        this.producer = producer;
-        this.record = record;
-    }
-
-    @Override
-    public void run() {
-        logger.info(&quot;prepare to send msg:thread name={},key={},value={}&quot;, Thread.currentThread().getName(), record.key(), record.value());
-        producer.send(record, new ProducerAckCallback(System.currentTimeMillis(), record.key(), record.value()));
-    }
-}
-
-class ProducerAckCallback&lt;K, V&gt; implements Callback {
-    Logger logger = LoggerFactory.getLogger(ProducerAckCallback.class.getSimpleName());
-    private final long startTime;
-    private final K key;
-    private final V value;
-
-    public ProducerAckCallback(long startTime, K key, V value) {
-        this.startTime = startTime;
-        this.key = key;
-        this.value = value;
-    }
-
-    @Override
-    public void onCompletion(RecordMetadata metadata, Exception exception) {
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        if (metadata != null) {
-            logger.info(&quot;send success:key {},value {}, sent to partition {},offset {} in {} ms&quot;, key, value, metadata.partition(), metadata.offset(), elapsedTime);
-        } else {
-            exception.printStackTrace();
-        }
-    }
-}
-</code></pre>
-
+<span style="color:#960050;background-color:#1e0010">​</span>   
+    <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonProducerThread</span><span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">implements</span> Runnable <span style="color:#f92672">{</span>
+        Logger logger <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>CommonProducerThread<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">());</span>
+    
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Producer producer<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> ProducerRecord<span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> record<span style="color:#f92672">;</span>
+    
+        <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">CommonProducerThread</span><span style="color:#f92672">(</span>Producer producer<span style="color:#f92672">,</span> ProducerRecord record<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">producer</span> <span style="color:#f92672">=</span> producer<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">record</span> <span style="color:#f92672">=</span> record<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    
+        <span style="color:#a6e22e">@Override</span>
+        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            logger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;prepare to send msg:thread name={},key={},value={}&#34;</span><span style="color:#f92672">,</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">key</span><span style="color:#f92672">(),</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">());</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>record<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ProducerAckCallback<span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">(),</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">key</span><span style="color:#f92672">(),</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+    
+    <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ProducerAckCallback</span><span style="color:#f92672">&lt;</span>K<span style="color:#f92672">,</span> V<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">implements</span> Callback <span style="color:#f92672">{</span>
+        Logger logger <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>ProducerAckCallback<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">());</span>
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">long</span> startTime<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> K key<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> V value<span style="color:#f92672">;</span>
+    
+        <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ProducerAckCallback</span><span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> startTime<span style="color:#f92672">,</span> K key<span style="color:#f92672">,</span> V value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">startTime</span> <span style="color:#f92672">=</span> startTime<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">key</span> <span style="color:#f92672">=</span> key<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">value</span> <span style="color:#f92672">=</span> value<span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    
+        <span style="color:#a6e22e">@Override</span>
+        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCompletion</span><span style="color:#f92672">(</span>RecordMetadata metadata<span style="color:#f92672">,</span> Exception exception<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">long</span> elapsedTime <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> startTime<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>metadata <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                logger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;send success:key {},value {}, sent to partition {},offset {} in {} ms&#34;</span><span style="color:#f92672">,</span> key<span style="color:#f92672">,</span> value<span style="color:#f92672">,</span> metadata<span style="color:#f92672">.</span><span style="color:#a6e22e">partition</span><span style="color:#f92672">(),</span> metadata<span style="color:#f92672">.</span><span style="color:#a6e22e">offset</span><span style="color:#f92672">(),</span> elapsedTime<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                exception<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span></code></pre></div>
 <p>在程序中我们采用5个线程去发送20条消息，并且指定了消息的分区，每条消息的间隔20ms。输出结果如下：</p>
-
-<pre><code>18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-1,key=0,value=1531360688703
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-2,key=1,value=1531360688748
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-3,key=2,value=1531360688853
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-4,key=3,value=1531360688878
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-5,key=4,value=1531360688900
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-1,key=5,value=1531360688921
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-3,key=6,value=1531360688942
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 3,value 1531360688878, sent to partition 0,offset 59 in 91 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 0,value 1531360688703, sent to partition 0,offset 60 in 241 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 6,value 1531360688942, sent to partition 0,offset 61 in 17 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 1,value 1531360688748, sent to partition 1,offset 68 in 121 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 4,value 1531360688900, sent to partition 1,offset 69 in 71 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 2,value 1531360688853, sent to partition 2,offset 33 in 95 ms
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 5,value 1531360688921, sent to partition 2,offset 34 in 19 ms
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-1,key=7,value=1531360688976
-18/07/12 09:58:08 INFO ProducerAckCallback: send success:key 7,value 1531360688976, sent to partition 1,offset 70 in 5 ms
-18/07/12 09:58:08 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-3,key=8,value=1531360688997
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 8,value 1531360688997, sent to partition 2,offset 35 in 4 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-4,key=9,value=1531360689022
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 9,value 1531360689022, sent to partition 0,offset 62 in 3 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-5,key=10,value=1531360689043
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 10,value 1531360689043, sent to partition 1,offset 71 in 4 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-2,key=11,value=1531360689065
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 11,value 1531360689065, sent to partition 2,offset 36 in 5 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-1,key=12,value=1531360689089
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 12,value 1531360689089, sent to partition 0,offset 63 in 5 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-3,key=13,value=1531360689118
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 13,value 1531360689118, sent to partition 1,offset 72 in 5 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-4,key=14,value=1531360689141
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 14,value 1531360689141, sent to partition 2,offset 37 in 7 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-5,key=15,value=1531360689174
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 15,value 1531360689174, sent to partition 0,offset 64 in 5 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-2,key=16,value=1531360689198
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 16,value 1531360689198, sent to partition 1,offset 73 in 4 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-1,key=17,value=1531360689220
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 17,value 1531360689220, sent to partition 2,offset 38 in 4 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-3,key=18,value=1531360689245
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 18,value 1531360689245, sent to partition 0,offset 65 in 4 ms
-18/07/12 09:58:09 INFO CommonProducerThread: prepare to send msg:thread name=pool-1-thread-4,key=19,value=1531360689266
-18/07/12 09:58:09 INFO ProducerAckCallback: send success:key 19,value 1531360689266, sent to partition 1,offset 74 in 6 ms
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-1,key<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688703</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-2,key<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688748</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-3,key<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688853</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-4,key<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688878</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-5,key<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688900</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-1,key<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688921</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-3,key<span style="color:#f92672">=</span><span style="color:#ae81ff">6</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688942</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">3</span>,value <span style="color:#ae81ff">1531360688878</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">59</span> in <span style="color:#ae81ff">91</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">0</span>,value <span style="color:#ae81ff">1531360688703</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">60</span> in <span style="color:#ae81ff">241</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">6</span>,value <span style="color:#ae81ff">1531360688942</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">61</span> in <span style="color:#ae81ff">17</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">1</span>,value <span style="color:#ae81ff">1531360688748</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">68</span> in <span style="color:#ae81ff">121</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">4</span>,value <span style="color:#ae81ff">1531360688900</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">69</span> in <span style="color:#ae81ff">71</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">2</span>,value <span style="color:#ae81ff">1531360688853</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">33</span> in <span style="color:#ae81ff">95</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">5</span>,value <span style="color:#ae81ff">1531360688921</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">34</span> in <span style="color:#ae81ff">19</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-1,key<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688976</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">7</span>,value <span style="color:#ae81ff">1531360688976</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">70</span> in <span style="color:#ae81ff">5</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:08 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-3,key<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360688997</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">8</span>,value <span style="color:#ae81ff">1531360688997</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">35</span> in <span style="color:#ae81ff">4</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-4,key<span style="color:#f92672">=</span><span style="color:#ae81ff">9</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689022</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">9</span>,value <span style="color:#ae81ff">1531360689022</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">62</span> in <span style="color:#ae81ff">3</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-5,key<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689043</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">10</span>,value <span style="color:#ae81ff">1531360689043</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">71</span> in <span style="color:#ae81ff">4</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-2,key<span style="color:#f92672">=</span><span style="color:#ae81ff">11</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689065</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">11</span>,value <span style="color:#ae81ff">1531360689065</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">36</span> in <span style="color:#ae81ff">5</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-1,key<span style="color:#f92672">=</span><span style="color:#ae81ff">12</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689089</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">12</span>,value <span style="color:#ae81ff">1531360689089</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">63</span> in <span style="color:#ae81ff">5</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-3,key<span style="color:#f92672">=</span><span style="color:#ae81ff">13</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689118</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">13</span>,value <span style="color:#ae81ff">1531360689118</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">72</span> in <span style="color:#ae81ff">5</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-4,key<span style="color:#f92672">=</span><span style="color:#ae81ff">14</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689141</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">14</span>,value <span style="color:#ae81ff">1531360689141</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">37</span> in <span style="color:#ae81ff">7</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-5,key<span style="color:#f92672">=</span><span style="color:#ae81ff">15</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689174</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">15</span>,value <span style="color:#ae81ff">1531360689174</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">64</span> in <span style="color:#ae81ff">5</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-2,key<span style="color:#f92672">=</span><span style="color:#ae81ff">16</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689198</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">16</span>,value <span style="color:#ae81ff">1531360689198</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">73</span> in <span style="color:#ae81ff">4</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-1,key<span style="color:#f92672">=</span><span style="color:#ae81ff">17</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689220</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">17</span>,value <span style="color:#ae81ff">1531360689220</span>, sent to partition <span style="color:#ae81ff">2</span>,offset <span style="color:#ae81ff">38</span> in <span style="color:#ae81ff">4</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-3,key<span style="color:#f92672">=</span><span style="color:#ae81ff">18</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689245</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">18</span>,value <span style="color:#ae81ff">1531360689245</span>, sent to partition <span style="color:#ae81ff">0</span>,offset <span style="color:#ae81ff">65</span> in <span style="color:#ae81ff">4</span> ms
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO CommonProducerThread: prepare to send msg:thread name<span style="color:#f92672">=</span>pool-1-thread-4,key<span style="color:#f92672">=</span><span style="color:#ae81ff">19</span>,value<span style="color:#f92672">=</span><span style="color:#ae81ff">1531360689266</span>
+<span style="color:#ae81ff">18</span>/07/12 <span style="color:#ae81ff">09</span>:58:09 INFO ProducerAckCallback: send success:key <span style="color:#ae81ff">19</span>,value <span style="color:#ae81ff">1531360689266</span>, sent to partition <span style="color:#ae81ff">1</span>,offset <span style="color:#ae81ff">74</span> in <span style="color:#ae81ff">6</span> ms</code></pre></div>
 <p>本文总结了kafka生产者常用配置，并用多线程发送消息。</p>
 
 <p>本文参考：<br />
@@ -609,7 +625,7 @@ class ProducerAckCallback&lt;K, V&gt; implements Callback {
       </ul>
       
       <p class="post-copyright">
-        © Original, if necessary, please note.This post was published <strong>386</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
+        © Original, if necessary, please note.This post was published <strong>426</strong> days ago, content in the post may be inaccurate, even wrong now, please take risk yourself.
       </p>
     </footer>
     

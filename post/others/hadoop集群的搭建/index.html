@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>hadoop集群的搭建</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="hadoop集群的搭建">
+    <meta name="twitter:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="hadoop集群的搭建">
+  <meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.">
+  <meta property="og:url" content="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">hadoop集群的搭建</h1>
+      <p class="post-meta">@aidodoo · Jun 5, 2019 · 5 min read</p>
+    </header>
+    <article class="post-content">
+
+<p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka集群的搭建/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop集群的搭建/">hadoop集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase集群的搭建/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark集群的搭建/">spark集群的搭建</a></li>
+</ul>
+
+<p>本文主要讲解<code>hadoop</code>和<code>hbase</code>的分布式搭建过程。</p>
+
+<h2 id="版本">版本</h2>
+
+<ul>
+<li>java版本：<code>1.8.0_181</code><br /></li>
+<li>zookeeper版本:<code>zookeeper-3.4.14</code></li>
+<li>hadoop版本:`hadoop-3.2.0<br /></li>
+<li>hbase版本：<code>hbase-2.1.4</code></li>
+</ul>
+
+<h2 id="前置条件">前置条件</h2>
+
+<h3 id="免密登录">免密登录</h3>
+
+<p>参考<a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></p>
+
+<h3 id="java安装">java安装</h3>
+
+<p>参考<a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></p>
+
+<h3 id="zookeeper安装">zookeeper安装</h3>
+
+<p>参考<a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></p>
+
+<h2 id="服务器资源和分配">服务器资源和分配</h2>
+
+<p>本文服务器列表如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#ae81ff">192</span>.168.220.200  bigdata1
+<span style="color:#ae81ff">192</span>.168.220.201  bigdata2
+<span style="color:#ae81ff">192</span>.168.220.202  bigdata3
+<span style="color:#ae81ff">192</span>.168.220.203  bigdata4
+<span style="color:#ae81ff">192</span>.168.220.204  bigdata5</code></pre></div>
+<p>其中选用<code>bigdata1</code>和<code>bigdata2</code>作为<code>namenode</code>,<code>bigdata3、bigdat4、bigdata5</code>作为<code>dataNode</code>，安装完成后各节点进程名如下：</p>
+
+<table>
+<tr>
+    <td>主机名</td>
+    <td>ip地址</td>
+    <td>NameNode</td>
+    <td>ResourceManager</td>
+    <td>DFSZKFailoverController</td>
+    <td>DataNode</td>
+    <td>JournalNode</td>
+    <td>NodeManager</td>
+</tr>
+<tr>
+    <td>bigdata1</td>
+    <td>192.168.220.200</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>N</td>
+    <td>N</td>
+    <td>N</td>
+</tr>
+<tr>
+    <td>bigdata2</td>
+    <td>192.168.220.201</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>N</td>
+    <td>N</td>
+    <td>N</td>
+</tr>
+<tr>
+    <td>bigdata3</td>
+    <td>192.168.220.202</td>
+    <td>N</td>
+    <td>N</td>
+    <td>N</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>Y</td>
+</tr>
+<tr>
+    <td>bigdata4</td>
+    <td>192.168.220.203</td>
+    <td>N</td>
+    <td>N</td>
+    <td>N</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>Y</td>
+</tr>
+<tr>
+    <td>bigdata5</td>
+    <td>192.168.220.204</td>
+    <td>N</td>
+    <td>N</td>
+    <td>N</td>
+    <td>Y</td>
+    <td>Y</td>
+    <td>Y</td>
+</tr>
+</table>
+
+<h2 id="下载解压安装">下载解压安装</h2>
+
+<ul>
+<li><p>下载<br />
+从官网<a href="http://apache.fayea.com/hadoop/common/">hadoop下载</a>选择对应的版本，本文选择版本<code>hadoop-3.2.0.tar.gz</code></p></li>
+
+<li><p>切换至主目录</p></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~</code></pre></div>
+<ul>
+<li>解压</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">tar -zxvf hadoop-2.7.6.tar.gz</code></pre></div>
+<ul>
+<li>重名名</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mv  hadoop-2.7.6  hadoop  </code></pre></div>
+<h2 id="配置环境变量">配置环境变量</h2>
+
+<p>编辑</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi ~/.bash_profile   </code></pre></div>
+<p>配置完成后，结果如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># .bash_profile</span>
+
+<span style="color:#75715e"># Get the aliases and functions</span>
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f ~/.bashrc <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+. ~/.bashrc
+<span style="color:#66d9ef">fi</span>
+
+<span style="color:#75715e"># User specific environment and startup programs</span>
+export JAVA_HOME<span style="color:#f92672">=</span>/home/oracle/jdk
+export SCALA_HOME<span style="color:#f92672">=</span>/home/oracle/scala
+export KAFKA_HOME<span style="color:#f92672">=</span>/home/oracle/kafka
+export SPARK_HOME<span style="color:#f92672">=</span>/home/oracle/spark
+export HADOOP_HOME<span style="color:#f92672">=</span>/home/oracle/hadoop
+export HADOOP_PID_DIR<span style="color:#f92672">=</span>/home/oracle/hadoop/pids
+export HADOOP_COMMON_LIB_NATIVE_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/lib/native 
+export HADOOP_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$HADOOP_OPTS<span style="color:#e6db74">-Djava.library.path=</span>$HADOOP_HOME<span style="color:#e6db74">/lib/native&#34;</span> 
+export HADOOP_PREFIX<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_MAPRED_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_COMMON_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_HDFS_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export YARN_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export HDFS_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export YARN_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export JAVA_LIBRARY_PATH<span style="color:#f92672">=</span>$HADOOP_HOME/lib/native 
+export FLINK_HOME<span style="color:#f92672">=</span>/home/oracle/flink
+export PATH<span style="color:#f92672">=</span>$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH
+export PATH JAVA_HOME SCALA_HOME  KAFKA_HOME SPARK_HOME  HADOOP_HOME  FLINK_HOME</code></pre></div>
+<h2 id="hadoop配置更改">hadoop配置更改</h2>
+
+<p><code>hadoop</code>相关的配置都在<code>$HADOOP_HOME/etc/hadoop</code>目录下,本文中</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$HADOOP_HOME<span style="color:#f92672">=</span>/home/oracle/hadoop</code></pre></div>
+<p><code>hadoop</code>集群搭建主要涉及如下配置文件的变更</p>
+
+<h3 id="hadoop-env-sh">hadoop-env.sh</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/hadoop-env.sh</code><br />
+hadoop-env.sh文件只需要改动JAVA_HOME为具体的路径即可</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e">#export JAVA_HOME=${JAVA_HOME}</span>
+export JAVA_HOME<span style="color:#f92672">=</span>/home/oracle/jdk</code></pre></div>
+<h3 id="core-site-xml">core-site.xml</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/core-site.xml</code><br />
+<code>fs.defaultFS</code>：用于指定NameNode URI<br />
+<code>ha.zookeeper.quorum</code>：用于指定<code>zookeeper</code>的地址</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<span style="color:#75715e">&lt;?xml-stylesheet type=&#34;text/xsl&#34; href=&#34;configuration.xsl&#34;?&gt;</span>
+<span style="color:#f92672">&lt;configuration&gt;</span>
+   <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>fs.defaultFS<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>hdfs://cluster<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+        <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>hadoop.tmp.dir<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>/home/oracle/bigdata/hadoop<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>ha.zookeeper.quorum<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>192.168.220.200:2181,192.168.220.200:2181,192.168.220.200:2181<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>ha.zookeeper.session-timeout.ms<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>60000<span style="color:#f92672">&lt;/value&gt;</span>
+     <span style="color:#f92672">&lt;/property&gt;</span>
+<span style="color:#f92672">&lt;/configuration&gt;</span></code></pre></div>
+<h3 id="hdfs-site-xml">hdfs-site.xml</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/core-site.xml</code><br />
+<code>dfs.nameservices</code>：需要和<code>core-site.xml</code>中的<code>fs.defaultFS</code>保持一致<br />
+<code>dfs.ha.namenodes.cluster</code>：用于指定<code>namenodes</code>，逗号分隔，别名可以随便命名，本文中为<code>nn1</code>和<code>nn2</code>，需要注意的是下面的<code>rpc</code>和<code>http</code>地址需要和别名保持一致。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">dfs.namenode.rpc-address.cluster.nn1
+dfs.namenode.http-address.cluster.nn1</code></pre></div>
+<p><code>dfs.namenode.shared.edits.dir</code>： 指定<code>NameNode</code>的元数据在<code>JournalNode</code>上的存放位置<br />
+<code>dfs.journalnode.edits.dir</code>：指定<code>JournalNode</code>在本地磁盘存放数据的位置<br />
+<code>dfs.namenode.name.dir</code>：指定<code>namenode</code>名称空间的存储地址<br />
+<code>dfs.datanode.data.dir</code>：指定<code>datanode</code>名称空间的存储地址</p>
+
+<p><code>hdfs-site.xml</code>完整配置如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+<span style="color:#75715e">&lt;?xml-stylesheet type=&#34;text/xsl&#34; href=&#34;configuration.xsl&#34;?&gt;</span>
+<span style="color:#f92672">&lt;configuration&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.nameservices<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>cluster<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.ha.namenodes.cluster<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>nn1,nn2<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.rpc-address.cluster.nn1<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>bigdata1:8020<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.http-address.cluster.nn1<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>bigdata1:50070<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.rpc-address.cluster.nn2<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>bigdata2:8020<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.http-address.cluster.nn2<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>bigdata2:50070<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.shared.edits.dir<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>qjournal://bigdata3:8485;bigdata4:8485;bigdata5:8485/cluster<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.journalnode.edits.dir<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>/home/oracle/bigdata/hadoop/journal<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.ha.automatic-failover.enabled<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>true<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>     
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.client.failover.proxy.provider.cluster<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>         
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.ha.fencing.methods<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>sshfence<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+        <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.ha.fencing.ssh.private-key-files<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>/home/oracle/.ssh/id_rsa<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.ha.fencing.ssh.connect-timeout<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>30000<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.namenode.name.dir<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>file:///home/oracle/bigdata/hadoop/hdfs/name<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>dfs.datanode.data.dir<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>file:///home/oracle/bigdata/hadoop/hdfs/data<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span> 
+<span style="color:#f92672">&lt;/configuration&gt;</span></code></pre></div>
+<h3 id="workers">workers</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/workers
+</code></p>
+
+<p><code>workers</code>配置文件如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">bigdata3
+bigdata4
+bigdata5</code></pre></div>
+<h3 id="mapred-site-xml">mapred-site.xml</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/mapred-site.xml</code>
+主要是指定资源调度框架为<code>yarn</code>。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34;?&gt;</span>
+<span style="color:#75715e">&lt;?xml-stylesheet type=&#34;text/xsl&#34; href=&#34;configuration.xsl&#34;?&gt;</span>
+<span style="color:#f92672">&lt;configuration&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>mapreduce.framework.name<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>yarn<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+      <span style="color:#f92672">&lt;name&gt;</span>yarn.app.mapreduce.am.env<span style="color:#f92672">&lt;/name&gt;</span>
+      <span style="color:#f92672">&lt;value&gt;</span>HADOOP_MAPRED_HOME=${HADOOP_HOME}<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+      <span style="color:#f92672">&lt;name&gt;</span>mapreduce.map.env<span style="color:#f92672">&lt;/name&gt;</span>
+      <span style="color:#f92672">&lt;value&gt;</span>HADOOP_MAPRED_HOME=${HADOOP_HOME}<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+      <span style="color:#f92672">&lt;name&gt;</span>mapreduce.reduce.env<span style="color:#f92672">&lt;/name&gt;</span>
+      <span style="color:#f92672">&lt;value&gt;</span>HADOOP_MAPRED_HOME=${HADOOP_HOME}<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+<span style="color:#f92672">&lt;/configuration&gt;</span></code></pre></div>
+<h3 id="yarn-site-xml">yarn-site.xml</h3>
+
+<p>路径：<code>/home/oracle/hadoop/etc/hadoop/yarn-site.xml</code><br />
+主要是设定<code>yarn.resourcemanager</code>的主机名。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34;?&gt;</span>
+<span style="color:#f92672">&lt;configuration&gt;</span>
+    <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>yarn.resourcemanager.hostname<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>bigdata1<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+        <span style="color:#f92672">&lt;property&gt;</span>
+        <span style="color:#f92672">&lt;name&gt;</span>yarn.nodemanager.aux-services<span style="color:#f92672">&lt;/name&gt;</span>
+        <span style="color:#f92672">&lt;value&gt;</span>mapreduce_shuffle<span style="color:#f92672">&lt;/value&gt;</span>
+    <span style="color:#f92672">&lt;/property&gt;</span>
+<span style="color:#f92672">&lt;/configuration&gt;</span></code></pre></div>
+<h2 id="创建文件目录">创建文件目录</h2>
+
+<p><code>bigdata1</code>节点上的配置更改完成后，同步到其他节点。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scp -r /home/oracle/hadoop  oracle@bigdata2:/home/oracle
+scp -r /home/oracle/hadoop  oracle@bigdata3:/home/oracle
+scp -r /home/oracle/hadoop  oracle@bigdata4:/home/oracle
+scp -r /home/oracle/hadoop  oracle@bigdata5:/home/oracle</code></pre></div>
+<p>同步完成后，在所有节点(<code>bigdata1-bigdata5</code>)上创建文件目录，主要是配置上对应的文件夹。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mkdir -p /home/oracle/bigdata/hadoop
+mkdir -p /home/oracle/bigdata/hadoop/journal
+mkdir -p /home/oracle/bigdata/hadoop/hdfs/name
+mkdir -p /home/oracle/bigdata/hadoop/hdfs/data</code></pre></div>
+<h2 id="初始化和启动">初始化和启动</h2>
+
+<p>由于<code>namenode</code>采用了<code>ha</code>,初始化和单<code>namenode</code>的启动有点不一样，具体过程如下。</p>
+
+<h3 id="启动journalnode">启动journalnode</h3>
+
+<p>在<code>bigdata1</code>上执行，启动<code>journalnode</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/sbin/hadoop-daemons.sh start journalnode</code></pre></div>
+<p>正常情况下，<code>bigdata3、bigdata4、bigdata5</code>会存在<code>JournalNode</code>的进程。</p>
+
+<h3 id="格式化namenode">格式化namenode</h3>
+
+<p>在<code>bigdata1</code>上执行格式化<code>hadoop namenode</code>的命令</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/bin/hadoop namenode -format</code></pre></div>
+<p>主要是在服务器上初始化文件夹目录。</p>
+
+<h3 id="启动namenode">启动namenode</h3>
+
+<p>在<code>bigdata1</code>上启动<code>namenode</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/sbin/hadoop-daemon.sh start namenode</code></pre></div>
+<p>正常情况下<code>bigdata1</code>存在<code>NameNode</code>的进程</p>
+
+<h3 id="同步">同步</h3>
+
+<p>在<code>bigdata2</code>上同步<code>namenode</code>的相关信息并启动</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/bin/hdfs namenode -bootstrapStandby
+/home/oracle/hadoop/sbin/hadoop-daemon.sh start namenode</code></pre></div>
+<p>正常情况下<code>bigdata2</code>也存在<code>NameNode</code>的进程</p>
+
+<h3 id="手工强制切换nn1为主namenode-即bigdata1">手工强制切换nn1为主namenode（即bigdata1）</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/bin/hdfs haadmin -transitionToActive nn1 --forcemanual</code></pre></div>
+<h3 id="格式化zookeeper">格式化zookeeper</h3>
+
+<p>在<code>bigdata1</code>上执行格式化<code>zookeeper</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/bin/hdfs zkfc -formatZK</code></pre></div>
+<p>正常情况下，<code>zookeeper</code>根目录下会创建<code>hadoop</code>相关的目录。
+利用zk客户端查询</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/zookeeper/bin/zkCli.sh</code></pre></div>
+<p>可以看到生成hadoop-ha目录</p>
+
+<p>[zk: localhost:2181(CONNECTED) 3] ls /</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>zookeeper, hadoop-ha, kafka<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>zk: localhost:2181<span style="color:#f92672">(</span>CONNECTED<span style="color:#f92672">)</span> <span style="color:#ae81ff">4</span><span style="color:#f92672">]</span></code></pre></div>
+<h3 id="启动datanode和yarn">启动datanode和yarn</h3>
+
+<p><code>namenode</code>启动完成后，其他进程的启动可以在<code>bigdata1</code>上分步执行</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/sbin/hadoop-daemons.sh start datanode
+/home/oracle/hadoop/sbin/hadoop-daemons.sh start zkfc
+/home/oracle/hadoop/sbin/start-yarn.sh</code></pre></div>
+<p>同时也可以直接执行，让<code>hadoop</code>脚本自动验证和启动相关进程。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/hadoop/sbin/start-dfs.sh
+/home/oracle/hadoop/sbin/start-yarn.sh</code></pre></div>
+<h2 id="验证">验证</h2>
+
+<h3 id="界面查看">界面查看</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">hadoop
+http://bigdata1:50070
+
+yarn 
+http://bigdata1:8088/cluster</code></pre></div>
+<h3 id="hdfs文件系统">hdfs文件系统</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">hdfs dfs -mkdir /spark
+hdfs dfs -mkdir /kafka
+hdfs dfs -ls /
+Found <span style="color:#ae81ff">2</span> items
+drwxr-xr-x   - oracle supergroup          <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:06 /kafka
+drwxr-xr-x   - oracle supergroup          <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:06 /spark</code></pre></div>
+<h3 id="mapreduce测试">mapreduce测试</h3>
+
+<p>运行集群自带的计算pi值的程序</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">hadoop jar /home/oracle/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.0.jar pi <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">5</span></code></pre></div>
+<p>如果环境搭建正常,输出日志如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 hadoop<span style="color:#f92672">]</span>$ hadoop jar /home/oracle/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.0.jar pi <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">5</span>
+WARNING: HADOOP_PREFIX has been replaced by HADOOP_HOME. Using value of HADOOP_PREFIX.
+Number of Maps  <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+Samples per Map <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>
+Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> Server VM warning: You have loaded library /home/oracle/hadoop/lib/native/libhadoop.so.1.0.0 which might have disabled stack guard. The VM will try to fix the stack guard now.
+It<span style="color:#e6db74">&#39;s highly recommended that you fix the library with &#39;</span>execstack -c &lt;libfile&gt;<span style="color:#e6db74">&#39;, or link it with &#39;</span>-z noexecstack<span style="color:#e6db74">&#39;.
+</span><span style="color:#e6db74">2019-06-11 11:20:55,502 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+</span><span style="color:#e6db74">Wrote input for Map #0
+</span><span style="color:#e6db74">Wrote input for Map #1
+</span><span style="color:#e6db74">Starting Job
+</span><span style="color:#e6db74">2019-06-11 11:20:59,185 INFO client.RMProxy: Connecting to ResourceManager at bigdata1/192.168.220.200:8032
+</span><span style="color:#e6db74">2019-06-11 11:21:00,838 INFO mapreduce.JobResourceUploader: Disabling Erasure Coding for path: /tmp/hadoop-yarn/staging/oracle/.staging/job_1560223237592_0001
+</span><span style="color:#e6db74">2019-06-11 11:21:01,498 INFO input.FileInputFormat: Total input files to process : 2
+</span><span style="color:#e6db74">2019-06-11 11:21:01,715 INFO mapreduce.JobSubmitter: number of splits:2
+</span><span style="color:#e6db74">2019-06-11 11:21:01,836 INFO Configuration.deprecation: yarn.resourcemanager.system-metrics-publisher.enabled is deprecated. Instead, use yarn.system-metrics-publisher.enabled
+</span><span style="color:#e6db74">2019-06-11 11:21:02,166 INFO mapreduce.JobSubmitter: Submitting tokens for job: job_1560223237592_0001
+</span><span style="color:#e6db74">2019-06-11 11:21:02,172 INFO mapreduce.JobSubmitter: Executing with tokens: []
+</span><span style="color:#e6db74">2019-06-11 11:21:02,973 INFO conf.Configuration: resource-types.xml not found
+</span><span style="color:#e6db74">2019-06-11 11:21:02,974 INFO resource.ResourceUtils: Unable to find &#39;</span>resource-types.xml<span style="color:#960050;background-color:#1e0010">&#39;</span>.
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:21:04,205 INFO impl.YarnClientImpl: Submitted application application_1560223237592_0001
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:21:04,697 INFO mapreduce.Job: The url to track the job: http://bigdata1:8088/proxy/application_1560223237592_0001/
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:21:04,700 INFO mapreduce.Job: Running job: job_1560223237592_0001
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:21:38,702 INFO mapreduce.Job: Job job_1560223237592_0001 running in uber mode : false
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:21:38,705 INFO mapreduce.Job:  map <span style="color:#ae81ff">0</span>% reduce <span style="color:#ae81ff">0</span>%
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:24:45,326 INFO mapreduce.Job:  map <span style="color:#ae81ff">100</span>% reduce <span style="color:#ae81ff">0</span>%
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:24:58,288 INFO mapreduce.Job:  map <span style="color:#ae81ff">100</span>% reduce <span style="color:#ae81ff">100</span>%
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:24:59,397 INFO mapreduce.Job: Job job_1560223237592_0001 completed successfully
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">11</span>:24:59,932 INFO mapreduce.Job: Counters: <span style="color:#ae81ff">54</span>
+        File System Counters
+                FILE: Number of bytes read<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>
+                FILE: Number of bytes written<span style="color:#f92672">=</span><span style="color:#ae81ff">671712</span>
+                FILE: Number of read operations<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                FILE: Number of large read operations<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                FILE: Number of write operations<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                HDFS: Number of bytes read<span style="color:#f92672">=</span><span style="color:#ae81ff">516</span>
+                HDFS: Number of bytes written<span style="color:#f92672">=</span><span style="color:#ae81ff">215</span>
+                HDFS: Number of read operations<span style="color:#f92672">=</span><span style="color:#ae81ff">13</span>
+                HDFS: Number of large read operations<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                HDFS: Number of write operations<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>
+                HDFS: Number of bytes read erasure-coded<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+        Job Counters 
+                Launched map tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                Launched reduce tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+                Data-local map tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                Total time spent by all maps in occupied slots <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">364487</span>
+                Total time spent by all reduces in occupied slots <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">9545</span>
+                Total time spent by all map tasks <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">364487</span>
+                Total time spent by all reduce tasks <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">9545</span>
+                Total vcore-milliseconds taken by all map tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">364487</span>
+                Total vcore-milliseconds taken by all reduce tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">9545</span>
+                Total megabyte-milliseconds taken by all map tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">373234688</span>
+                Total megabyte-milliseconds taken by all reduce tasks<span style="color:#f92672">=</span><span style="color:#ae81ff">9774080</span>
+        Map-Reduce Framework
+                Map input records<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                Map output records<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>
+                Map output bytes<span style="color:#f92672">=</span><span style="color:#ae81ff">36</span>
+                Map output materialized bytes<span style="color:#f92672">=</span><span style="color:#ae81ff">56</span>
+                Input split bytes<span style="color:#f92672">=</span><span style="color:#ae81ff">280</span>
+                Combine input records<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                Combine output records<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                Reduce input groups<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                Reduce shuffle bytes<span style="color:#f92672">=</span><span style="color:#ae81ff">56</span>
+                Reduce input records<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>
+                Reduce output records<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                Spilled Records<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>
+                Shuffled Maps <span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                Failed Shuffles<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                Merged Map outputs<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+                GC time elapsed <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">17194</span>
+                CPU time spent <span style="color:#f92672">(</span>ms<span style="color:#f92672">)=</span><span style="color:#ae81ff">11520</span>
+                Physical memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span> snapshot<span style="color:#f92672">=</span><span style="color:#ae81ff">650657792</span>
+                Virtual memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)</span> snapshot<span style="color:#f92672">=</span><span style="color:#ae81ff">3717197824</span>
+                Total committed heap usage <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)=</span><span style="color:#ae81ff">545259520</span>
+                Peak Map Physical memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)=</span><span style="color:#ae81ff">247463936</span>
+                Peak Map Virtual memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)=</span><span style="color:#ae81ff">1236713472</span>
+                Peak Reduce Physical memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)=</span><span style="color:#ae81ff">157372416</span>
+                Peak Reduce Virtual memory <span style="color:#f92672">(</span>bytes<span style="color:#f92672">)=</span><span style="color:#ae81ff">1243967488</span>
+        Shuffle Errors
+                BAD_ID<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                CONNECTION<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                IO_ERROR<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                WRONG_LENGTH<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                WRONG_MAP<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+                WRONG_REDUCE<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+        File Input Format Counters 
+                Bytes Read<span style="color:#f92672">=</span><span style="color:#ae81ff">236</span>
+        File Output Format Counters 
+                Bytes Written<span style="color:#f92672">=</span><span style="color:#ae81ff">97</span>
+Job Finished in <span style="color:#ae81ff">240</span>.921 seconds
+Estimated value of Pi is <span style="color:#ae81ff">3</span>.60000000000000000000
+<span style="color:#f92672">[</span>oracle@bigdata1 hadoop<span style="color:#f92672">]</span>$ </code></pre></div>
+<p>本例中pi值为3.6,资源充足的情况下，可提高迭代的次数，以便得到更改准确的pi值。</p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/others"><span class="tag">Others</span></a></li>
+        
+          <li><a href="https://aidodoo.com/tags/hadoop"><span class="tag">Hadoop</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

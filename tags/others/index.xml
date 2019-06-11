@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Others on aidodoo blog</title>
+    <link>https://aidodoo.com/tags/others/</link>
+    <description>Recent content in Others on aidodoo blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Original, if necessary, please note.</copyright>
+    <lastBuildDate>Thu, 06 Jun 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://aidodoo.com/tags/others/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>spark集群的搭建</title>
+      <link>https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Thu, 06 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&amp;#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&amp;#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更</description>
+    </item>
+    
+    <item>
+      <title>hadoop集群的搭建</title>
+      <link>https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Wed, 05 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hadoop和hbase的分布式搭建过程。
+版本  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:`hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 参考基础环境安装
+java安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为namenode,bigdata3、bigdat4、bigdata5作为dataNode，安装完成后各节点进程名如下：
+  主机名 ip地址 NameNode ResourceManager DFSZKFailoverController DataNode JournalNode NodeManager   bigdata1 192.168.220.200 Y Y Y N N N   bigdata2 192.168.220.201 Y Y Y N N N   bigdata3 192.</description>
+    </item>
+    
+    <item>
+      <title>hbase集群的搭建</title>
+      <link>https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Wed, 05 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hbase的分布式搭建过程。
+版本要求  java版本：1.8.0_181
+ zookeeper版本:zookeeper-3.4.14 hadoop版本:hadoop-3.2.0
+ hbase版本：hbase-2.1.4  前置条件 免密登录 见链接免密登录
+java安装 见链接java安装
+zookeeper安装 见链接zookeeper安装
+hadoop安装 见链接hadoop安装
+服务器资源和分配 本文服务器列表如下：
+192.168.220.200 bigdata1 192.168.220.201 bigdata2 192.168.220.202 bigdata3 192.168.220.203 bigdata4 192.168.220.204 bigdata5 其中选用bigdata1和bigdata2作为master,bigdata3、bigdat4、bigdata5作为regionserver，安装完成后各节点进程名如下：
+  主机名 ip地址 HMaster HRegionServer   bigdata1 192.168.220.200 Y N   bigdata2 192.168.220.201 N Y   bigdata3 192.168.220.202 N Y   bigdata4 192.168.220.203 N Y   bigdata5 192.</description>
+    </item>
+    
+    <item>
+      <title>kafka集群的搭建</title>
+      <link>https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Sun, 02 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解kafka集群的搭建步骤。
+下载 kafka官网下载安装包kafka_2.11-2.2.0.tgz
+安装 cd ~ tar -zxvf kafka_2.11-2.2.0.tgz mv kafka_2.11-2.2.0 kafka 配置更改 编辑kafka.server配置文件 vi /home/oracle/kafka/config/server.properties 不同机器配置的broker.id 、advertised.listeners不一样，根据对应的主机名配置。以服务器bigdata1，则其server.properties需更改的配置如下：
+broker.id=1 advertised.listeners=PLAINTEXT://bigdata1:9092 num.network.threads=3 num.io.threads=8 socket.send.buffer.bytes=102400 socket.receive.buffer.bytes=102400 socket.request.max.bytes=104857600 log.dirs=/home/oracle/kafka/kafka-logs num.partitions=1 num.recovery.threads.per.data.dir=1 offsets.topic.replication.factor=1 transaction.state.log.replication.factor=1 transaction.state.log.min.isr=1 log.retention.hours=8 log.segment.bytes=1073741824 log.retention.check.interval.ms=300000 zookeeper.connect=192.168.220.200:2181,192.168.220.201:2181,192.168.220.202:2181/kafka zookeeper.connection.timeout.ms=6000 group.initial.rebalance.delay.ms=0 其他配置项参考后续文章或者官方文档，本文只概述集群模式的安装。
+建立kafka日志相关目录 mkdir -p /home/oracle/kafka/kafka-logs 复制kafka目录到其他服务器，并更改对应的broker.id 、advertised.listeners配置
+scp -r /home/oracle/kafka oracle@bigdata2:/home/oracle scp -r /home/oracle/kafka oracle@bigdata3:/home/oracle 启动和验证 建立日志目录
+mkdir -p /home/oracle/kafka/logs 依次启动集群中的kafka，执行脚本如下：
+cd /home/oracle/kafka/logs nohup /home/oracle/kafka/bin/kafka-server-start.</description>
+    </item>
+    
+    <item>
+      <title>zookeeper集群的搭建</title>
+      <link>https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Sun, 02 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲述zookeeper的安装，日志配置基础优化。
+简介 Zookeeper是一个分布式的、开源的分布式应用协调服务，它暴露了一组简单的基础原件，分布式应用可以在这些原件之上实现更高级别的服务，主要使用场景和功能如下：
+ Naming service Configuration management Synchronization Leader election Message Queue Notification system  其集群管理和命名服务在kafka、hadoop、spark中均有相关应用。
+安装 官网地址zookeeper，本文选择稳定版zookeeper-3.4.14.tar.gz
+资源列表 本文资源列表如下:    bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202  
+解压  切换至主目录 shell cd ~  解压 shell tar -zxvf zookeeper-3.4.14.tar.gz  重命名
+mv zookeeper-3.4.14 zookeeper 配置 生成zoo.cfg文件 切换到conf目录,利用zoo_sample.cfg生成配置文件并更改配置。
+cd /home/oracle/zookeeper/conf cp /home/oracle/zookeeper/conf/zoo_sample.cfg /home/oracle/zookeeper/conf/zoo.</description>
+    </item>
+    
+    <item>
+      <title>基础环境安装</title>
+      <link>https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/</link>
+      <pubDate>Sat, 01 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop/hbase集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。
+免密登录 由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建Hadoop环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为&amp;rdquo;公私钥&amp;rdquo;认证的方式来进行ssh登录。
+&amp;rdquo; 公私钥&amp;rdquo;认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：~/.ssh/id_rsa.pub； 私钥文件：~/.ssh/id_rsa）。然后把公钥放到服务器上（~/.ssh/authorized_keys）, 自己保留好私钥.在使用ssh登录时,ssh程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。
+操作前确认系统已经安装了SSH。
+rpm –qa | grep openssh rpm –qa | grep rsync  如果没有安装ssh和rsync，可以通过下面命令进行安装。
+yum install ssh --&amp;gt;安装SSH协议 yum install rsync --&amp;gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台 主机间的文件
+service sshd restart --&amp;gt;启动服务 资源列表如下：   主机名 ip地址   bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202   bigdata4 192.168.220.203   bigdata5 192.168.220.204</description>
+    </item>
+    
+  </channel>
+</rss>

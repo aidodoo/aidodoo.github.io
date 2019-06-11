@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Spark on aidodoo blog</title>
+    <link>https://aidodoo.com/tags/spark/</link>
+    <description>Recent content in Spark on aidodoo blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Original, if necessary, please note.</copyright>
+    <lastBuildDate>Thu, 06 Jun 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://aidodoo.com/tags/spark/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>spark集群的搭建</title>
+      <link>https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</link>
+      <pubDate>Thu, 06 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</guid>
+      <description>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&amp;#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&amp;#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -13,6 +13,41 @@
   </url>
   
   <url>
+    <loc>https://aidodoo.com/post/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
+    <lastmod>2019-06-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-06-06T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-06-05T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-06-05T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-06-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/</loc>
+    <lastmod>2019-06-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/</loc>
+    <lastmod>2019-06-01T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/</loc>
     <lastmod>2018-04-12T00:00:00+00:00</lastmod>
   </url>
@@ -103,7 +138,31 @@
   </url>
   
   <url>
+    <loc>https://aidodoo.com/post/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</loc>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</loc>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/post/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/</loc>
+  </url>
+  
+  <url>
     <loc>https://aidodoo.com/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/tags/hadoop/</loc>
+    <lastmod>2019-06-05T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/tags/hbase/</loc>
+    <lastmod>2019-06-05T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -120,14 +179,32 @@
   </url>
   
   <url>
+    <loc>https://aidodoo.com/tags/others/</loc>
+    <lastmod>2019-06-06T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://aidodoo.com/post/</loc>
-    <lastmod>2018-04-12T00:00:00+00:00</lastmod>
+    <lastmod>2019-06-07T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/tags/spark/</loc>
+    <lastmod>2019-06-06T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://aidodoo.com/tags/</loc>
-    <lastmod>2016-04-07T00:00:00+00:00</lastmod>
+    <lastmod>2019-06-05T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://aidodoo.com/tags/zookeeper/</loc>
+    <lastmod>2019-06-02T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

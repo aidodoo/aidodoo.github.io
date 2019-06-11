@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>基础环境安装</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop/hbase集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。
+免密登录 由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建Hadoop环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为&amp;rdquo;公私钥&amp;rdquo;认证的方式来进行ssh登录。
+&amp;rdquo; 公私钥&amp;rdquo;认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：~/.ssh/id_rsa.pub； 私钥文件：~/.ssh/id_rsa）。然后把公钥放到服务器上（~/.ssh/authorized_keys）, 自己保留好私钥.在使用ssh登录时,ssh程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。
+操作前确认系统已经安装了SSH。
+rpm –qa | grep openssh rpm –qa | grep rsync  如果没有安装ssh和rsync，可以通过下面命令进行安装。
+yum install ssh --&amp;gt;安装SSH协议 yum install rsync --&amp;gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台 主机间的文件
+service sshd restart --&amp;gt;启动服务 资源列表如下：   主机名 ip地址   bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202   bigdata4 192.168.220.203   bigdata5 192.168.220.204">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="基础环境安装">
+    <meta name="twitter:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop/hbase集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。
+免密登录 由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建Hadoop环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为&amp;rdquo;公私钥&amp;rdquo;认证的方式来进行ssh登录。
+&amp;rdquo; 公私钥&amp;rdquo;认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：~/.ssh/id_rsa.pub； 私钥文件：~/.ssh/id_rsa）。然后把公钥放到服务器上（~/.ssh/authorized_keys）, 自己保留好私钥.在使用ssh登录时,ssh程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。
+操作前确认系统已经安装了SSH。
+rpm –qa | grep openssh rpm –qa | grep rsync  如果没有安装ssh和rsync，可以通过下面命令进行安装。
+yum install ssh --&amp;gt;安装SSH协议 yum install rsync --&amp;gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台 主机间的文件
+service sshd restart --&amp;gt;启动服务 资源列表如下：   主机名 ip地址   bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202   bigdata4 192.168.220.203   bigdata5 192.168.220.204">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="基础环境安装">
+  <meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop/hbase集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。
+免密登录 由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建Hadoop环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为&amp;rdquo;公私钥&amp;rdquo;认证的方式来进行ssh登录。
+&amp;rdquo; 公私钥&amp;rdquo;认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：~/.ssh/id_rsa.pub； 私钥文件：~/.ssh/id_rsa）。然后把公钥放到服务器上（~/.ssh/authorized_keys）, 自己保留好私钥.在使用ssh登录时,ssh程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。
+操作前确认系统已经安装了SSH。
+rpm –qa | grep openssh rpm –qa | grep rsync  如果没有安装ssh和rsync，可以通过下面命令进行安装。
+yum install ssh --&amp;gt;安装SSH协议 yum install rsync --&amp;gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台 主机间的文件
+service sshd restart --&amp;gt;启动服务 资源列表如下：   主机名 ip地址   bigdata1 192.168.220.200   bigdata2 192.168.220.201   bigdata3 192.168.220.202   bigdata4 192.168.220.203   bigdata5 192.168.220.204">
+  <meta property="og:url" content="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">基础环境安装</h1>
+      <p class="post-meta">@aidodoo · Jun 1, 2019 · 3 min read</p>
+    </header>
+    <article class="post-content">
+
+<p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka集群的搭建/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop集群的搭建/">hadoop/hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase集群的搭建/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark集群的搭建/">spark集群的搭建</a></li>
+</ul>
+
+<p>本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装。</p>
+
+<h1 id="免密登录">免密登录</h1>
+
+<p>由于后续涉及到各种软件的安装，毫无疑问会用到服务器间的文件传输，为了后续不再重复输入密码，同时搭建<code>Hadoop</code>环境均需要设置无密码登陆。所谓无密码登陆其实是指通过证书认证的方式登陆，使用一种被称为&rdquo;公私钥&rdquo;认证的方式来进行ssh登录。<br />
+&rdquo; 公私钥&rdquo;认证方式简单的解释:首先在客户端上创建一对公私钥 （公钥文件：<code>~/.ssh/id_rsa.pub</code>； 私钥文件：<code>~/.ssh/id_rsa</code>）。然后把公钥放到服务器上（<code>~/.ssh/authorized_keys</code>）, 自己保留好私钥.在使用<code>ssh</code>登录时,<code>ssh</code>程序会发送私钥去和服务器上的公钥做匹配.如果匹配成功即登录。<br />
+操作前确认系统已经安装了<code>SSH</code>。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">rpm –qa | grep openssh
+rpm –qa | grep rsync     </code></pre></div>
+<p>如果没有安装<code>ssh</code>和<code>rsync</code>，可以通过下面命令进行安装。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">yum install ssh --&gt;安装SSH协议
+yum install rsync --&gt;rsync是一个远程数据同步工具，可通过LAN/WAN快速同步多台</code></pre></div>
+<p>主机间的文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">service sshd restart --&gt;启动服务</code></pre></div>
+<p>资源列表如下：
+<table>
+<tr>
+    <td>主机名</td>
+    <td>ip地址</td>
+</tr>
+<tr>
+    <td>bigdata1</td>
+    <td>192.168.220.200</td>
+</tr>
+<tr>
+    <td>bigdata2</td>
+    <td>192.168.220.201</td>
+</tr>
+<tr>
+    <td>bigdata3</td>
+    <td>192.168.220.202</td>
+</tr>
+<tr>
+    <td>bigdata4</td>
+    <td>192.168.220.203</td>
+</tr>
+<tr>
+    <td>bigdata5</td>
+    <td>192.168.220.204</td>
+</tr>
+</table></p>
+
+<p>主机名的设置，请参考<a href="https://www.cnblogs.com/molyeo/p/9359351.html">虚拟服务器安装</a>。</p>
+
+<p>结合公私钥的定义，要设置这5个主机间的免密登录过程如下：</p>
+
+<ol>
+<li><code>bigdata1、bigdata2、bigdata3、bigdata4、bigdata5</code>各自生成公钥<code>id_rsa</code>和私钥<code>id_rsa.pub</code></li>
+<li>然后选择其中一个节点(<code>bigdata1</code>,可随意选择)当做主节点，将其他四个节点的公钥(<code>bigdata2、bigdata3、bigdata4、bigdata5</code>)的文件传送到<code>bigdata1</code></li>
+<li>利用所有服务器的公钥制作认证文件<code>authorized_keys</code></li>
+<li>修改认证文件的权限，并下发到所有节点即可。</li>
+</ol>
+
+<h2 id="设置hosts">设置hosts</h2>
+
+<p>切换至<code>root</code>用户，编辑<code>hosts</code>文件</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">su root
+vi /etc/hosts</code></pre></div>
+<p>设置完成后内容如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>root@bigdata1 oracle<span style="color:#f92672">]</span><span style="color:#75715e"># cat /etc/hosts</span>
+<span style="color:#ae81ff">127</span>.0.0.1      localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1            localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+<span style="color:#ae81ff">192</span>.168.220.200  bigdata1
+<span style="color:#ae81ff">192</span>.168.220.201  bigdata2
+<span style="color:#ae81ff">192</span>.168.220.202  bigdata3
+
+<span style="color:#ae81ff">192</span>.168.220.203  bigdata4
+<span style="color:#ae81ff">192</span>.168.220.204  bigdata5
+<span style="color:#f92672">[</span>root@bigdata1 oracle<span style="color:#f92672">]</span># </code></pre></div>
+<h2 id="生成密钥">生成密钥</h2>
+
+<p>bigdata1、bigdata2、bigdata3、bigdata4、bigdata5各个节点均需执行。</p>
+
+<ul>
+<li>切换到主目录，查看是否存在<code>.ssh</code>文件夹(用来存放密钥的)，如果没有，可以创建或者尝试从本机登录到其他主机则会自动生成该目录。</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~
+mkdir .ssh</code></pre></div>
+<ul>
+<li>切换至<code>.ssh</code>目录</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~/.ssh</code></pre></div>
+<ul>
+<li>生成密钥，输入如下命令，然后连续按回车键<br /></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ssh-keygen -t rsa -P <span style="color:#e6db74">&#34;&#34;</span></code></pre></div>
+<p>操作完成后结构如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span><span style="color:#75715e"># pwd</span>
+/home/oracle/.ssh
+<span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span><span style="color:#75715e"># ll</span>
+-rw------- <span style="color:#ae81ff">1</span> oracle oracle <span style="color:#ae81ff">1675</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:39 id_rsa
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:39 id_rsa.pub
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle <span style="color:#ae81ff">3173</span> Jul <span style="color:#ae81ff">23</span> <span style="color:#ae81ff">11</span>:52 known_hosts
+<span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span># </code></pre></div>
+<h2 id="公钥上报">公钥上报</h2>
+
+<ul>
+<li>复制公钥(<code>bigdata1、bigdata2、bigdata3、bigdata4、bigdata5</code>所有节点均执行)</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~/.ssh
+cp id_rsa.pub id_rsa.pub.<span style="color:#66d9ef">$(</span>hostname<span style="color:#66d9ef">)</span></code></pre></div>
+<ul>
+<li>公钥上报(<code>bigdata2、bigdata3、bigdata4、bigdata5</code>这4个节点将公钥传送至<code>bigdata1</code>)</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scp ~/.ssh/id_rsa.pub.* oracle@bigdata1:/home/oracle/.ssh/</code></pre></div>
+<p>操作完成后，<code>bigdata1</code>节点<code>.ssh</code>目录结构如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span><span style="color:#75715e"># pwd</span>
+/home/oracle/.ssh
+<span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span><span style="color:#75715e"># ll</span>
+total <span style="color:#ae81ff">32</span>
+-rw------- <span style="color:#ae81ff">1</span> oracle oracle <span style="color:#ae81ff">1675</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:39 id_rsa
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:39 id_rsa.pub
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:39 id_rsa.pub.bigdata1
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:43 id_rsa.pub.bigdata2
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">22</span> <span style="color:#ae81ff">20</span>:43 id_rsa.pub.bigdata3
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">23</span> <span style="color:#ae81ff">11</span>:50 id_rsa.pub.bigdata4
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle  <span style="color:#ae81ff">397</span> Jul <span style="color:#ae81ff">23</span> <span style="color:#ae81ff">11</span>:50 id_rsa.pub.bigdata5
+-rw-r--r-- <span style="color:#ae81ff">1</span> oracle oracle <span style="color:#ae81ff">3173</span> Jul <span style="color:#ae81ff">23</span> <span style="color:#ae81ff">11</span>:52 known_hosts
+<span style="color:#f92672">[</span>root@bigdata1 .ssh<span style="color:#f92672">]</span>#</code></pre></div>
+<h2 id="认证文件的制作和下发">认证文件的制作和下发</h2>
+
+<ul>
+<li>用所有节点的公钥制作认证文件（<code>bigdata1</code>节点执行）</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cat /home/oracle/.ssh/id_rsa.pub.bigdata1 &gt;&gt;/home/oracle/.ssh/authorized_keys
+cat /home/oracle/.ssh/id_rsa.pub.bigdata2 &gt;&gt;/home/oracle/.ssh/authorized_keys
+cat /home/oracle/.ssh/id_rsa.pub.bigdata3 &gt;&gt;/home/oracle/.ssh/authorized_keys
+cat /home/oracle/.ssh/id_rsa.pub.bigdata4 &gt;&gt;/home/oracle/.ssh/authorized_keys
+cat /home/oracle/.ssh/id_rsa.pub.bigdata5 &gt;&gt;/home/oracle/.ssh/authorized_keys</code></pre></div>
+<ul>
+<li>权限更改（<code>bigdata1</code>节点执行）</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">chmod <span style="color:#ae81ff">700</span> ~/.ssh
+chmod <span style="color:#ae81ff">600</span> /home/oracle/.ssh/authorized_keys</code></pre></div>
+<p>设置完成后，权限如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">drwx------  <span style="color:#ae81ff">2</span> oracle oracle      <span style="color:#ae81ff">4096</span> Jun  <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">08</span>:27 .ssh
+-rw------- <span style="color:#ae81ff">1</span> oracle oracle <span style="color:#ae81ff">1985</span> Jun  <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">08</span>:27 authorized_keys</code></pre></div>
+<ul>
+<li>认证文件下发（<code>bigdata1</code>节点执行)</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">scp /home/oracle/.ssh/authorized_keys oracle@bigdata2:/home/oracle/.ssh/
+scp /home/oracle/.ssh/authorized_keys oracle@bigdata3:/home/oracle/.ssh/
+scp /home/oracle/.ssh/authorized_keys oracle@bigdata4:/home/oracle/.ssh/
+scp /home/oracle/.ssh/authorized_keys oracle@bigdata5:/home/oracle/.ssh/</code></pre></div>
+<h2 id="验证">验证</h2>
+
+<p>执行如下命令，依次验证(<code>bigdata1、bigdata2、bigdata3、bigdata4、bigdata5</code>各个节点均执行)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">ssh bigdata1 
+ssh bigdata2
+ssh bigdata3
+ssh bigdata4
+ssh bigdata5
+ssh <span style="color:#ae81ff">192</span>.168.220.200  
+ssh <span style="color:#ae81ff">192</span>.168.220.201  
+ssh <span style="color:#ae81ff">192</span>.168.220.202 
+ssh <span style="color:#ae81ff">192</span>.168.220.203  
+ssh <span style="color:#ae81ff">192</span>.168.220.204 </code></pre></div>
+<p>如果的确不需要输入密码，即验证通过</p>
+
+<h1 id="java安装">java安装</h1>
+
+<p><code>java</code>的安装，不管是<code>linux</code>平台还是<code>windows</code>平台，比较类似，安装完成后配置环境变量即可。</p>
+
+<h2 id="下载">下载</h2>
+
+<p>登录官网<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">jdk下载</a>选择对应的版本下载即可，本文选择<code>jdk-8u181-linux-i586.tar.gz</code>。</p>
+
+<h2 id="安装和环境变量配置">安装和环境变量配置</h2>
+
+<p>切换至主目录</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~</code></pre></div>
+<p>解压</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">tar -zxvf jdk-8u181-linux-i586.tar.gz</code></pre></div>
+<p>重命名</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mv jdk1.8.0_181 jdk</code></pre></div>
+<p>编辑环境变量</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi ~/.bash_profile</code></pre></div>
+<p>配置完成后结果如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 install<span style="color:#f92672">]</span>$ cat ~/.bash_profile 
+<span style="color:#75715e"># .bash_profile</span>
+
+<span style="color:#75715e"># Get the aliases and functions</span>
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f ~/.bashrc <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+. ~/.bashrc
+<span style="color:#66d9ef">fi</span>
+
+export JAVA_HOME<span style="color:#f92672">=</span>/home/oracle/jdk
+export PATH<span style="color:#f92672">=</span>$JAVA_HOME/bin:/sbin:$PATH
+export PATH JAVA_HOME
+
+<span style="color:#f92672">[</span>oracle@bigdata1 install<span style="color:#f92672">]</span>$ </code></pre></div>
+<h2 id="验证-1">验证</h2>
+
+<p>输入java -version,显示正确的版本即表示安装成功。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 install<span style="color:#f92672">]</span>$ java -version
+java version <span style="color:#e6db74">&#34;1.8.0_181&#34;</span>
+Java<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> SE Runtime Environment <span style="color:#f92672">(</span>build <span style="color:#ae81ff">1</span>.8.0_181-b13<span style="color:#f92672">)</span>
+Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> Server VM <span style="color:#f92672">(</span>build <span style="color:#ae81ff">25</span>.181-b13, mixed mode<span style="color:#f92672">)</span></code></pre></div>
+<h1 id="scala安装">scala安装</h1>
+
+<p><code>scala</code>的安装，不管是<code>linux</code>平台还是<code>windows</code>平台，比较类似，安装完成后配置环境变量即可。</p>
+
+<h2 id="下载-1">下载</h2>
+
+<p>登录官网<a href="https://www.scala-lang.org/download/2.11.8.html">scala下载</a>选择对应的版本下载即可，本文选择<code>scala-2.11.8.tgz</code>。</p>
+
+<h2 id="安装和环境变量配置-1">安装和环境变量配置</h2>
+
+<p>切换至主目录</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~</code></pre></div>
+<p>解压</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">tar -zxvf scala-2.11.12.tgz</code></pre></div>
+<p>重命名</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">mv scala-2.11.12 scala</code></pre></div>
+<p>编辑环境变量</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">vi ~/.bash_profile</code></pre></div>
+<p>配置完成后结果如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 install<span style="color:#f92672">]</span>$ cat ~/.bash_profile 
+<span style="color:#75715e"># .bash_profile</span>
+
+<span style="color:#75715e"># Get the aliases and functions</span>
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f ~/.bashrc <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+. ~/.bashrc
+<span style="color:#66d9ef">fi</span>
+
+<span style="color:#75715e"># User specific environment and startup programs</span>
+export JAVA_HOME<span style="color:#f92672">=</span>/home/oracle/jdk
+export SCALA_HOME<span style="color:#f92672">=</span>/home/oracle/scala
+export PATH<span style="color:#f92672">=</span>$JAVA_HOME/bin:$SCALA_HOME/bin:/sbin:$PATH
+export PATH JAVA_HOME SCALA_HOME</code></pre></div>
+<h2 id="验证-2">验证</h2>
+
+<p>输入<code>scala -version</code>,显示正确的版本即表示安装成功。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 install<span style="color:#f92672">]</span>$ scala -version
+Scala code runner version <span style="color:#ae81ff">2</span>.11.12 -- Copyright <span style="color:#ae81ff">2002</span>-2017, LAMP/EPFL</code></pre></div>
+<p>本文主要阐述基础环境的安装，主要是服务器间免密登录，java安装和scala安装,以便后续构建大数据平台。</p>
+</article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/others"><span class="tag">Others</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+
+  
+  <title>spark集群的搭建</title>
+
+  
+  
+  <link href="//cdn.jsdelivr.net" rel="dns-prefetch">
+  <link href="//cdnjs.cloudflare.com" rel="dns-prefetch">
+  <link href="//at.alicdn.com" rel="dns-prefetch">
+  <link href="//fonts.googleapis.com" rel="dns-prefetch">
+  <link href="//fonts.gstatic.com" rel="dns-prefetch">
+  <link href="///disqus.com" rel="dns-prefetch">
+  <link href="//c.disquscdn.com" rel="dns-prefetch">
+  
+  <link href="//www.google-analytics.com" rel="dns-prefetch">
+  
+
+  
+
+  
+  
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&amp;#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&amp;#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更">
+
+  
+  
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@gohugoio">
+    <meta name="twitter:title" content="spark集群的搭建">
+    <meta name="twitter:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&amp;#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&amp;#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更">
+    <meta name="twitter:image" content="/images/avatar.png">
+  
+
+  
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="spark集群的搭建">
+  <meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：
+ 基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。
+前置条件 java安装 参考基础环境安装
+scala安装 参考基础环境安装
+zookeeper安装 参考zookeeper集群的搭建
+spark安装 压缩解压 cd ~ tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz mv spark-2.4.3-bin-hadoop2.7 spark 环境变量 # .bash_profile # Get the aliases and functions if [ -f ~/.bashrc ]; then . ~/.bashrc fi # User specific environment and startup programs export JAVA_HOME=/home/oracle/jdk export SCALA_HOME=/home/oracle/scala export KAFKA_HOME=/home/oracle/kafka export SPARK_HOME=/home/oracle/spark export HADOOP_HOME=/home/oracle/hadoop export HADOOP_PID_DIR=/home/oracle/hadoop/pids export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native export HADOOP_OPTS=&amp;#34;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&amp;#34; export HADOOP_PREFIX=$HADOOP_HOME export HADOOP_MAPRED_HOME=$HADOOP_HOME export HADOOP_COMMON_HOME=$HADOOP_HOME export HADOOP_HDFS_HOME=$HADOOP_HOME export YARN_HOME=$HADOOP_HOME export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native export FLINK_HOME=/home/oracle/flink export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH export PATH JAVA_HOME SCALA_HOME KAFKA_HOME SPARK_HOME HADOOP_HOME FLINK_HOME 配置更改 spark集群主要涉及到如下配置文件的变更">
+  <meta property="og:url" content="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+  <meta property="og:image" content="/images/avatar.png">
+
+
+
+
+<meta name="generator" content="Hugo 0.53">
+
+
+<link rel="canonical" href="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">
+
+<meta name="renderer" content="webkit">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no,email=no,adress=no">
+<meta http-equiv="Cache-Control" content="no-transform">
+
+
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="google-site-verification" content="_moDmnnBNVLBN1rzNxyGUGdPHE20YgbmrtzLIbxaWFc">
+<meta name="msvalidate.01" content="22596E34341DD1D17D6022C44647E587">
+
+
+
+
+
+<meta name="theme-color" content="#02b875">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="aidodoo blog">
+<meta name="msapplication-tooltip" content="aidodoo blog">
+<meta name='msapplication-navbutton-color' content="#02b875">
+<meta name="msapplication-TileColor" content="#02b875">
+<meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+<link rel="icon" href="https://aidodoo.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://aidodoo.com/icons/icon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://aidodoo.com/icons/icon-32x32.png">
+<link rel="icon" sizes="192x192" href="https://aidodoo.com/icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="https://aidodoo.com/icons/icon-152x152.png">
+<link rel="manifest" href="https://aidodoo.com/manifest.json">
+
+
+<link rel="preload" href="https://aidodoo.com/styles/main.min.css" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css?family=Lobster" as="style">
+<link rel="preload" href="https://aidodoo.com/images/avatar.png" as="image">
+<link rel="preload" href="https://aidodoo.com/images/grey-prism.svg" as="image">
+
+
+<style>
+  body {
+    background: rgb(244, 243, 241) url('/images/grey-prism.svg') repeat fixed;
+  }
+</style>
+<link rel="stylesheet" href="https://aidodoo.com/styles/main.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lobster">
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.2/dist/medium-zoom.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video-js.min.css">
+
+
+
+  
+  
+<!--[if lte IE 8]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/videojs-ie8@1.1.2/dist/videojs-ie8.min.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/eligrey-classlist-js-polyfill@1.2.20180112/classList.min.js"></script>
+<![endif]-->
+
+
+</head>
+  <body>
+    
+    <div class="suspension">
+      <a role="button" aria-label="Go to top" title="Go to top" class="to-top is-hide"><span class="icon icon-up" aria-hidden="true"></span></a>
+      
+        
+        <a role="button" aria-label="Go to comments" title="Go to comments" class="to-comment" href="#disqus_thread"><span class="icon icon-comment" aria-hidden="true"></span></a>
+        
+      
+    </div>
+    
+    
+  <header class="site-header">
+  <img class="avatar" src="https://aidodoo.com/images/avatar.png" alt="Avatar">
+  
+  <h2 class="title">aidodoo blog</h2>
+  
+  <p class="subtitle">~Practice makes perfect~</p>
+  <button class="menu-toggle" type="button" aria-label="Main Menu" aria-expanded="false" tab-index="0">
+    <span class="icon icon-menu" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-menu collapsed">
+    <h2 class="offscreen">Main Menu</h2>
+    <ul class="menu-list">
+      
+      
+      
+      
+        <li class="menu-item
+          
+          
+           is-active">
+          <a href="https://aidodoo.com/">Home</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/java">java</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/kafka">kafka</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/spark">spark</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/flink">flink</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/hadoop">hadoop</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/pinpoint">pinpoint</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/druid">druid</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/tags/others">others</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/links/">Links</a>
+        </li>
+      
+        <li class="menu-item
+          
+          
+          ">
+          <a href="https://aidodoo.com/about/">About</a>
+        </li>
+      
+    </ul>
+  </nav>
+   <nav class="social-menu collapsed">
+    <h2 class="offscreen">Social Networks</h2>
+    <ul class="social-list"><li class="social-item">
+          <a href="mailto:aidodoo2018@163.com" title="Email" aria-label="Email">
+            <span class="icon icon-email" aria-hidden="true"></span>
+          </a>
+        </li><li class="social-item">
+          <a href="//github.com/aidodoo" title="GitHub" aria-label="GitHub">
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </li></ul>
+  </nav>
+ 
+ </header>
+
+  <section class="main post-detail">
+    <header class="post-header">
+      <h1 class="post-title">spark集群的搭建</h1>
+      <p class="post-meta">@aidodoo · Jun 6, 2019 · 6 min read</p>
+    </header>
+    <article class="post-content">
+
+<p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：</p>
+
+<ul>
+<li><a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka集群的搭建/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop集群的搭建/">hadoop集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase集群的搭建/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark集群的搭建/">spark集群的搭建</a></li>
+</ul>
+
+<p>本文主要讲解分布式spark集群standalone模式的安装。</p>
+
+<h1 id="前置条件">前置条件</h1>
+
+<h2 id="java安装">java安装</h2>
+
+<p>参考<a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></p>
+
+<h2 id="scala安装">scala安装</h2>
+
+<p>参考<a href="https://aidodoo.com/post/others/基础环境安装/">基础环境安装</a></p>
+
+<h2 id="zookeeper安装">zookeeper安装</h2>
+
+<p>参考<a href="https://aidodoo.com/post/others/zookeeper集群的搭建/">zookeeper集群的搭建</a></p>
+
+<h1 id="spark安装">spark安装</h1>
+
+<h2 id="压缩解压">压缩解压</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">cd ~
+tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz
+mv spark-2.4.3-bin-hadoop2.7 spark</code></pre></div>
+<h2 id="环境变量">环境变量</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># .bash_profile</span>
+<span style="color:#75715e"># Get the aliases and functions</span>
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f ~/.bashrc <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+        . ~/.bashrc
+<span style="color:#66d9ef">fi</span>
+<span style="color:#75715e"># User specific environment and startup programs</span>
+export JAVA_HOME<span style="color:#f92672">=</span>/home/oracle/jdk
+export SCALA_HOME<span style="color:#f92672">=</span>/home/oracle/scala
+export KAFKA_HOME<span style="color:#f92672">=</span>/home/oracle/kafka
+export SPARK_HOME<span style="color:#f92672">=</span>/home/oracle/spark
+export HADOOP_HOME<span style="color:#f92672">=</span>/home/oracle/hadoop
+export HADOOP_PID_DIR<span style="color:#f92672">=</span>/home/oracle/hadoop/pids
+export HADOOP_COMMON_LIB_NATIVE_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/lib/native 
+export HADOOP_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$HADOOP_OPTS<span style="color:#e6db74">-Djava.library.path=</span>$HADOOP_HOME<span style="color:#e6db74">/lib/native&#34;</span> 
+export HADOOP_PREFIX<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_MAPRED_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_COMMON_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_HDFS_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export YARN_HOME<span style="color:#f92672">=</span>$HADOOP_HOME 
+export HADOOP_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export HDFS_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export YARN_CONF_DIR<span style="color:#f92672">=</span>$HADOOP_HOME/etc/hadoop 
+export JAVA_LIBRARY_PATH<span style="color:#f92672">=</span>$HADOOP_HOME/lib/native 
+export FLINK_HOME<span style="color:#f92672">=</span>/home/oracle/flink
+export PATH<span style="color:#f92672">=</span>$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH
+export PATH JAVA_HOME SCALA_HOME  KAFKA_HOME SPARK_HOME  HADOOP_HOME  FLINK_HOME</code></pre></div>
+<h2 id="配置更改">配置更改</h2>
+
+<p>spark集群主要涉及到如下配置文件的变更</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">spark-default.conf
+spark-env.sh
+slaves</code></pre></div>
+<h3 id="spark-default-conf">spark-default.conf</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">spark.master            spark://bigdata1:7077
+spark.executor.memory   256M
+spark.eventLog.enabled  true
+spark.serializer        org.apache.spark.serializer.KryoSerializer
+spark.cores.max                 <span style="color:#ae81ff">10</span>
+spark.scheduler.mode    FIFO
+spark.shuffle.compress  true
+spark.eventLog.enabled  true
+spark.eventLog.dir              /home/oracle/bigdata/spark/sparkeventlog
+spark.kryoserializer.buffer 128M
+spark.rpc.numRetries    <span style="color:#ae81ff">5</span>
+spark.port.maxRetries   <span style="color:#ae81ff">16</span>
+spark.rpc.askTimeout    120s
+spark.network.timeout   120s
+spark.rpc.lookupTimeout  120s
+spark.executor.extraJavaOptions -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent<span style="color:#f92672">=</span><span style="color:#ae81ff">40</span> -XX:G1ReservePercent<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span> -XX:G1HeapRegionSize<span style="color:#f92672">=</span>8M -XX:MaxPermSize<span style="color:#f92672">=</span>128M -XX:+PrintReferenceGC -XX:+PrintAdaptiveSizePolicy -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps</code></pre></div>
+<h3 id="spark-env-sh">spark-env.sh</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">export SPARK_MASTER_HOST<span style="color:#f92672">=</span>bigdata1
+export SPARK_MASTER_PORT<span style="color:#f92672">=</span><span style="color:#ae81ff">7077</span>
+export SPARK_MASTER_WEBUI_PORT<span style="color:#f92672">=</span><span style="color:#ae81ff">8080</span>
+export SPARK_LOCAL_DIRS<span style="color:#f92672">=</span>/home/oracle/bigdata/spark/sparkdata
+export SPARK_PID_DIR<span style="color:#f92672">=</span>/home/oracle/bigdata/spark/sparkpids
+export SPARK_WORKER_CORES<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+export SPARK_WORKER_MEMORY<span style="color:#f92672">=</span>256M
+export SPARK_WORKER_WEBUI_PORT<span style="color:#f92672">=</span><span style="color:#ae81ff">8081</span>
+export SPARK_WORKER_DIR<span style="color:#f92672">=</span>/home/oracle/bigdata/spark/sparkwork
+export SPARK_WORKER_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=300&#34;</span>
+export SPARK_DAEMON_JAVA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=bigdata1,bigdata2,bigdata3 -Dspark.deploy.zookeeper.dir=/spark&#34;</span></code></pre></div>
+<p>所有的配置项如下表：</p>
+
+<table>
+<tr>
+    <td width="20%">Environment Variable</td>
+    <td width="80%">Meaning</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_HOST</td>  
+    <td>Bind the master to a specific hostname or IP address, for example a public one.</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_PORT</td>  
+    <td>Start the master on a different port (default: 7077).</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_WEBUI_PORT</td>    
+    <td>Port for the master web UI (default: 8080).</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_OPTS</td>  
+    <td>Configuration properties that apply only to the master in the form "-Dx=y" (default: none). See below for a list of possible options.</td>
+</tr>
+<tr>
+    <td>SPARK_LOCAL_DIRS</td>   
+    <td>Directory to use for "scratch" space in Spark, including map output files and RDDs that get stored on disk. This should be on a fast, local disk in your system. It can also be a comma-separated list of multiple directories on different disks.</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_CORES</td> 
+    <td>Total number of cores to allow Spark applications to use on the machine (default: all available cores).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_MEMORY</td>    
+    <td>Total amount of memory to allow Spark applications to use on the machine, e.g. 1000m, 2g (default: total memory minus 1 GB); note that each application's individual memory is configured using its spark.executor.memory property.</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_PORT</td>  
+    <td>Start the Spark worker on a specific port (default: random).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_WEBUI_PORT</td>    
+    <td>Port for the worker web UI (default: 8081).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_DIR</td>   
+    <td>Directory to run applications in, which will include both logs and scratch space (default: SPARK_HOME/work).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_OPTS</td>  
+    <td>Configuration properties that apply only to the worker in the form "-Dx=y" (default: none). See below for a list of possible options.</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_MEMORY </td> 
+    <td>Memory to allocate to the Spark master and worker daemons themselves (default: 1g).</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_JAVA_OPTS</td> 
+    <td>JVM options for the Spark master and worker daemons themselves in the form "-Dx=y" (default: none).</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_CLASSPATH</td> 
+    <td>Classpath for the Spark master and worker daemons themselves (default: none).</td>
+</tr>
+<tr>
+    <td>SPARK_PUBLIC_DNS</td>   
+    <td>The public DNS name of the Spark master and workers (default: none).</td>
+</tr>
+</table>
+
+<p>其中SPARK_MASTER_OPTS 可以设置很多属性，罗列如下：</p>
+
+<table>
+<tr>
+    <td width="15%">Property Name   </td>   
+    <td width="15%">Default</td>    
+    <td width="70%">Meaning</td>
+</tr>
+<tr>
+    <td>spark.deploy.retainedApplications</td>  
+    <td>200</td>    
+    <td>The maximum number of completed applications to display. Older applications will be dropped from the UI to maintain this limit.</td>
+</tr>
+<tr>
+    <td>spark.deploy.retainedDrivers</td>   
+    <td>200</td>    
+    <td>The maximum number of completed drivers to display. Older drivers will be dropped from the UI to maintain this limit.</td>
+</tr>
+<tr>
+    <td>spark.deploy.spreadOut</td> 
+    <td>true</td>   
+    <td>Whether the standalone cluster manager should spread applications out across nodes or try to consolidate them onto as few nodes as possible. Spreading out is usually better for data locality in HDFS, but consolidating is more efficient for compute-intensive workloads. </td>
+</tr>
+<tr>
+    <td>spark.deploy.defaultCores</td>  
+    <td>(infinite)</td> 
+    <td>Default number of cores to give to applications in Spark's standalone mode if they don't set spark.cores.max. If not set, applications always get all available cores unless they configure spark.cores.max themselves. Set this lower on a shared cluster to prevent users from grabbing the whole cluster by default. </td>
+</tr>
+<tr>
+    <td>spark.deploy.maxExecutorRetries</td>    
+    <td>10</td> 
+    <td>Limit on the maximum number of back-to-back executor failures that can occur before the standalone cluster manager removes a faulty application. An application will never be removed if it has any running executors. If an application experiences more than spark.deploy.maxExecutorRetries failures in a row, no executors successfully start running in between those failures, and the application has no running executors then the standalone cluster manager will remove the application and mark it as failed. To disable this automatic removal, set spark.deploy.maxExecutorRetries to -1. </td>
+</tr>
+<tr>
+    <td>spark.worker.timeout</td>   
+    <td>60</td> 
+    <td>Number of seconds after which the standalone deploy master considers a worker lost if it receives no heartbeats.</td>
+</tr>
+</table>
+同时SPARK_WORKER_OPTS 也有相应的属性可以设置：
+<table>
+<tr>
+    <td width="15%">Property Name   </td>   
+    <td width="15%">Default</td>    
+    <td width="70%">Meaning</td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.enabled</td>
+    <td>false</td>
+    <td>Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up.<td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.interval</td>
+    <td>1800 (30 minutes)</td>
+    <td>Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine.<td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.appDataTtl</td>
+    <td>604800 (7 days, 7 * 24 * 3600)</td>
+    <td>The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently.<td>
+</tr>
+<tr>
+    <td>spark.storage.cleanupFilesAfterExecutorExit</td>
+    <td>true</td>
+    <td>Enable cleanup non-shuffle files(such as temp. shuffle blocks, cached RDD/broadcast blocks, spill files, etc) of worker directories following executor exits. Note that this doesn't overlap with `spark.worker.cleanup.enabled`, as this enables cleanup of non-shuffle files in local directories of a dead executor, while `spark.worker.cleanup.enabled` enables cleanup of all files/subdirectories of a stopped and timeout application. This only affects Standalone mode, support of other cluster manangers can be added in the future.<td>
+</tr>
+<tr>
+    <td>spark.worker.ui.compressedLogFileLengthCacheSize</td>
+    <td>100</td>
+    <td>For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.<td>
+</tr>
+</table>
+
+<h3 id="slaves">slaves</h3>
+
+<p>列出所有worker节点的主机名</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">bigdata2
+bigdata3
+bigdata4
+bigdata5</code></pre></div>
+<h2 id="启停命令">启停命令</h2>
+
+<ul>
+<li>启动集群</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/wls/oracle/spark/sbin/start_all.sh</code></pre></div>
+<ul>
+<li>停止集群</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/wls/oracle/spark/sbin/stop_all.sh</code></pre></div>
+<h2 id="验证">验证</h2>
+
+<p>运行</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">/home/oracle/spark/bin/spark-shell</code></pre></div>
+<p>正常情况下，输出如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">[</span>oracle@bigdata1 bin<span style="color:#f92672">]</span>$ ./spark-shell 
+<span style="color:#ae81ff">2019</span>-06-11 <span style="color:#ae81ff">14</span>:43:30,907 WARN util.NativeCodeLoader: Unable to load native-hadoop library <span style="color:#66d9ef">for</span> your platform... using builtin-java classes where applicable
+Setting default log level to <span style="color:#e6db74">&#34;WARN&#34;</span>.
+To adjust logging level use sc.setLogLevel<span style="color:#f92672">(</span>newLevel<span style="color:#f92672">)</span>. For SparkR, use setLogLevel<span style="color:#f92672">(</span>newLevel<span style="color:#f92672">)</span>.
+Spark context Web UI available at http://bigdata1:4040
+Spark context available as <span style="color:#e6db74">&#39;sc&#39;</span> <span style="color:#f92672">(</span>master <span style="color:#f92672">=</span> spark://bigdata1:7077, app id <span style="color:#f92672">=</span> app-20190611144344-0001<span style="color:#f92672">)</span>.
+Spark session available as <span style="color:#e6db74">&#39;spark&#39;</span>.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _<span style="color:#ae81ff">\ \/</span> _ <span style="color:#ae81ff">\/</span> _ <span style="color:#e6db74">`</span>/ __/  <span style="color:#960050;background-color:#1e0010">&#39;</span>_/
+   /___/ .__/<span style="color:#ae81ff">\_</span>,_/_/ /_/<span style="color:#ae81ff">\_\ </span>  version <span style="color:#ae81ff">2</span>.4.3
+      /_/
+         
+Using Scala version <span style="color:#ae81ff">2</span>.11.12 <span style="color:#f92672">(</span>Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> Server VM, Java <span style="color:#ae81ff">1</span>.8.0_181<span style="color:#f92672">)</span>
+Type in expressions to have them evaluated.
+Type :help <span style="color:#66d9ef">for</span> more information.
+
+scala&gt; val a<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
+a: Int <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+
+scala&gt; val b<span style="color:#f92672">=</span><span style="color:#ae81ff">20</span>
+b: Int <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>
+
+scala&gt; val c<span style="color:#f92672">=</span>a+b
+c: Int <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>
+
+scala&gt; </code></pre></div></article>
+    <footer class="post-footer">
+      
+      <ul class="post-tags">
+        
+          <li><a href="https://aidodoo.com/tags/others"><span class="tag">Others</span></a></li>
+        
+          <li><a href="https://aidodoo.com/tags/spark"><span class="tag">Spark</span></a></li>
+        
+      </ul>
+      
+      <p class="post-copyright">
+        © Original, if necessary, please note.
+      </p>
+    </footer>
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "disqus_shortname" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      
+    
+  </section>
+  
+<footer class="site-footer">
+  <p>© 2017-2019 aidodoo blog</p>
+  <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> with theme <a href="https://github.com/laozhu/hugo-nuo" target="_blank" rel="noopener">Nuo</a>.</p>
+  
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/smooth-scroll@15.0.0/dist/smooth-scroll.min.js"></script>
+
+
+
+<script async src="https://cdn.jsdelivr.net/npm/video.js@7.3.0/dist/video.min.js"></script>
+
+
+
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      displayMath: [['$$','$$'], ['\\[','\\]']],
+      processEscapes: true,
+      processEnvironments: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+      TeX: { equationNumbers: { autoNumber: "AMS" },
+      extensions: ["AMSmath.js", "AMSsymbols.js"] }
+    },
+  });
+</script>
+<script type="text/x-mathjax-config">
+  // Fix <code> tags after MathJax finishes running. This is a
+  // hack to overcome a shortcoming of Markdown. Discussion at
+  // https://github.com/mojombo/jekyll/issues/199
+  MathJax.Hub.Queue(() => {
+    MathJax.Hub.getAllJax().map(v => v.SourceElement().parentNode.className += ' has-jax');
+  });
+</script>
+
+
+
+<script src="https://aidodoo.com/scripts/index.min.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('\/service-worker.js').then(function() {
+      console.log('[ServiceWorker] Registered');
+    });
+  }
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-XXXXXXXX-X', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+  </body>
+</html>
