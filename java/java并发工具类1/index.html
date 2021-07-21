@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>并发工具类一 | Hexo</title>
+  <meta name="description" content="并发工具类本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。 CountDownLatch基本概念和用途">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发工具类一">
+<meta property="og:url" content="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="并发工具类本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解CountDownLatch、CyclicBarrier等内容。 CountDownLatch基本概念和用途">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CountDownLatch.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CyclicBarrier.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg">
+<meta property="article:published_time" content="2016-04-05T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-java/java并发工具类1" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      并发工具类一
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/" class="article-date">
+	  <time datetime="2016-04-05T00:00:00.000Z" itemprop="datePublished">2016-04-05</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/java/" rel="tag">java</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="并发工具类"><a href="#并发工具类" class="headerlink" title="并发工具类"></a>并发工具类</h1><p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">   </p>
+<p>目录列表如下：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/">java并发-基础概念和Thread</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">java并发-同步和锁</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/">java并发工具类1</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">java并发工具类2</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">java并发工具类3</a></li>
+</ul>
+<p>本文主要以实例讲解<code>CountDownLatch</code>、<code>CyclicBarrier</code>等内容。</p>
+<h2 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch"></a>CountDownLatch</h2><h3 id="基本概念和用途"><a href="#基本概念和用途" class="headerlink" title="基本概念和用途"></a>基本概念和用途</h3><p><code>CountDownLatch</code>主要是在其他线程执行操作前，允许一个或者多个线程一直等待。<br>其源码实现主要采用<code>AQS</code>,具体可参考<a href="%60https%60://%60www%60.%60imooc%60.%60com%60/%60article%60/%6073898%60"><code>Java</code>并发基础-同步和锁</a>。<br>构造方法<code>CountDownLatch</code>(<code>int</code> <code>count</code>)用来初始化计数器，实际就是设置<code>count</code>(最终是设置<code>state</code>值)的初始值。该值设置后，不能重置，所有当线程必须用这种方法反复倒计数时，可改为使用 <code>CyclicBarrier</code>。<br><code>countDown()</code>方法用来减少计数器的值，每次减<code>1</code>。<br><code>getCount()</code>方法用来返回当前计数器的值。<br>流程图简化如下<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CountDownLatch.png"></p>
+<h3 id="运行示例"><a href="#运行示例" class="headerlink" title="运行示例"></a>运行示例</h3><p>在<code>SynchronizedDemo</code>代码中，我们使用<code>Thread</code>的<code>join</code>方法等待一个<code>Spender</code>和<code>Earner</code>线程运行完成后，再去获取账户余额<code>balance</code>的值，这里我们利用<code>CountDownLatch</code>计数器，先阻塞主线程，待一组<code>Spender</code>和一组<code>Earner</code>线程完成后，再让主线程获取账户余额的值，代码如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/7/17.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountDownLatchDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;main thread start&quot;</span>);</span><br><span class="line">        Account account = <span class="keyword">new</span> Account();</span><br><span class="line">		account.setBalance(<span class="number">100000</span>);</span><br><span class="line">        CountDownLatch latch = <span class="keyword">new</span> CountDownLatch(<span class="number">20</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;main latch init=&quot;</span>+latch.getCount());</span><br><span class="line">        ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">10</span>);</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            SpenderWithCountDownLatch spender = <span class="keyword">new</span> SpenderWithCountDownLatch(account, latch);</span><br><span class="line">            executorService.submit(spender);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">            EarnerWithCountDownLatch earner = <span class="keyword">new</span> EarnerWithCountDownLatch(account, latch);</span><br><span class="line">            executorService.submit(earner);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;main thread block&quot;</span>);</span><br><span class="line">        latch.await();</span><br><span class="line">        System.out.println(<span class="string">&quot;main latch=&quot;</span>+latch.getCount());</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;main thread continue to do&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;balance=&quot;</span>+account.getBalance());</span><br><span class="line">        executorService.shutdown();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先初始化<code>CountDownLatch</code>的值为<code>20</code>，然后分布创建一组<code>Spender</code>线程(每组<code>10</code>个)和一组<code>Earner</code>线程(每组<code>10</code>个),并将<code>account</code>和<code>latch</code>传递给这些线程。</p>
+<p><code>SpenderWithCountDownLatch</code>代码如下，运行时主要是<code>30</code>次减少账户余额，每次减少<code>1000</code>。运行完成后调用<code>latch</code>.<code>countDown()</code>，减少计数器的值。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpenderWithCountDownLatch</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Account account;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CountDownLatch latch;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SpenderWithCountDownLatch</span><span class="params">(Account account, CountDownLatch latch)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.account = account;</span><br><span class="line">        <span class="keyword">this</span>.latch = latch;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; i++) &#123;</span><br><span class="line">            account.subtractAmount(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        latch.countDown();</span><br><span class="line">        System.out.println(<span class="string">&quot;Spender run ......&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>EarnerWithCountDownLatch</code>代码如下，运行时主要是<code>30</code>次增加账户余额，每次增加<code>1000</code>。运行完成后调用<code>latch</code>.<code>countDown()</code>，减少计数器的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EarnerWithCountDownLatch</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Account account;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CountDownLatch latch;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EarnerWithCountDownLatch</span><span class="params">(Account account, CountDownLatch latch)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.account = account;</span><br><span class="line">        <span class="keyword">this</span>.latch = latch;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; i++) &#123;</span><br><span class="line">            account.addAmount(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        latch.countDown();</span><br><span class="line">        System.out.println(<span class="string">&quot;Earner run ....&quot;</span> );</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Account</code>代码如下，需要利用同步块或者<code>Lock</code>保证<code>addAmount</code>和<code>subtractAmount</code>方法线程安全</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Account</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> balance;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getBalance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> balance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBalance</span><span class="params">(<span class="keyword">double</span> balance)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.balance = balance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addAmount</span><span class="params">(<span class="keyword">double</span> amount)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (Account.class) &#123;</span><br><span class="line">            balance = balance + amount;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subtractAmount</span><span class="params">(<span class="keyword">double</span> amount)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (Account.class) &#123;</span><br><span class="line">            balance = balance - amount;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个程序输出如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">main thread start</span><br><span class="line">main latch init=<span class="number">20</span></span><br><span class="line">main thread block</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Spender run ......</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Spender run ......</span><br><span class="line">Earner run ....</span><br><span class="line">Earner run ....</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">Spender run ......</span><br><span class="line">main latch=<span class="number">0</span></span><br><span class="line">main thread <span class="keyword">continue</span> to <span class="keyword">do</span></span><br><span class="line">balance=<span class="number">100000.0</span></span><br></pre></td></tr></table></figure>
+
+<p>满足预期结果为<code>100000</code>，同时主线程一直阻塞直到<code>latch</code>的值为<code>0</code>。</p>
+<h2 id="CyclicBarrier"><a href="#CyclicBarrier" class="headerlink" title="CyclicBarrier"></a>CyclicBarrier</h2><h3 id="基本概念和主要方法"><a href="#基本概念和主要方法" class="headerlink" title="基本概念和主要方法"></a>基本概念和主要方法</h3><p><code>CyclicBarrier</code>允许一组线程互相等待，直到所有的线程到到达公共屏障点(<code>common</code> <code>barrier</code> <code>point</code>)。和<code>CountDownLatch</code>不同的是，<code>CyclicBarrier</code>可以在释放等待线程后重置然后重用。   </p>
+<p><strong>构造方法</strong>   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CyclicBarrier</span><span class="params">(<span class="keyword">int</span> parties, Runnable barrierAction)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>其中<code>parties</code>，表示线程数量，即参与者数量<br><code>barrierAction</code>表示启动<code>barrier</code>时执行指定的操作，该操作由最后一个进入<code>barrier</code>的线程执行<br><strong>await()</strong><br>参与者阻塞等待，直到所有的参与者都到达<code>barrier</code><br>流程图简化如下   </p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/CyclicBarrier.png"></p>
+<h3 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h3><p>我们看下面一个示例，其功能是主线程、<code>Spender</code>线程和<code>Earner</code>线程共用一个<code>barrier</code>，其中<code>barrier</code>初始值为<code>3</code>，三个线程都到达<code>barrier</code>后执行<code>BarrierAction</code>定义的动作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.BrokenBarrierException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CyclicBarrier;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/9/5.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CyclicBarrierDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Account account=<span class="keyword">new</span> Account();</span><br><span class="line">        account.setBalance(<span class="number">100000</span>);</span><br><span class="line"></span><br><span class="line">        CyclicBarrier barrier = <span class="keyword">new</span> CyclicBarrier(<span class="number">3</span>, <span class="keyword">new</span> BarrierAction());</span><br><span class="line">        ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">10</span>);</span><br><span class="line">        SpenderWithCyclicBarrier spender = <span class="keyword">new</span> SpenderWithCyclicBarrier(account, barrier);</span><br><span class="line">        executorService.submit(spender);</span><br><span class="line">        EarnerWithCyclicBarrier earner = <span class="keyword">new</span> EarnerWithCyclicBarrier(account, barrier);</span><br><span class="line">        executorService.submit(earner);</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            System.out.println(String.format(<span class="string">&quot;%20s waiting at barrier&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line">            barrier.await();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (InterruptedException e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (BrokenBarrierException e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;balance=&quot;</span>+account.getBalance());</span><br><span class="line">        System.out.println(String.format(<span class="string">&quot;%20s done&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BarrierAction</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(String.format(<span class="string">&quot;%20s executed&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SpenderWithCyclicBarrier</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Account account;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CyclicBarrier barrier;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SpenderWithCyclicBarrier</span><span class="params">(Account account, CyclicBarrier barrier)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.account = account;</span><br><span class="line">        <span class="keyword">this</span>.barrier = barrier;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; i++) &#123;</span><br><span class="line">            account.subtractAmount(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            System.out.println(String.format(<span class="string">&quot;%20s waiting at barrier&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line">            barrier.await();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (InterruptedException e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (BrokenBarrierException e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(String.format(<span class="string">&quot;%20s done&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EarnerWithCyclicBarrier</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Account account;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CyclicBarrier barrier;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EarnerWithCyclicBarrier</span><span class="params">(Account account, CyclicBarrier barrier)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.account = account;</span><br><span class="line">        <span class="keyword">this</span>.barrier = barrier;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">30</span>; i++) &#123;</span><br><span class="line">            account.addAmount(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            System.out.println(String.format(<span class="string">&quot;%20s waiting at barrier&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line">            barrier.await();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (InterruptedException e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;<span class="keyword">catch</span> (BrokenBarrierException e)&#123;</span><br><span class="line">         e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(String.format(<span class="string">&quot;%20s done&quot;</span>,Thread.currentThread().getName()));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Account</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">double</span> balance;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">getBalance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> balance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBalance</span><span class="params">(<span class="keyword">double</span> balance)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.balance = balance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addAmount</span><span class="params">(<span class="keyword">double</span> amount)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (Account.class) &#123;</span><br><span class="line">            balance = balance + amount;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subtractAmount</span><span class="params">(<span class="keyword">double</span> amount)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (Account.class) &#123;</span><br><span class="line">            balance = balance - amount;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序输出如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">pool-<span class="number">1</span>-thread-<span class="number">2</span> waiting at barrier</span><br><span class="line">           main waiting at barrier</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> waiting at barrier</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> executed</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> done</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">2</span> done</span><br><span class="line">balance=<span class="number">100000.0</span></span><br><span class="line">           main done</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到<code>pool</code>-<code>1</code>-<code>thread</code>-<code>2</code>和<code>main</code>线程执行完对账户余额的操作后，先到达<code>barrier</code>阻塞等待，<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>线程最后到达，然后由<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>线程执行预定义的动作，即输出<code>executed</code>后，这三个线程再继续执行其他信息的输出。<br>这里要注意到时，各位输出的内容可能是上面的不太一致，不过第三行和第四行的线程名要么是<code>main</code>、要么是<code>pool</code>-<code>1</code>-<code>thread</code>-<code>1</code>，或者是<code>pool</code>-<code>1</code>-<code>thread</code>-<code>2</code>。不会存在两个线程名不一样的情况。这里说明了到达<code>barrier</code>后预定义的动作是由最后到达的线程去执行的。</p>
+<p>本文参考</p>
+<p><a target="_blank" rel="noopener" href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+<p><a target="_blank" rel="noopener" href="http://ifeve.com/concurrency-modle-seven-week-1/">concurrency-modle-seven-week</a></p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">java-concurrency</a></p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-util-concurrent/lock.html">java-util-concurrent</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/">java se 8 apidoc</a></p>
+<hr>
+<p>关于作者<br>爱编程、爱钻研、爱分享、爱生活<br>关注分布式、高并发、数据挖掘<br>如需捐赠，请扫码<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg" width=256 height=256 /></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/" title="并发工具类一" target="_blank" rel="external">http://aidodoo.com/java/java并发工具类1/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/" title="并发工具类二"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/" title="同步和锁"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

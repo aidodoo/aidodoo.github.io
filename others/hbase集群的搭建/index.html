@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>hbase集群的搭建 | Hexo</title>
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：     基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hbase的分布式搭建过程。 版本要求 java版本：1.8.0_181   zookeeper版本:zookeeper-3.4.14 hadoop版本:hadoop-3.2.0">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hbase集群的搭建">
+<meta property="og:url" content="http://aidodoo.com/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：     基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解hbase的分布式搭建过程。 版本要求 java版本：1.8.0_181   zookeeper版本:zookeeper-3.4.14 hadoop版本:hadoop-3.2.0">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-06-05T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="others">
+<meta property="article:tag" content="hbase">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-others/hbase集群的搭建" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      hbase集群的搭建
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="article-date">
+	  <time datetime="2019-06-05T00:00:00.000Z" itemprop="datePublished">2019-06-05</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/hbase/" rel="tag">hbase</a>, <a class="article-tag-link-link" href="/tags/others/" rel="tag">others</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">hadoop集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">spark集群的搭建</a></li>
+</ul>
+<p>本文主要讲解<code>hbase</code>的分布式搭建过程。</p>
+<h1 id="版本要求"><a href="#版本要求" class="headerlink" title="版本要求"></a>版本要求</h1><ul>
+<li>java版本：<code>1.8.0_181</code>  </li>
+<li>zookeeper版本:<code>zookeeper-3.4.14</code></li>
+<li>hadoop版本:<code>hadoop-3.2.0</code>  </li>
+<li>hbase版本：<code>hbase-2.1.4</code></li>
+</ul>
+<h1 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h1><h2 id="免密登录"><a href="#免密登录" class="headerlink" title="免密登录"></a>免密登录</h2><p>见链接<a target="_blank" rel="noopener" href="http://www.cnblogs.com/molyeo/p/7007917.html">免密登录</a></p>
+<h2 id="java安装"><a href="#java安装" class="headerlink" title="java安装"></a>java安装</h2><p>见链接<a target="_blank" rel="noopener" href="http://www.cnblogs.com/molyeo/p/7007917.html">java安装</a></p>
+<h2 id="zookeeper安装"><a href="#zookeeper安装" class="headerlink" title="zookeeper安装"></a>zookeeper安装</h2><p>见链接<a target="_blank" rel="noopener" href="http://www.cnblogs.com/molyeo/p/7048867.html">zookeeper安装</a></p>
+<h2 id="hadoop安装"><a href="#hadoop安装" class="headerlink" title="hadoop安装"></a>hadoop安装</h2><p>见链接<a target="_blank" rel="noopener" href="https://www.cnblogs.com/molyeo/p/7484627.html">hadoop安装</a></p>
+<h2 id="服务器资源和分配"><a href="#服务器资源和分配" class="headerlink" title="服务器资源和分配"></a>服务器资源和分配</h2><p>本文服务器列表如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">192.168.220.200  bigdata1</span><br><span class="line">192.168.220.201  bigdata2</span><br><span class="line">192.168.220.202  bigdata3</span><br><span class="line">192.168.220.203  bigdata4</span><br><span class="line">192.168.220.204  bigdata5</span><br></pre></td></tr></table></figure>
+<p>其中选用<code>bigdata1</code>和<code>bigdata2</code>作为<code>master</code>,<code>bigdata3、bigdat4、bigdata5</code>作为<code>regionserver</code>，安装完成后各节点进程名如下：</p>
+<table>
+<tr>
+    <td>主机名</td>
+    <td>ip地址</td>
+    <td>HMaster</td>
+    <td>HRegionServer</td>
+</tr>
+<tr>
+    <td>bigdata1</td>
+    <td>192.168.220.200</td>
+    <td>Y</td>
+    <td>N</td>
+</tr>
+<tr>
+    <td>bigdata2</td>
+    <td>192.168.220.201</td>
+    <td>N</td>
+    <td>Y</td>
+</tr>
+<tr>
+    <td>bigdata3</td>
+    <td>192.168.220.202</td>
+    <td>N</td>
+    <td>Y</td>
+</tr>
+<tr>
+    <td>bigdata4</td>
+    <td>192.168.220.203</td>
+    <td>N</td>
+    <td>Y</td>
+</tr>
+<tr>
+    <td>bigdata5</td>
+    <td>192.168.220.204</td>
+    <td>N</td>
+    <td>Y</td>
+</tr>
+</table>
+
+<h1 id="解压安装"><a href="#解压安装" class="headerlink" title="解压安装"></a>解压安装</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf hbase-2.1.4-bin.tar.gz</span><br><span class="line">mv hbase-2.1.4-bin hbase</span><br></pre></td></tr></table></figure>
+<h1 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/home/oracle/jdk</span><br><span class="line">export SCALA_HOME=/home/oracle/scala</span><br><span class="line">export KAFKA_HOME=/home/oracle/kafka</span><br><span class="line">export SPARK_HOME=/home/oracle/spark</span><br><span class="line">export HADOOP_HOME=/home/oracle/hadoop</span><br><span class="line">export HADOOP_PID_DIR=/home/oracle/hadoop/pids</span><br><span class="line">export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native </span><br><span class="line">export HADOOP_OPTS=&quot;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&quot; </span><br><span class="line">export HADOOP_PREFIX=$HADOOP_HOME </span><br><span class="line">export HADOOP_MAPRED_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_COMMON_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_HDFS_HOME=$HADOOP_HOME </span><br><span class="line">export YARN_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native </span><br><span class="line">export FLINK_HOME=/home/oracle/flink</span><br><span class="line">export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH</span><br><span class="line">export PATH JAVA_HOME SCALA_HOME  KAFKA_HOME SPARK_HOME  HADOOP_HOME  FLINK_HOME</span><br></pre></td></tr></table></figure>
+
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><p>hbase需要修改的配置主要包含如下文件  </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hbase-env.sh</span><br><span class="line">hbase-site.xml</span><br><span class="line">regionservers</span><br></pre></td></tr></table></figure>
+<h2 id="hbase-env-sh"><a href="#hbase-env-sh" class="headerlink" title="hbase-env.sh"></a>hbase-env.sh</h2><p>hbase-env.sh文件增加JAVA_HOME的配置即可  </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/home/oracle/jdk</span><br><span class="line">export HBASE_MANAGES_ZK=false</span><br><span class="line">export HBASE_LOG_DIR=$&#123;HBASE_HOME&#125;/logs</span><br><span class="line">export HBASE_PID_DIR=/home/oracle/hbase/pids</span><br></pre></td></tr></table></figure>
+<p>设置完成后,创建对应目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p /home/oracle/hbase/pids</span><br></pre></td></tr></table></figure>
+
+<h2 id="hbase-site-xml"><a href="#hbase-site-xml" class="headerlink" title="hbase-site.xml"></a>hbase-site.xml</h2><p><code>hbase.master</code>:指定<code>master</code>节点<br><code>hbase.rootdir</code>:指定<code>hbase</code>文件存储路径<br><code>hbase.zookeeper.quorum</code>:指定<code>zookeeper</code>地址<br><code>hbase.zookeeper.property.dataDir</code>:指定在<code>zookeeper</code>存储的目录<br>完整配置如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot;?&gt;</span><br><span class="line">&lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;</span><br><span class="line">&lt;configuration&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.master&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;192.168.220.200:60000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.master.maxclockskew&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;180000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt; </span><br><span class="line">	&lt;property&gt;  </span><br><span class="line">		&lt;name&gt;hbase.cluster.distributed&lt;/name&gt;  </span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;      </span><br><span class="line">	&lt;/property&gt;</span><br><span class="line"></span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.rootdir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;hdfs://cluster/hbase&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;     </span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.cluster.distributed&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;true&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt; </span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.zookeeper.quorum&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;192.168.220.200,192.168.220.201,192.168.220.202&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;     </span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;/hbase&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt; </span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;dfs.replication&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;1&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;zookeeper.session.timeout&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;60000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">	  &lt;name&gt;hbase.regionserver.lease.period&lt;/name&gt;</span><br><span class="line">	  &lt;value&gt;900000&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">	&lt;property&gt;</span><br><span class="line">	  &lt;name&gt;hbase.rpc.timeout&lt;/name&gt;</span><br><span class="line">	  &lt;value&gt;900000&lt;/value&gt; </span><br><span class="line">	&lt;/property&gt; </span><br><span class="line">	&lt;property&gt;</span><br><span class="line">		&lt;name&gt;hbase.unsafe.stream.capability.enforce&lt;/name&gt;</span><br><span class="line">		&lt;value&gt;false&lt;/value&gt;</span><br><span class="line">	&lt;/property&gt;</span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="regionservers"><a href="#regionservers" class="headerlink" title="regionservers"></a>regionservers</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">bigdata2</span><br><span class="line">bigdata3</span><br><span class="line">bigdata4</span><br><span class="line">bigdata5</span><br></pre></td></tr></table></figure>
+
+<h2 id="复制core-site-xml-hbase-site-xml"><a href="#复制core-site-xml-hbase-site-xml" class="headerlink" title="复制core-site.xml/hbase-site.xml"></a>复制core-site.xml/hbase-site.xml</h2><p>将hadoop的配置core-site.xml和hbase-site.xml复制到/home/oracle/hbase/conf目录</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp /home/oracle/hadoop/etc/hadoop/core-site.xml /home/oracle/hbase/conf/</span><br><span class="line">cp /home/oracle/hadoop/etc/hadoop/hbase-site.xml /home/oracle/hbase/conf/</span><br></pre></td></tr></table></figure>
+<p>cp </p>
+<h2 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h2><p>配置更改完成后,同步到其他节点:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">scp -r /home/oracle/hbase bigdata2:/home/oracle</span><br><span class="line">scp -r /home/oracle/hbase bigdata3:/home/oracle</span><br><span class="line">scp -r /home/oracle/hbase bigdata4:/home/oracle</span><br><span class="line">scp -r /home/oracle/hbase bigdata5:/home/oracle</span><br></pre></td></tr></table></figure>
+
+<h1 id="启动和停止"><a href="#启动和停止" class="headerlink" title="启动和停止"></a>启动和停止</h1><p>配置完成后,启动hbase</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/oracle/hbase/bin/start-hbase.sh</span><br></pre></td></tr></table></figure>
+<p>停止hbase脚本如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/oracle/hbase/bin/stop-hbase.sh</span><br></pre></td></tr></table></figure>
+
+<h2 id="启动异常"><a href="#启动异常" class="headerlink" title="启动异常"></a>启动异常</h2><h3 id="Caused-by-java-lang-NoClassDefFoundError-org-apache-htrace-SamplerBuilder"><a href="#Caused-by-java-lang-NoClassDefFoundError-org-apache-htrace-SamplerBuilder" class="headerlink" title="Caused by: java.lang.NoClassDefFoundError: org/apache/htrace/SamplerBuilder"></a>Caused by: java.lang.NoClassDefFoundError: org/apache/htrace/SamplerBuilder</h3><p>2.1.4版本hbase启动过程中，会有如下<code>Caused by: java.lang.NoClassDefFoundError: org/apache/htrace/SamplerBuilder </code>异常,主要是/home/oracle/hbase/lib/client-facing-thirdparty/htrace-core4-4.2.0-incubating.jar包和不兼容htrace-core-3.1.0-incubating.jar,缺失一个方法,手工下载htrace-core-3.1.0-incubating.jar包,并上传到bigdata1目录/home/oracle/hbase/lib/,并同步到其他节点，重新启动即可。<br>异常日志如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: Failed construction of Master: class org.apache.hadoop.hbase.master.HMaster. </span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.constructMaster(HMaster.java:3100)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMasterCommandLine.startMaster(HMasterCommandLine.java:236)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMasterCommandLine.run(HMasterCommandLine.java:140)</span><br><span class="line">        at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:70)</span><br><span class="line">        at org.apache.hadoop.hbase.util.ServerCommandLine.doMain(ServerCommandLine.java:149)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.main(HMaster.java:3111)</span><br><span class="line">Caused by: java.lang.NoClassDefFoundError: org/apache/htrace/SamplerBuilder</span><br><span class="line">        at org.apache.hadoop.hdfs.DFSClient.&lt;init&gt;(DFSClient.java:644)</span><br><span class="line">        at org.apache.hadoop.hdfs.DFSClient.&lt;init&gt;(DFSClient.java:628)</span><br><span class="line">        at org.apache.hadoop.hdfs.DistributedFileSystem.initialize(DistributedFileSystem.java:149)</span><br><span class="line">        at org.apache.hadoop.fs.FileSystem.createFileSystem(FileSystem.java:2667)</span><br><span class="line">        at org.apache.hadoop.fs.FileSystem.access$200(FileSystem.java:93)</span><br><span class="line">        at org.apache.hadoop.fs.FileSystem$Cache.getInternal(FileSystem.java:2701)</span><br><span class="line">        at org.apache.hadoop.fs.FileSystem$Cache.get(FileSystem.java:2683)</span><br><span class="line">        at org.apache.hadoop.fs.FileSystem.get(FileSystem.java:372)</span><br><span class="line">        at org.apache.hadoop.fs.Path.getFileSystem(Path.java:295)</span><br><span class="line">        at org.apache.hadoop.hbase.util.CommonFSUtils.getRootDir(CommonFSUtils.java:362)</span><br><span class="line">        at org.apache.hadoop.hbase.util.CommonFSUtils.isValidWALRootDir(CommonFSUtils.java:411)</span><br><span class="line">        at org.apache.hadoop.hbase.util.CommonFSUtils.getWALRootDir(CommonFSUtils.java:387)</span><br><span class="line">        at org.apache.hadoop.hbase.regionserver.HRegionServer.initializeFileSystem(HRegionServer.java:704)</span><br><span class="line">        at org.apache.hadoop.hbase.regionserver.HRegionServer.&lt;init&gt;(HRegionServer.java:613)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.&lt;init&gt;(HMaster.java:489)</span><br><span class="line">        at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)</span><br><span class="line">        at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)</span><br><span class="line">        at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)</span><br><span class="line">        at java.lang.reflect.Constructor.newInstance(Constructor.java:423)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.constructMaster(HMaster.java:3093)</span><br><span class="line">        ... 5 more</span><br><span class="line">Caused by: java.lang.ClassNotFoundException: org.apache.htrace.SamplerBuilder</span><br><span class="line">        at java.net.URLClassLoader.findClass(URLClassLoader.java:381)</span><br><span class="line">        at java.lang.ClassLoader.loadClass(ClassLoader.java:424)</span><br><span class="line">        at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:349)</span><br><span class="line">        at java.lang.ClassLoader.loadClass(ClassLoader.java:357)</span><br><span class="line">        ... 25 more</span><br></pre></td></tr></table></figure>
+<h3 id="java-lang-IllegalStateException-The-procedure-WAL-relies-on-the-ability-to-hsync-for-proper-operation-during-component-failures"><a href="#java-lang-IllegalStateException-The-procedure-WAL-relies-on-the-ability-to-hsync-for-proper-operation-during-component-failures" class="headerlink" title="java.lang.IllegalStateException: The procedure WAL relies on the ability to hsync for proper operation during component failures"></a>java.lang.IllegalStateException: The procedure WAL relies on the ability to hsync for proper operation during component failures</h3><p>hbase-site.xml配置项增加如下配置：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">	&lt;name&gt;hbase.unsafe.stream.capability.enforce&lt;/name&gt;</span><br><span class="line">	&lt;value&gt;false&lt;/value&gt;</span><br><span class="line">&lt;/property&gt;</span><br></pre></td></tr></table></figure>
+
+<p>异常日志如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">java.lang.IllegalStateException: The procedure WAL relies on the ability to hsync for proper operation during component failures, but the underlying filesystem does not support doing so. Please check the config value of &#x27;hbase.procedure.store.wal.use.hsync&#x27; to set the desired level of robustness and ensure the config value of &#x27;hbase.wal.dir&#x27; points to a FileSystem mount that can provide it.</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.store.wal.WALProcedureStore.rollWriter(WALProcedureStore.java:1086)</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.store.wal.WALProcedureStore.recoverLease(WALProcedureStore.java:423)</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.ProcedureExecutor.init(ProcedureExecutor.java:611)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.createProcedureExecutor(HMaster.java:1458)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.finishActiveMasterInitialization(HMaster.java:890)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.startActiveMasterManager(HMaster.java:2272)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.lambda$run$0(HMaster.java:581)</span><br><span class="line">        at java.lang.Thread.run(Thread.java:748)</span><br><span class="line">2019-06-11 16:43:04,686 ERROR [master/bigdata1:16000:becomeActiveMaster] master.HMaster: ***** ABORTING master bigdata1,16000,1560242556596: Unhandled exception. Starting shutdown. *****</span><br><span class="line">java.lang.IllegalStateException: The procedure WAL relies on the ability to hsync for proper operation during component failures, but the underlying filesystem does not support doing so. Please check the config value of &#x27;hbase.procedure.store.wal.use.hsync&#x27; to set the desired level of robustness and ensure the config value of &#x27;hbase.wal.dir&#x27; points to a FileSystem mount that can provide it.</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.store.wal.WALProcedureStore.rollWriter(WALProcedureStore.java:1086)</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.store.wal.WALProcedureStore.recoverLease(WALProcedureStore.java:423)</span><br><span class="line">        at org.apache.hadoop.hbase.procedure2.ProcedureExecutor.init(ProcedureExecutor.java:611)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.createProcedureExecutor(HMaster.java:1458)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.finishActiveMasterInitialization(HMaster.java:890)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.startActiveMasterManager(HMaster.java:2272)</span><br><span class="line">        at org.apache.hadoop.hbase.master.HMaster.lambda$run$0(HMaster.java:581)</span><br><span class="line">        at java.lang.Thread.run(Thread.java:748)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>启动完成后，浏览器输入<a target="_blank" rel="noopener" href="http://bigdata1:16010/%EF%BC%8C%E5%8D%B3%E5%8F%AF%E6%9F%A5%E8%AF%A2hbase">http://bigdata1:16010/，即可查询hbase</a> web页面。</p>
+<p>本文主要讲解分布hbase搭建的过程，后续将会说明hbase使用相关的问题。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="hbase集群的搭建" target="_blank" rel="external">http://aidodoo.com/others/hbase集群的搭建/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="spark集群的搭建"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="hadoop集群的搭建"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

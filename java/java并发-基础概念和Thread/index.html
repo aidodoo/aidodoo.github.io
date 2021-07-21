@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>JAVA并发概念、基础接口以及Thread | Hexo</title>
+  <meta name="description" content="JAVA并发概念、基础接口以及Thread本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。 并发的优">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JAVA并发概念、基础接口以及Thread">
+<meta property="og:url" content="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="JAVA并发概念、基础接口以及Thread本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。 并发的优">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ConcurrencyUtils.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-6.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Runnable.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg">
+<meta property="article:published_time" content="2016-04-02T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ConcurrencyUtils.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-java/java并发-基础概念和Thread" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JAVA并发概念、基础接口以及Thread
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/" class="article-date">
+	  <time datetime="2016-04-02T00:00:00.000Z" itemprop="datePublished">2016-04-02</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/java/" rel="tag">java</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="JAVA并发概念、基础接口以及Thread"><a href="#JAVA并发概念、基础接口以及Thread" class="headerlink" title="JAVA并发概念、基础接口以及Thread"></a>JAVA并发概念、基础接口以及Thread</h1><p>本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ConcurrencyUtils.png">   </p>
+<p>目录列表如下：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/">java并发-基础概念和Thread</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">java并发-同步和锁</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/">java并发工具类1</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">java并发工具类2</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">java并发工具类3</a></li>
+</ul>
+<p>本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。</p>
+<h2 id="并发的优点和缺点"><a href="#并发的优点和缺点" class="headerlink" title="并发的优点和缺点"></a>并发的优点和缺点</h2><p>在讲述怎么利用多线程的情况下，我们先看一下采用多线程并发的优缺点。</p>
+<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><p>提高资源利用率<br>如读取一个目录下的所有文件，如果采用单线程模型，则从磁盘读取文件的时候，大部分<code>CPU</code>用于等待磁盘去读取数据。如果是采用多线程并发执行，则<code>CPU</code>可以在等待<code>IO</code>的时候去做其他的事情，以提高<code>CPU</code>的使用率，减少资源的浪费。</p>
+</li>
+<li><p>程序响应速度好<br>单线程模型下，假设一个<code>http</code>请求需要占用大量的时间来处理，则其他的请求无法发送请求给服务端。而多线程模式下，监听线程把请求传递给工作者线程，然后立刻返回去监听，可以去接收新的请求，而工作者线程则能够处理这个请求并发送一个回复给客户端。明显响应速度比单线程模型要好得多。     </p>
+</li>
+</ul>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><p>程序设计复杂度<br>多线程情况下，需要考虑线程间的通信、共享资源的访问，相对而言要比单线程程序负责一些。</p>
+</li>
+<li><p>上下文切换开销大<br>当<code>CPU</code>从执行一个线程切换到执行另外一个线程的时候，它需要先存储当前线程的本地的数据，程序指针等，然后载入另一个线程的本地数据，程序指针等，最后才开始执行。这种切换称为“上下文切换”。<code>CPU</code>会在一个上下文中执行一个线程，然后切换到另外一个上下文中执行另外一个线程。尤其是当线程数量较多时，这种开销很明显。</p>
+</li>
+<li><p>资源消耗<br>线程在运行的时候需要从计算机里面得到一些资源。除了<code>CPU</code>，线程还需要一些内存来维持它本地的堆栈。它也需要占用操作系统中一些资源来管理线程</p>
+<h2 id="并发模型"><a href="#并发模型" class="headerlink" title="并发模型"></a>并发模型</h2><p>并发系统可以采用多种并发编程模型来实现。并发模型指定了系统中的线程如何通过协作来完成分配给它们的作业。不同的并发模型采用不同的方式拆分作业，同时线程间的协作和交互方式也不相同。</p>
+<h3 id="并行工作者"><a href="#并行工作者" class="headerlink" title="并行工作者"></a>并行工作者</h3><p>在并行工作者模型中，委派者（<code>Delegator</code>）将传入的作业分配给不同的工作者。每个工作者完成整个任务。工作者们并行运作在不同的线程上，甚至可能在不同的CPU上。<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-2.png"><br>假设电商系统中的秒杀活动采用了并行工作者模型，订单-&gt;财务-&gt;仓储-&gt;物流，工作者A拿到订单请求，然后负责支付流程，查询仓储情况，直到发货。<br>在Java应用系统中，并行工作者模型是最常见的并发模型，<code>java.util.concurrent</code>包中的许多并发实用工具都是设计用于这个模型的。</p>
+</li>
+</ul>
+<p><strong>优点</strong><br>易于理解，可以添加更多的工作者来提高系统的并行度<br><strong>缺点</strong>   </p>
+<ul>
+<li>共享状态可能会很复杂<br>在上面的电商系统中，由于共享的工作者经常需要访问一些共享数据，无论是内存中的或者共享的数据库中的。<br>在等待访问共享数据结构时，线程之间的互相等待将会丢失部分并行性。许多并发数据结构是阻塞的，意味着在任何一个时间只有一个或者很少的线程能够访问。这样会导致在这些共享数据结构上出现竞争状态。在执行需要访问共享数据结构部分的代码时，高竞争基本上会导致执行时出现一定程度的串行化。</li>
+<li>无状态的工作者<br>每次都重读需要的数据，将会导致速度变慢，特别是状态保存在外部数据库中的时候。</li>
+<li>任务顺序是不确定的<br>作业执行顺序是不确定的,无法保证哪个作业最先或者最后被执行。如A先下单，B后下单，不根据时间进行业务逻辑的判断，不能有可能B先于A收到货。</li>
+</ul>
+<h3 id="流水线模式"><a href="#流水线模式" class="headerlink" title="流水线模式"></a>流水线模式</h3><p>流水线模式中，每个工作者只负责作业中的部分工作。当完成了自己的这部分工作时工作者会将作业转发给下一个工作者。每个工作者在自己的线程中运行，并且不会和其他工作者共享状态。也称反应器系统，或事件驱动系统。<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-3.png"><br>以秒杀为例，工作者A执行订单的处理，工作者B执行支付，工作者C检查仓储，工作者D负责物流，分工明确，各司其职。   </p>
+<p>在实际应用中，作业有可能不会沿着单一流水线进行。由于大多数系统可以执行多个作业，作业从一个工作者流向另一个工作者取决于作业需要做的工作。在实际中可能会有多个不同的虚拟流水线同时运行。</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrency-models-5.png">  </p>
+<p>作业甚至也有可能被转发到超过一个工作者上并发处理。比如说，作业有可能被同时转发到作业执行器和作业日志器。下图说明了三条流水线是如何通过将作业转发给同一个工作者（中间流水线的最后一个工作者）来完成作业:<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java//concurrency-models-6.png"> </p>
+<h4 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h4><ul>
+<li><p>无需共享的状态<br>工作者之间无需共享状态，意味着实现的时候无需考虑所有因并发访问共享对象而产生的并发性问题</p>
+</li>
+<li><p>较好的硬件整合<br>单线程代码在整合底层硬件的时候往往具有更好的优势。首先，当能确定代码只在单线程模式下执行的时候，通常能够创建更优化的数据结构和算法。</p>
+</li>
+<li><p>合理的作业顺序<br>基于流水线并发模型实现的并发系统，在某种程度上是有可能保证作业的顺序的。作业的有序性使得它更容易地推出系统在某个特定时间点的状态</p>
+</li>
+</ul>
+<h4 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h4><ul>
+<li><p>编写难度大<br>好在有一些平台框架可以直接使用，如<code>Akka</code>,<code>Node.JS</code>等</p>
+</li>
+<li><p>跟踪困难<br>流水线并发模型最大的缺点是作业的执行往往分布到多个工作者上，并因此分布到项目中的多个类上。这样导致在追踪某个作业到底被什么代码执行时变得困难。</p>
+</li>
+</ul>
+<h3 id="函数式并行"><a href="#函数式并行" class="headerlink" title="函数式并行"></a>函数式并行</h3><p>函数式并行的基本思想是采用函数调用实现程序。函数可以看作是代理人<code>agents</code>或者<code>actor</code>，函数之间可以像流水线模型（反应器或者事件驱动系统）那样互相发送消息。<br>函数都是通过拷贝来传递参数的，所以除了接收函数外没有实体可以操作数据。这对于避免共享数据的竞态来说是很有必要的。同样也使得函数的执行类似于原子操作。每个函数调用的执行独立于任何其他函数的调用。</p>
+<h2 id="Runnable、Callable、Future、Thread、FutureTask"><a href="#Runnable、Callable、Future、Thread、FutureTask" class="headerlink" title="Runnable、Callable、Future、Thread、FutureTask"></a>Runnable、Callable、Future、Thread、FutureTask</h2><p><code>Java</code>并发中主要以<code>Runnable</code>、<code>Callable</code>、<code>Future</code>三个接口作为基础。<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Runnable.png"></p>
+<h3 id="Runnable"><a href="#Runnable" class="headerlink" title="Runnable"></a>Runnable</h3><p>实例想要被线程执行，可以通过实现<code>Runnable</code>接口。<br>。通过实例化某个 <code>Thread</code> 实例并将自身作为运行目标，就可以运行实现 <code>Runnable</code> 的类而无需创建 <code>Thread</code> 的子类。大多数情况下，如果只想重写 <code>run()</code> 方法，而不重写其他 Thread 方法，那么应使用 <code>Runnable</code> 接口。这很重要，因为除非程序员打算修改或增强类的基本行为，否则不应为该类创建子类。</p>
+<h3 id="Callable"><a href="#Callable" class="headerlink" title="Callable"></a>Callable</h3><p><code>Callable</code> 接口类似于 <code>Runnable</code>，两者都是为那些其实例可能被另一个线程执行的类设计的。但是 Runnable不会返回结果，并且无法抛出经过检查的异常。</p>
+<h3 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h3><p><code>Future</code> 表示异步计算的结果。它提供了检查计算是否完成的方法，以等待计算的完成，并获取计算的结果。计算完成后只能使用 <code>get</code> 方法来获取结果，如有必要，计算完成前可以阻塞此方法。取消则由 cancel 方法来执行。还提供了其他方法，以确定任务是正常完成还是被取消了。一旦计算完成，就不能再取消计算。如果为了可取消性而使用 <code>Future</code> 但又不提供可用的结果，则可以声明 Future&lt;?&gt; 形式类型、并返回 null 作为底层任务的结果。<br>主要方法如下：</p>
+<ul>
+<li><code>cancel(boolean mayInterruptIfRunning)</code><br>试图取消对此任务的执行。</li>
+<li><code>get()</code><br>如有必要，等待计算完成，然后获取其结果。</li>
+<li><code>get(long timeout, TimeUnit unit)</code><br>如有必要，最多等待为使计算完成所给定的时间之后，获取其结果（如果结果可用）。</li>
+<li><code>isCancelled()</code><br>如果在任务正常完成前将其取消，则返回 true。</li>
+<li><code>isDone()</code><br>如果任务已完成，则返回 true。</li>
+</ul>
+<h2 id="Thread"><a href="#Thread" class="headerlink" title="Thread"></a>Thread</h2><h3 id="线程的创建"><a href="#线程的创建" class="headerlink" title="线程的创建"></a>线程的创建</h3><p>在<code>Java</code>中，我们有2个方式创建线程：   </p>
+<ul>
+<li>通过直接继承<code>thread</code>类，然后覆盖<code>run()</code>方法。   </li>
+<li>构建一个实现<code>Runnable</code>接口的类, 然后创建一个<code>thread</code>类对象并传递<code>Runnable</code>对象作为构造参数</li>
+</ul>
+<h3 id="线程的运行流程"><a href="#线程的运行流程" class="headerlink" title="线程的运行流程"></a>线程的运行流程</h3><p>我们在主线程中创建5个子线程，每个子线程通过构造函数初始化number的值,来实现1-5内的乘法表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/7/18.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadTest</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		System.out.println(<span class="string">&quot;main thread start&quot;</span>);</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">5</span>; i++) &#123;</span><br><span class="line">			Calculator calculator = <span class="keyword">new</span> Calculator(i);</span><br><span class="line">			Thread thread = <span class="keyword">new</span> Thread(calculator);</span><br><span class="line">			thread.start();</span><br><span class="line">		&#125;</span><br><span class="line">		System.out.println(<span class="string">&quot;main thread end&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Calculator</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;	</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> number;	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Calculator</span><span class="params">(<span class="keyword">int</span> number)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.number = number;</span><br><span class="line">	&#125;	</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= <span class="number">5</span>; i++) &#123;</span><br><span class="line">			System.out.printf(<span class="string">&quot;%s: %d * %d = %d \n&quot;</span>, Thread.currentThread().getName(), number, i, i * number);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序输出如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">main thread start</span><br><span class="line">Thread-0: 1 * 1 = 1 </span><br><span class="line">Thread-0: 1 * 2 = 2 </span><br><span class="line">Thread-0: 1 * 3 = 3 </span><br><span class="line">Thread-0: 1 * 4 = 4 </span><br><span class="line">Thread-0: 1 * 5 = 5 </span><br><span class="line">Thread-4: 5 * 1 = 5 </span><br><span class="line">Thread-4: 5 * 2 = 10 </span><br><span class="line">Thread-4: 5 * 3 = 15 </span><br><span class="line">Thread-4: 5 * 4 = 20 </span><br><span class="line">Thread-4: 5 * 5 = 25 </span><br><span class="line">Thread-3: 4 * 1 = 4 </span><br><span class="line">Thread-3: 4 * 2 = 8 </span><br><span class="line">Thread-2: 3 * 1 = 3 </span><br><span class="line">Thread-2: 3 * 2 = 6 </span><br><span class="line">Thread-2: 3 * 3 = 9 </span><br><span class="line">Thread-2: 3 * 4 = 12 </span><br><span class="line">Thread-1: 2 * 1 = 2 </span><br><span class="line">Thread-1: 2 * 2 = 4 </span><br><span class="line">Thread-1: 2 * 3 = 6 </span><br><span class="line">main thread end</span><br><span class="line">Thread-1: 2 * 4 = 8 </span><br><span class="line">Thread-3: 4 * 3 = 12 </span><br><span class="line">Thread-3: 4 * 4 = 16 </span><br><span class="line">Thread-3: 4 * 5 = 20 </span><br><span class="line">Thread-2: 3 * 5 = 15 </span><br><span class="line">Thread-1: 2 * 5 = 10 </span><br></pre></td></tr></table></figure>
+<p>在Java中，每个应用程序最少有一个执行线程，运行程序时，JVM负责调用main()方法的执行线程。<br>当全部的非守护线程执行结束时，Java程序才算结束。从输出中也可以看到，主程序输出<code>main thread end</code>后，其他程序还是继续执行，直到执行结束。<br>需要注意的是，如果某个线程调用<code>System.exit()</code>指示终结程序，那么全部的线程都会结束执行。</p>
+<h3 id="线程中断、睡眠、设置优先级"><a href="#线程中断、睡眠、设置优先级" class="headerlink" title="线程中断、睡眠、设置优先级"></a>线程中断、睡眠、设置优先级</h3><p>下面的示例中，<code>NumberGenerator</code>中首先创建<code>numberGenetorThread</code>线程，并设置优先级，启动线程后，一直循环运行，打印出<code>number</code>的值，直到5毫秒后主线程调用<code>interrupt()</code>方法让其中断，<code>numberGenetorThread</code>线程其跳出<code>while</code>循环。首次调用方法<code>isInterrupted()</code>返回值为<code>true</code>，表示线程已中断。<br>需要注意的是，<code>interrupt()</code>方法测试当前线程是否已经中断，线程的中断状态也由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 <code>false</code>。大家可以打开下面的注释去测试。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/8/23.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadTest2</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">		Thread numberGenetorThread = <span class="keyword">new</span> NumberGenerator(<span class="number">0</span>);</span><br><span class="line">		numberGenetorThread.setPriority(Thread.MAX_PRIORITY);</span><br><span class="line">		numberGenetorThread.start();</span><br><span class="line">		Thread.sleep(<span class="number">5</span>);</span><br><span class="line">		numberGenetorThread.interrupt();</span><br><span class="line">		System.out.println(<span class="string">&quot;first interrupt,isInterrupted=&quot;</span> + numberGenetorThread.isInterrupted());</span><br><span class="line"></span><br><span class="line"><span class="comment">//        Thread.sleep(5);</span></span><br><span class="line"><span class="comment">//        numberGenetorThread.interrupt();</span></span><br><span class="line"><span class="comment">//        System.out.println(&quot;second interrupt,isInterrupted=&quot; + numberGenetorThread.isInterrupted());</span></span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NumberGenerator</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> number;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">NumberGenerator</span><span class="params">(<span class="keyword">int</span> number)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.number = number;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">while</span> (!isInterrupted()) &#123;</span><br><span class="line">			System.out.println(<span class="string">&quot;number is &quot;</span> + number);</span><br><span class="line">			number++;</span><br><span class="line">		&#125;</span><br><span class="line">		System.out.println(<span class="string">&quot;NumberGenerator thread,isInterrupted= &quot;</span> + <span class="keyword">this</span>.isInterrupted());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序部分输出如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">number is 96</span><br><span class="line">number is 97</span><br><span class="line">NumberGenerator thread,isInterrupted= true</span><br><span class="line">first interrupt,isInterrupted=true</span><br></pre></td></tr></table></figure>
+<h3 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h3><p><strong>定义和作用</strong><br><code>ThreadLocal</code>称线程本地变量，并不是为了解决共享对象的多线程访问的问题的，因为如果<code>ThreadLocal.set()</code>放进去的本来就是多线程共享的同一个对象的话，线程通过ThreadLocal.get()方法得到的还是共享对象本身，依旧存在并发访问的问题。其是每个线程所单独持有的，主要是提供了保持对象的方法和避免参数传递，以方便对象的访问。</p>
+<ul>
+<li>每个线程中都有一个自己的<code>ThreadLocalMap</code>类对象，可以将线程自己的对象保持到其中，各管各的，线程可以正确的访问到自己的对象。 </li>
+<li>将一个共用的<code>ThreadLocal</code>静态实例作为<code>key</code>，将不同对象的引用保存到不同线程的<code>ThreadLocalMap</code>中，然后在线程执行的各处通过这个静态<code>ThreadLocal</code>实例的<code>get()</code>方法取得自己线程保存的那个对象，避免了将这个对象作为参数传递的麻烦。 </li>
+</ul>
+<p>程序运行时，每个线程都保持对其线程局部变量副本的隐式引用，只要线程是活动的并且 <code>ThreadLocal</code> 实例是可访问的；在线程消失之后，其线程局部实例的所有副本都会被垃圾回收（除非存在对这些副本的其他引用）。</p>
+<p><strong>使用示例</strong><br>如下我们创建<code>ThreadLocal</code>的实例<code>stringLocal</code>,分别在主线程和子线程中设置其值为当前线程名字。查看输出的结果可以看到线程间彼此不干扰，各自输出自己设置的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/8/24.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ThreadLocalDemo</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">		ThreadLocal&lt;String&gt; stringLocal = <span class="keyword">new</span> ThreadLocal&lt;String&gt;();</span><br><span class="line">		stringLocal.set(Thread.currentThread().getName());</span><br><span class="line">		System.out.println(String.format(<span class="string">&quot;threadName=%10s,threadLocal valaue=%10s&quot;</span>,Thread.currentThread().getName(),stringLocal.get()) );</span><br><span class="line"></span><br><span class="line">		Thread thread1 = <span class="keyword">new</span> Thread() &#123;</span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">				stringLocal.set(Thread.currentThread().getName());</span><br><span class="line">				System.out.println(String.format(<span class="string">&quot;threadName=%10s,threadLocal valaue=%10s&quot;</span>,Thread.currentThread().getName(),stringLocal.get()) );</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;;</span><br><span class="line">		thread1.start();</span><br><span class="line">		thread1.join();</span><br><span class="line"></span><br><span class="line">		System.out.println(String.format(<span class="string">&quot;threadName=%10s,threadLocal valaue=%10s&quot;</span>,Thread.currentThread().getName(),stringLocal.get()) );</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序输出如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">threadName=      main,threadLocal valaue=      main</span><br><span class="line">threadName=  Thread-0,threadLocal valaue=  Thread-0</span><br><span class="line">threadName=      main,threadLocal valaue=      main</span><br></pre></td></tr></table></figure>
+<p><strong>源码实现</strong><br><code>ThreadLocal</code>有3个成员变量</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> threadLocalHashCode = nextHashCode();</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> AtomicInteger nextHashCode = <span class="keyword">new</span> AtomicInteger();</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> HASH_INCREMENT = <span class="number">0x61c88647</span>;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">nextHashCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> nextHashCode.getAndAdd(HASH_INCREMENT);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>nextHashCode</code>是<code>ThreadLocal</code>的静态变量，<code>HASH_INCREMENT</code>是静态常量，只有<code>threadLocalHashCode</code>是<code>ThreadLocal</code>实例的变量。<br>在创建<code>ThreadLocal</code>类实例的时候，将<code>ThreadLocal</code>类的下一个<code>hashCode</code>值即<code>nextHashCode</code>的值赋给实例的<code>threadLocalHashCode</code>，然后<code>nextHashCode</code>的值增加<code>HASH_INCREMENT</code>这个值。而实例变量<code>threadLocalHashCode</code>是<code>final</code>的，用来区分不同的<code>ThreadLocal</code>实例。<br><code>ThreadLocal</code>实例<code>stringLocal</code>创建完成后，调用<code>set()</code>方法时，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</span><br><span class="line">	Thread t = Thread.currentThread();</span><br><span class="line">	ThreadLocalMap map = getMap(t);</span><br><span class="line">	<span class="keyword">if</span> (map != <span class="keyword">null</span>)</span><br><span class="line">		map.set(<span class="keyword">this</span>, value);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		createMap(t, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先获取当前线程，即<code>main</code>线程,然后根据线程实例调用<code>getMap()</code>方法获取<code>ThreadLocalMap</code>，<br>其中<code>getMap()</code>方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ThreadLocalMap <span class="title">getMap</span><span class="params">(Thread t)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t.threadLocals;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>getMap()</code>方法直接返回线程的成员变量<code>threadLocals</code>，其中<code>threadLocals</code>变量是<code>ThreadLocalMap</code>类的实例，而<code>ThreadLocalMap</code>是<code>ThreadLocal</code>的内部类。<br>如果<code>map</code>(当前线程的成员变量<code>threadLocals</code>)存在，则将数据写入到<code>ThreadLoclMap</code>用于存储数据的<code>Entry</code>中。<br><code>ThreadLocalMap</code>的<code>set</code>方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>&#123;</span><br><span class="line">	Entry[] tab = table;</span><br><span class="line">	<span class="keyword">int</span> len = tab.length;</span><br><span class="line">	<span class="keyword">int</span> i = key.threadLocalHashCode &amp; (len-<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (Entry e = tab[i];</span><br><span class="line">		 e != <span class="keyword">null</span>;</span><br><span class="line">		 e = tab[i = nextIndex(i, len)]) &#123;</span><br><span class="line">		ThreadLocal&lt;?&gt; k = e.get();</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (k == key) &#123;</span><br><span class="line">			e.value = value;</span><br><span class="line">			<span class="keyword">return</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (k == <span class="keyword">null</span>) &#123;</span><br><span class="line">			replaceStaleEntry(key, value, i);</span><br><span class="line">			<span class="keyword">return</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	tab[i] = <span class="keyword">new</span> Entry(key, value);</span><br><span class="line">	<span class="keyword">int</span> sz = ++size;</span><br><span class="line">	<span class="keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)</span><br><span class="line">		rehash();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>Entry</code>定义如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Entry</span> <span class="keyword">extends</span> <span class="title">WeakReference</span>&lt;<span class="title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;</span><br><span class="line">	Object value;</span><br><span class="line"></span><br><span class="line">	Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;</span><br><span class="line">		<span class="keyword">super</span>(k);</span><br><span class="line">		value = v;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>key</code>为<code>ThreadLocal</code>实例，值是用户定义的具体对象值。</p>
+<p>如果<code>map</code>(当前线程的成员变量<code>threadLocals</code>)不存在，则创建一个<code>ThreadLocalMap</code>实例，并和线程的成员变量<code>threadLocals</code>关联起来。其中<code>ThreadLocalMap</code>实例的<code>key</code>为<code>this</code>，即ThreadLocal实例<code>stringLocal</code>，值是用户定义的具体对象值。   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">createMap</span><span class="params">(Thread t, T firstValue)</span> </span>&#123;</span><br><span class="line">	t.threadLocals = <span class="keyword">new</span> ThreadLocalMap(<span class="keyword">this</span>, firstValue);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>总的来说，<code>ThreadLocal</code>的作用是提供线程内的局部变量，这种变量在线程的生命周期内起作用。作用：提供一个线程内公共变量（比如本次请求的用户信息），减少同一个线程内多个函数或者组件之间一些公共变量的传递的复杂度，或者为线程提供一个私有的变量副本，这样每一个线程都可以随意修改自己的变量副本，而不会对其他线程产生影响。</p>
+<p>本文主要讲解并发模型、基础接口、Thread基础操作以及ThreadLocal应用。</p>
+<p>本文参考</p>
+<p><a target="_blank" rel="noopener" href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+<p><a target="_blank" rel="noopener" href="http://ifeve.com/concurrency-modle-seven-week-1/">http://ifeve.com/concurrency-modle-seven-week-1/</a></p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">http://tutorials.jenkov.com/java-concurrency/concurrency-models.html</a></p>
+<hr>
+<p>关于作者<br>爱编程、爱钻研、爱分享、爱生活<br>关注分布式、高并发、数据挖掘<br>如需捐赠，请扫码<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg" width=256 height=256 /></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/" title="JAVA并发概念、基础接口以及Thread" target="_blank" rel="external">http://aidodoo.com/java/java并发-基础概念和Thread/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/" title="同步和锁"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/java/java-IO/" title="Java IO概述"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

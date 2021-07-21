@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>spark集群的搭建 | Hexo</title>
+  <meta name="description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：     基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。   前置条件java安装参考基础环境安装 scala安装参考基础环境安装 zookeeper安装参考zookeeper集群的搭">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark集群的搭建">
+<meta property="og:url" content="http://aidodoo.com/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：     基础环境安装 zookeeper集群的搭建 kafka集群的搭建 hadoop集群的搭建 hbase集群的搭建 spark集群的搭建  本文主要讲解分布式spark集群standalone模式的安装。   前置条件java安装参考基础环境安装 scala安装参考基础环境安装 zookeeper安装参考zookeeper集群的搭">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-06-06T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="others">
+<meta property="article:tag" content="spark">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-others/spark集群的搭建" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      spark集群的搭建
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="article-date">
+	  <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/others/" rel="tag">others</a>, <a class="article-tag-link-link" href="/tags/spark/" rel="tag">spark</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>本系列文章主要阐述大数据计算平台相关框架的搭建，包括如下内容：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">基础环境安装</a></li>
+<li><a href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">zookeeper集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/kafka%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">kafka集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hadoop%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">hadoop集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">hbase集群的搭建</a></li>
+<li><a href="https://aidodoo.com/post/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">spark集群的搭建</a></li>
+</ul>
+<p>本文主要讲解分布式spark集群standalone模式的安装。  </p>
+<h1 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h1><h2 id="java安装"><a href="#java安装" class="headerlink" title="java安装"></a>java安装</h2><p>参考<a href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">基础环境安装</a></p>
+<h2 id="scala安装"><a href="#scala安装" class="headerlink" title="scala安装"></a>scala安装</h2><p>参考<a href="https://aidodoo.com/post/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/">基础环境安装</a></p>
+<h2 id="zookeeper安装"><a href="#zookeeper安装" class="headerlink" title="zookeeper安装"></a>zookeeper安装</h2><p>参考<a href="https://aidodoo.com/post/others/zookeeper%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/">zookeeper集群的搭建</a></p>
+<h1 id="spark安装"><a href="#spark安装" class="headerlink" title="spark安装"></a>spark安装</h1><h2 id="压缩解压"><a href="#压缩解压" class="headerlink" title="压缩解压"></a>压缩解压</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd ~</span><br><span class="line">tar -zxvf spark-2.4.3-bin-hadoop2.7.tgz</span><br><span class="line">mv spark-2.4.3-bin-hadoop2.7 spark</span><br></pre></td></tr></table></figure>
+<h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> .bash_profile</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Get the aliases and <span class="built_in">functions</span></span></span><br><span class="line">if [ -f ~/.bashrc ]; then</span><br><span class="line">        . ~/.bashrc</span><br><span class="line">fi</span><br><span class="line"><span class="meta">#</span><span class="bash"> User specific environment and startup programs</span></span><br><span class="line">export JAVA_HOME=/home/oracle/jdk</span><br><span class="line">export SCALA_HOME=/home/oracle/scala</span><br><span class="line">export KAFKA_HOME=/home/oracle/kafka</span><br><span class="line">export SPARK_HOME=/home/oracle/spark</span><br><span class="line">export HADOOP_HOME=/home/oracle/hadoop</span><br><span class="line">export HADOOP_PID_DIR=/home/oracle/hadoop/pids</span><br><span class="line">export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native </span><br><span class="line">export HADOOP_OPTS=&quot;$HADOOP_OPTS-Djava.library.path=$HADOOP_HOME/lib/native&quot; </span><br><span class="line">export HADOOP_PREFIX=$HADOOP_HOME </span><br><span class="line">export HADOOP_MAPRED_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_COMMON_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_HDFS_HOME=$HADOOP_HOME </span><br><span class="line">export YARN_HOME=$HADOOP_HOME </span><br><span class="line">export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export HDFS_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop </span><br><span class="line">export JAVA_LIBRARY_PATH=$HADOOP_HOME/lib/native </span><br><span class="line">export FLINK_HOME=/home/oracle/flink</span><br><span class="line">export PATH=$JAVA_HOME/bin:$SCALA_HOME/bin:$KAFKA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$FLINK_HOME/bin:/sbin:$PATH</span><br><span class="line">export PATH JAVA_HOME SCALA_HOME  KAFKA_HOME SPARK_HOME  HADOOP_HOME  FLINK_HOME</span><br></pre></td></tr></table></figure>
+<h2 id="配置更改"><a href="#配置更改" class="headerlink" title="配置更改"></a>配置更改</h2><p>spark集群主要涉及到如下配置文件的变更  </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">spark-default.conf</span><br><span class="line">spark-env.sh</span><br><span class="line">slaves</span><br></pre></td></tr></table></figure>
+<h3 id="spark-default-conf"><a href="#spark-default-conf" class="headerlink" title="spark-default.conf"></a>spark-default.conf</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">spark.master            spark://bigdata1:7077</span><br><span class="line">spark.executor.memory   256M</span><br><span class="line">spark.eventLog.enabled  true</span><br><span class="line">spark.serializer        org.apache.spark.serializer.KryoSerializer</span><br><span class="line">spark.cores.max                 10</span><br><span class="line">spark.scheduler.mode    FIFO</span><br><span class="line">spark.shuffle.compress  true</span><br><span class="line">spark.eventLog.enabled  true</span><br><span class="line">spark.eventLog.dir              /home/oracle/bigdata/spark/sparkeventlog</span><br><span class="line">spark.kryoserializer.buffer 128M</span><br><span class="line">spark.rpc.numRetries    5</span><br><span class="line">spark.port.maxRetries   16</span><br><span class="line">spark.rpc.askTimeout    120s</span><br><span class="line">spark.network.timeout   120s</span><br><span class="line">spark.rpc.lookupTimeout  120s</span><br><span class="line">spark.executor.extraJavaOptions -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=40 -XX:G1ReservePercent=10 -XX:G1HeapRegionSize=8M -XX:MaxPermSize=128M -XX:+PrintReferenceGC -XX:+PrintAdaptiveSizePolicy -XX:+UnlockDiagnosticVMOptions -XX:+G1SummarizeConcMark -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps</span><br></pre></td></tr></table></figure>
+<h3 id="spark-env-sh"><a href="#spark-env-sh" class="headerlink" title="spark-env.sh"></a>spark-env.sh</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">export SPARK_MASTER_HOST=bigdata1</span><br><span class="line">export SPARK_MASTER_PORT=7077</span><br><span class="line">export SPARK_MASTER_WEBUI_PORT=8080</span><br><span class="line">export SPARK_LOCAL_DIRS=/home/oracle/bigdata/spark/sparkdata</span><br><span class="line">export SPARK_PID_DIR=/home/oracle/bigdata/spark/sparkpids</span><br><span class="line">export SPARK_WORKER_CORES=2</span><br><span class="line">export SPARK_WORKER_MEMORY=256M</span><br><span class="line">export SPARK_WORKER_WEBUI_PORT=8081</span><br><span class="line">export SPARK_WORKER_DIR=/home/oracle/bigdata/spark/sparkwork</span><br><span class="line">export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=300&quot;</span><br><span class="line">export SPARK_DAEMON_JAVA_OPTS=&quot;-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=bigdata1,bigdata2,bigdata3 -Dspark.deploy.zookeeper.dir=/spark&quot;</span><br></pre></td></tr></table></figure>
+
+<p>所有的配置项如下表：</p>
+<table>
+<tr>
+    <td width="20%">Environment Variable</td>
+    <td width="80%">Meaning</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_HOST</td>    
+    <td>Bind the master to a specific hostname or IP address, for example a public one.</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_PORT</td>    
+    <td>Start the master on a different port (default: 7077).</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_WEBUI_PORT</td>    
+    <td>Port for the master web UI (default: 8080).</td>
+</tr>
+<tr>
+    <td>SPARK_MASTER_OPTS</td>    
+    <td>Configuration properties that apply only to the master in the form "-Dx=y" (default: none). See below for a list of possible options.</td>
+</tr>
+<tr>
+    <td>SPARK_LOCAL_DIRS</td>    
+    <td>Directory to use for "scratch" space in Spark, including map output files and RDDs that get stored on disk. This should be on a fast, local disk in your system. It can also be a comma-separated list of multiple directories on different disks.</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_CORES</td>    
+    <td>Total number of cores to allow Spark applications to use on the machine (default: all available cores).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_MEMORY</td>    
+    <td>Total amount of memory to allow Spark applications to use on the machine, e.g. 1000m, 2g (default: total memory minus 1 GB); note that each application's individual memory is configured using its spark.executor.memory property.</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_PORT</td>    
+    <td>Start the Spark worker on a specific port (default: random).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_WEBUI_PORT</td>    
+    <td>Port for the worker web UI (default: 8081).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_DIR</td>    
+    <td>Directory to run applications in, which will include both logs and scratch space (default: SPARK_HOME/work).</td>
+</tr>
+<tr>
+    <td>SPARK_WORKER_OPTS</td>    
+    <td>Configuration properties that apply only to the worker in the form "-Dx=y" (default: none). See below for a list of possible options.</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_MEMORY    </td> 
+    <td>Memory to allocate to the Spark master and worker daemons themselves (default: 1g).</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_JAVA_OPTS</td>    
+    <td>JVM options for the Spark master and worker daemons themselves in the form "-Dx=y" (default: none).</td>
+</tr>
+<tr>
+    <td>SPARK_DAEMON_CLASSPATH</td>    
+    <td>Classpath for the Spark master and worker daemons themselves (default: none).</td>
+</tr>
+<tr>
+    <td>SPARK_PUBLIC_DNS</td>    
+    <td>The public DNS name of the Spark master and workers (default: none).</td>
+</tr>
+</table>
+
+<p>其中SPARK_MASTER_OPTS 可以设置很多属性，罗列如下：</p>
+<table>
+<tr>
+    <td width="15%">Property Name    </td>    
+    <td width="15%">Default</td>    
+    <td width="70%">Meaning</td>
+</tr>
+<tr>
+    <td>spark.deploy.retainedApplications</td>    
+    <td>200</td>    
+    <td>The maximum number of completed applications to display. Older applications will be dropped from the UI to maintain this limit.</td>
+</tr>
+<tr>
+    <td>spark.deploy.retainedDrivers</td>    
+    <td>200</td>    
+    <td>The maximum number of completed drivers to display. Older drivers will be dropped from the UI to maintain this limit.</td>
+</tr>
+<tr>
+    <td>spark.deploy.spreadOut</td>    
+    <td>true</td>    
+    <td>Whether the standalone cluster manager should spread applications out across nodes or try to consolidate them onto as few nodes as possible. Spreading out is usually better for data locality in HDFS, but consolidating is more efficient for compute-intensive workloads. </td>
+</tr>
+<tr>
+    <td>spark.deploy.defaultCores</td>    
+    <td>(infinite)</td>    
+    <td>Default number of cores to give to applications in Spark's standalone mode if they don't set spark.cores.max. If not set, applications always get all available cores unless they configure spark.cores.max themselves. Set this lower on a shared cluster to prevent users from grabbing the whole cluster by default. </td>
+</tr>
+<tr>
+    <td>spark.deploy.maxExecutorRetries</td>    
+    <td>10</td>    
+    <td>Limit on the maximum number of back-to-back executor failures that can occur before the standalone cluster manager removes a faulty application. An application will never be removed if it has any running executors. If an application experiences more than spark.deploy.maxExecutorRetries failures in a row, no executors successfully start running in between those failures, and the application has no running executors then the standalone cluster manager will remove the application and mark it as failed. To disable this automatic removal, set spark.deploy.maxExecutorRetries to -1. </td>
+</tr>
+<tr>
+    <td>spark.worker.timeout</td>    
+    <td>60</td>    
+    <td>Number of seconds after which the standalone deploy master considers a worker lost if it receives no heartbeats.</td>
+</tr>
+</table>
+同时SPARK_WORKER_OPTS 也有相应的属性可以设置：
+<table>
+<tr>
+    <td width="15%">Property Name    </td>    
+    <td width="15%">Default</td>    
+    <td width="70%">Meaning</td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.enabled</td>
+    <td>false</td>
+    <td>Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up.<td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.interval</td>
+    <td>1800 (30 minutes)</td>
+    <td>Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine.<td>
+</tr>
+<tr>
+    <td>spark.worker.cleanup.appDataTtl</td>
+    <td>604800 (7 days, 7 * 24 * 3600)</td>
+    <td>The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently.<td>
+</tr>
+<tr>
+    <td>spark.storage.cleanupFilesAfterExecutorExit</td>
+    <td>true</td>
+    <td>Enable cleanup non-shuffle files(such as temp. shuffle blocks, cached RDD/broadcast blocks, spill files, etc) of worker directories following executor exits. Note that this doesn't overlap with `spark.worker.cleanup.enabled`, as this enables cleanup of non-shuffle files in local directories of a dead executor, while `spark.worker.cleanup.enabled` enables cleanup of all files/subdirectories of a stopped and timeout application. This only affects Standalone mode, support of other cluster manangers can be added in the future.<td>
+</tr>
+<tr>
+    <td>spark.worker.ui.compressedLogFileLengthCacheSize</td>
+    <td>100</td>
+    <td>For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.<td>
+</tr>
+</table>
+
+<h3 id="slaves"><a href="#slaves" class="headerlink" title="slaves"></a>slaves</h3><p>列出所有worker节点的主机名  </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">bigdata2</span><br><span class="line">bigdata3</span><br><span class="line">bigdata4</span><br><span class="line">bigdata5</span><br></pre></td></tr></table></figure>
+<h2 id="启停命令"><a href="#启停命令" class="headerlink" title="启停命令"></a>启停命令</h2><ul>
+<li>启动集群</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/wls/oracle/spark/sbin/start_all.sh</span><br></pre></td></tr></table></figure>
+<ul>
+<li> 停止集群</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/wls/oracle/spark/sbin/stop_all.sh</span><br></pre></td></tr></table></figure>
+
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/oracle/spark/bin/spark-shell</span><br></pre></td></tr></table></figure>
+<p>正常情况下，输出如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">[oracle@bigdata1 bin]$ ./spark-shell </span><br><span class="line">2019-06-11 14:43:30,907 WARN util.NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable</span><br><span class="line">Setting default log level to &quot;WARN&quot;.</span><br><span class="line">To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).</span><br><span class="line">Spark context Web UI available at http://bigdata1:4040</span><br><span class="line">Spark context available as &#x27;sc&#x27; (master = spark://bigdata1:7077, app id = app-20190611144344-0001).</span><br><span class="line">Spark session available as &#x27;spark&#x27;.</span><br><span class="line">Welcome to</span><br><span class="line">      ____              __</span><br><span class="line">     / __/__  ___ _____/ /__</span><br><span class="line">    _\ \/ _ \/ _ `/ __/  &#x27;_/</span><br><span class="line">   /___/ .__/\_,_/_/ /_/\_\   version 2.4.3</span><br><span class="line">      /_/</span><br><span class="line">         </span><br><span class="line">Using Scala version 2.11.12 (Java HotSpot(TM) Server VM, Java 1.8.0_181)</span><br><span class="line">Type in expressions to have them evaluated.</span><br><span class="line">Type :help for more information.</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">scala&gt;</span><span class="bash"> val a=10</span></span><br><span class="line">a: Int = 10</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">scala&gt;</span><span class="bash"> val b=20</span></span><br><span class="line">b: Int = 20</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">scala&gt;</span><span class="bash"> val c=a+b</span></span><br><span class="line">c: Int = 30</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">scala&gt;</span><span class="bash"> </span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="spark集群的搭建" target="_blank" rel="external">http://aidodoo.com/others/spark集群的搭建/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="pinpoint底层存储数据结构"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/others/hbase%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="hbase集群的搭建"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

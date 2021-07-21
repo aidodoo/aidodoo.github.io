@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>pinpoint底层存储数据结构 | Hexo</title>
+  <meta name="description" content="本文主要基于源码整理pinpoint的hbase的表结构，以便于作为参考，二次开发或者定义我们自己的架构数据结构。 AgentInfo用途主键总共32字节，前24字节为agentId,后8字节为Long.MAX_VALUE-time byte[] agentId &#x3D; Bytes.toBytes(agentInfo.getAgentId()); long reverseKey &#x3D; TimeUtils">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pinpoint底层存储数据结构">
+<meta property="og:url" content="http://aidodoo.com/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="本文主要基于源码整理pinpoint的hbase的表结构，以便于作为参考，二次开发或者定义我们自己的架构数据结构。 AgentInfo用途主键总共32字节，前24字节为agentId,后8字节为Long.MAX_VALUE-time byte[] agentId &#x3D; Bytes.toBytes(agentInfo.getAgentId()); long reverseKey &#x3D; TimeUtils">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://pccvajf1m.bkt.clouddn.com/AgentStatDaoV2.png">
+<meta property="og:image" content="http://pccvajf1m.bkt.clouddn.com/HbaseCpuLoadDao.png">
+<meta property="og:image" content="http://pccvajf1m.bkt.clouddn.com/AgentStatDataPoint.png">
+<meta property="og:image" content="http://pccvajf1m.bkt.clouddn.com/JoinStatBo.png">
+<meta property="article:published_time" content="2019-06-07T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="Java Spark Flink JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://pccvajf1m.bkt.clouddn.com/AgentStatDaoV2.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-others/pinpoint数据结构" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      pinpoint底层存储数据结构
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="article-date">
+	  <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+	</a>
+</span>
+        
+        
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>本文主要基于源码整理pinpoint的hbase的表结构，以便于作为参考，二次开发或者定义我们自己的架构数据结构。</p>
+<h1 id="AgentInfo"><a href="#AgentInfo" class="headerlink" title="AgentInfo"></a>AgentInfo</h1><h2 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h2><h2 id="主键"><a href="#主键" class="headerlink" title="主键"></a>主键</h2><p>总共32字节，前24字节为<code>agentId</code>,后8字节为<code>Long.MAX_VALUE-time</code></p>
+<pre><code>byte[] agentId = Bytes.toBytes(agentInfo.getAgentId());
+long reverseKey = TimeUtils.reverseTimeMillis(agentInfo.getStartTimestamp());
+byte[] rowKey = RowKeyUtils.concatFixedByteAndLong(agentId, HBaseTables.AGENT_NAME_MAX_LEN, reverseKey);
+</code></pre>
+<h2 id="列簇和列"><a href="#列簇和列" class="headerlink" title="列簇和列"></a>列簇和列</h2><h3 id="列簇：Info"><a href="#列簇：Info" class="headerlink" title="列簇：Info"></a>列簇：Info</h3><pre><code>public static final byte[] AGENTINFO_CF_INFO = Bytes.toBytes(&quot;Info&quot;);
+</code></pre>
+<h3 id="列：i"><a href="#列：i" class="headerlink" title="列：i"></a>列：i</h3><pre><code>public static final byte[] AGENTINFO_CF_INFO_IDENTIFIER = Bytes.toBytes(&quot;i&quot;);
+</code></pre>
+<p>可能包含的信息如下：<br>    <table><br>        <tr><br>            <th rowspan="14">i</th><br>            <td> hostName</td><br>        </tr><br>        <tr><br>            <td> ip</td><br>        </tr><br>        <tr><br>            <td> ports</td><br>        </tr><br>        <tr><br>            <td> agentId</td><br>        </tr><br>        <tr><br>            <td> applicationName</td><br>        </tr><br>        <tr><br>            <td> serviceTypeCode</td><br>        </tr><br>        <tr><br>            <td> pid</td><br>        </tr><br>        <tr><br>            <td> vmVersion</td><br>        </tr><br>        <tr><br>            <td> agentVersion</td><br>        </tr><br>        <tr><br>            <td> startTime</td><br>        </tr><br>        <tr><br>            <td> endTimeStamp</td><br>        </tr><br>        <tr><br>            <td> endStatus</td><br>        </tr><br>        <tr><br>            <td> serverMetaData</td><br>        </tr><br>        <tr><br>            <td> jvmInfo</td><br>        </tr><br>    </table></p>
+<h3 id="列：m"><a href="#列：m" class="headerlink" title="列：m"></a>列：m</h3><pre><code>public static final byte[] AGENTINFO_CF_INFO_SERVER_META_DATA = Bytes.toBytes(&quot;m&quot;);
+</code></pre>
+<p>可能包含的信息如下：</p>
+<table>
+    <tr>
+        <th rowspan="3">m</th>
+
+<pre><code>    &lt;td&gt;serverInfo&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td&gt; vmArgs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td&gt; serviceInfos&lt;/td&gt;
+&lt;/tr&gt;
+</code></pre>
+</table>
+
+<h3 id="列：j"><a href="#列：j" class="headerlink" title="列：j"></a>列：j</h3><pre><code>public static final byte[] AGENTINFO_CF_INFO_JVM = Bytes.toBytes(&quot;j&quot;);
+</code></pre>
+<p>可能包含的信息如下：</p>
+<table>
+    <tr>
+        <th rowspan="3">j</th>
+
+<pre><code>    &lt;td&gt;version&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td&gt; jvmVersion&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td&gt; gcTypeName&lt;/td&gt;
+&lt;/tr&gt;
+</code></pre>
+</table>
+
+<h1 id="AgentStatV2"><a href="#AgentStatV2" class="headerlink" title="AgentStatV2"></a>AgentStatV2</h1><h2 id="用途-1"><a href="#用途-1" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-1"><a href="#主键-1" class="headerlink" title="主键"></a>主键</h2><p>前24字节为<code>agentId</code>,后8字节为<code>Long.MAX_VALUE-time</code>,中间的为<code>AgentStatType</code>，其中<code>AgentStatType</code>取值如下：</p>
+<pre><code>UNKNOWN(0, &quot;Unknown&quot;),
+JVM_GC(1, &quot;JVM GC&quot;),
+JVM_GC_DETAILED(2, &quot;JVM GC Detailed&quot;),
+CPU_LOAD(3, &quot;Cpu Usage&quot;),
+TRANSACTION((byte) 4, &quot;Transaction&quot;),
+ACTIVE_TRACE((byte) 5, &quot;Active Trace&quot;),
+DATASOURCE((byte) 6, &quot;DataSource&quot;),
+RESPONSE_TIME((byte) 7, &quot;Response Time&quot;),
+DEADLOCK((byte) 8, &quot;Deadlock&quot;);
+</code></pre>
+<p>key构建代码如下：</p>
+<pre><code>byte[] bAgentId = BytesUtils.toBytes(component.getAgentId());
+byte[] bStatType = new byte[]&#123;component.getAgentStatType().getRawTypeCode()&#125;;
+byte[] rowKey = new byte[AGENT_NAME_MAX_LEN + bStatType.length + BytesUtils.LONG_BYTE_LENGTH];
+BytesUtils.writeBytes(rowKey, 0, bAgentId);
+BytesUtils.writeBytes(rowKey, AGENT_NAME_MAX_LEN, bStatType);
+BytesUtils.writeLong(TimeUtils.reverseTimeMillis(component.getBaseTimestamp()), rowKey, AGENT_NAME_MAX_LEN + bStatType.length);
+</code></pre>
+<p>该key构建完成后，看源码又通过com.sematext.hbase.wd.AbstractRowKeyDistributor进行一次离散化。</p>
+<pre><code>byte[] distributedRowKey = this.rowKeyDistributor.getDistributedKey(rowKey);
+</code></pre>
+<p>AbstractRowKeyDistributor在hbasewd中原生主要有RowKeyDistributorByOneBytePrefix和RowKeyDistributorByHashPrefix两个实现，主要是在rowkey前面再添加hashkey以实现离散化，具体的可以去研究，基本原理可参考<a target="_blank" rel="noopener" href="https://sematext.com/blog/hbasewd-avoid-regionserver-hotspotting-despite-writing-records-with-sequential-keys/">通过顺序RowKey避免HBase RegionServer热点问题</a></p>
+<h2 id="列簇和列-1"><a href="#列簇和列-1" class="headerlink" title="列簇和列"></a>列簇和列</h2><p>表AgentStatV2能写入的信息比较多，主要是JVM、CPU等统计信息。<br>其中HbaseActiveTraceDao、HbaseCpuLoadDao、HbaseDataSourceListDao、HbaseJvmGcDao、HbaseJvmGcDetailedDao、HbaseResponseTimeDao、HbaseTransactionDao均实现了AgentStatDaoV2接口中定义的insert方法。</p>
+<p><img src="http://pccvajf1m.bkt.clouddn.com/AgentStatDaoV2.png"></p>
+<p>以HbaseCpuLoadDao为例，其实现AgentStatDaoV2<CpuLoadBo>,含有如下四个成员变量，主要用于序列化和rowkey构建和数据插入到hbase</p>
+<pre><code>private HbaseOperations2 hbaseTemplate;
+private TableNameProvider tableNameProvider;
+private AgentStatHbaseOperationFactory agentStatHbaseOperationFactory;
+private CpuLoadSerializer cpuLoadSerializer;
+</code></pre>
+<p><img src="http://pccvajf1m.bkt.clouddn.com/HbaseCpuLoadDao.png"></p>
+<p>接口AgentStatDaoV2定义如下：</p>
+<pre><code>public interface AgentStatDaoV2&lt;T extends AgentStatDataPoint&gt; &#123;
+    void insert(String agentId, List&lt;T&gt; agentStatDataPoints);
+&#125;
+</code></pre>
+<p>而AgentStatDataPoint的实现类如下：</p>
+<p><img src="http://pccvajf1m.bkt.clouddn.com/AgentStatDataPoint.png"></p>
+<p>进而能写入所有实现了AgentStatDataPoint接口的类的数据。<br>列簇名均为S</p>
+<pre><code>public static final byte[] AGENT_STAT_CF_STATISTICS = Bytes.toBytes(&quot;S&quot;)
+</code></pre>
+<p>具体内容因AgentStatDataPoint的实现类不同，列举如下：</p>
+<ul>
+<li><p>写入ActiveTraceBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private short version = 0;
+  private int histogramSchemaType;
+  private ActiveTraceHistogram activeTraceHistogram;
+</code></pre>
+</li>
+<li><p>写入CpuLoadBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private double jvmCpuLoad = UNCOLLECTED_VALUE;
+  private double systemCpuLoad = UNCOLLECTED_VALUE;  
+</code></pre>
+</li>
+<li><p>写入DataSourceBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;    
+  private int id = UNCOLLECTED_INT_VALUE;
+  private short serviceTypeCode = UNCOLLECTED_SERVICE_TYPE_VALUE.getCode();
+  private String databaseName = UNCOLLECTED_STRING_VALUE;
+  private String jdbcUrl = UNCOLLECTED_STRING_VALUE;
+  private int activeConnectionSize = UNCOLLECTED_INT_VALUE;
+  private int maxConnectionSize = UNCOLLECTED_INT_VALUE;  
+</code></pre>
+</li>
+<li><p>写入DeadlockBo信息时，可选项    </p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private int deadlockedThreadCount = UNCOLLECTED_INT_VALUE;
+  private List&lt;TThreadDump&gt; threadDumpList;
+</code></pre>
+</li>
+<li><p>写入JvmGcBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private JvmGcType gcType = JvmGcType.UNKNOWN;
+  private long heapUsed = UNCOLLECTED_VALUE;
+  private long heapMax = UNCOLLECTED_VALUE;
+  private long nonHeapUsed = UNCOLLECTED_VALUE;
+  private long nonHeapMax = UNCOLLECTED_VALUE;
+  private long gcOldCount = UNCOLLECTED_VALUE;
+  private long gcOldTime = UNCOLLECTED_VALUE
+</code></pre>
+</li>
+<li><p>写入JvmGcDetailedBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private long gcNewCount = UNCOLLECTED_VALUE;
+  private long gcNewTime = UNCOLLECTED_VALUE;
+  private double codeCacheUsed = UNCOLLECTED_PERCENTAGE;
+  private double newGenUsed = UNCOLLECTED_PERCENTAGE;
+  private double oldGenUsed = UNCOLLECTED_PERCENTAGE;
+  private double survivorSpaceUsed = UNCOLLECTED_PERCENTAGE;
+  private double permGenUsed = UNCOLLECTED_PERCENTAGE;
+  private double metaspaceUsed = UNCOLLECTED_PERCENTAGE
+</code></pre>
+</li>
+<li><p>写入ResponseTimeBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private long avg = 0;
+  private long max = 0;
+</code></pre>
+</li>
+</ul>
+<ul>
+<li><p>写入TransactionBo信息时，可选项</p>
+<pre><code>  private String agentId;
+  private long startTimestamp;
+  private long timestamp;
+  private long collectInterval = UNCOLLECTED_VALUE;
+  private long sampledNewCount = UNCOLLECTED_VALUE;
+  private long sampledContinuationCount = UNCOLLECTED_VALUE;
+  private long unsampledNewCount = UNCOLLECTED_VALUE;
+  private long unsampledContinuationCount = UNCOLLECTED_VALUE;
+</code></pre>
+</li>
+</ul>
+<h1 id="ApplicationStatAggre"><a href="#ApplicationStatAggre" class="headerlink" title="ApplicationStatAggre"></a>ApplicationStatAggre</h1><h2 id="用途-2"><a href="#用途-2" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-2"><a href="#主键-2" class="headerlink" title="主键"></a>主键</h2><pre><code>applicationId+statType+baseTimestamp
+</code></pre>
+<p>具体构建如下：</p>
+<pre><code>byte[] bApplicationId = BytesUtils.toBytes(component.getApplicationId());
+byte[] bStatType = new byte[]&#123;component.getStatType().getRawTypeCode()&#125;;
+byte[] rowKey = new byte[APPLICATION_NAME_MAX_LEN + bStatType.length + BytesUtils.LONG_BYTE_LENGTH];
+
+BytesUtils.writeBytes(rowKey, 0, bApplicationId);
+BytesUtils.writeBytes(rowKey, APPLICATION_NAME_MAX_LEN, bStatType);
+BytesUtils.writeLong(TimeUtils.reverseTimeMillis(component.getBaseTimestamp()), rowKey, APPLICATION_NAME_MAX_LEN + bStatType.length);
+</code></pre>
+<h2 id="列簇"><a href="#列簇" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] APPLICATION_STAT_CF_STATISTICS = Bytes.toBytes(&quot;S&quot;);
+</code></pre>
+<p>ApplicationStatAggre能写入实现JoinStatBo接口的类的信息,其实现主要位于com.navercorp.pinpoint.common.server.bo.stat.join包，如下：<br><img src="http://pccvajf1m.bkt.clouddn.com/JoinStatBo.png"></p>
+<ul>
+<li><p>写入JoinActiveTraceBo信息时，可选项</p>
+<pre><code>  private String id = UNKNOWN_ID;
+  private long timestamp = Long.MIN_VALUE;
+  private int histogramSchemaType = DEFAULT_HISTOGRAM_SCHEMA_TYPE;
+  private short version = DEFAULT_VERSION;
+  private int totalCount = UNCOLLECTED_VALUE;
+  private String maxTotalCountAgentId = UNKNOWN_AGENT;
+  private int maxTotalCount = UNCOLLECTED_VALUE;
+  private String minTotalCountAgentId = UNKNOWN_AGENT;
+  private int minTotalCount = UNCOLLECTED_VALUE;
+</code></pre>
+</li>
+<li><p>写入JoinCpuLoadBo信息时，可选项</p>
+<pre><code>  private String id = UNKNOWN_ID;
+  private long timestamp = Long.MIN_VALUE;
+  
+  private double jvmCpuLoad = UNCOLLECTED_VALUE;
+  private String maxJvmCpuAgentId = UNKNOWN_AGENT;
+  private double maxJvmCpuLoad = UNCOLLECTED_VALUE;
+  private String minJvmCpuAgentId = UNKNOWN_AGENT;
+  private double minJvmCpuLoad = UNCOLLECTED_VALUE;
+  
+  private double systemCpuLoad = UNCOLLECTED_VALUE;
+  private String maxSysCpuAgentId = UNKNOWN_AGENT;
+  private double maxSystemCpuLoad = UNCOLLECTED_VALUE;
+  private String minSysCpuAgentId = UNKNOWN_AGENT;
+  private double minSystemCpuLoad = UNCOLLECTED_VALUE;
+</code></pre>
+</li>
+<li><p>写入JoinDataSourceBo信息时，可选项        </p>
+<pre><code>  private short serviceTypeCode = UNDEFINED_CATEGORY;
+  private String url = EMPTY_URL;
+  private int avgActiveConnectionSize = UNCOLLECTED_VALUE;
+  private int minActiveConnectionSize = UNCOLLECTED_VALUE;
+  private String minActiveConnectionAgentId = UNKNOWN_AGENT;
+  private int maxActiveConnectionSize = UNCOLLECTED_VALUE;
+  private String maxActiveConnectionAgentId = UNKNOWN_AGENT;
+</code></pre>
+</li>
+<li><p>写入JoinMemoryBo信息时，可选项        </p>
+<pre><code>  private String id = UNKNOWN_ID;
+  private long timestamp = Long.MIN_VALUE;
+  private long heapUsed = UNCOLLECTED_VALUE;
+  private long minHeapUsed = UNCOLLECTED_VALUE;
+  private long maxHeapUsed = UNCOLLECTED_VALUE;
+  private String minHeapAgentId = UNKNOWN_AGENT;
+  private String maxHeapAgentId = UNKNOWN_AGENT;
+  private long nonHeapUsed = UNCOLLECTED_VALUE;
+  private long minNonHeapUsed = UNCOLLECTED_VALUE;
+  private long maxNonHeapUsed = UNCOLLECTED_VALUE;
+  private String minNonHeapAgentId = UNKNOWN_AGENT;
+  private String maxNonHeapAgentId = UNKNOWN_AGENT;
+</code></pre>
+</li>
+<li><p>写入JoinResponseTimeBo信息时，可选项        </p>
+<pre><code>  private String id = UNKNOWN_ID;
+  private long timestamp = Long.MIN_VALUE;
+  private long avg = UNCOLLECTED_VALUE;
+  private String maxAvgAgentId = UNKNOWN_AGENT;
+  private long maxAvg = UNCOLLECTED_VALUE;
+  private String minAvgAgentId = UNKNOWN_AGENT;
+  private long minAvg = UNCOLLECTED_VALUE;
+</code></pre>
+</li>
+<li><p>写入JoinTransactionBo信息时，可选项            </p>
+<pre><code>  private String id = UNKNOWN_ID;
+  private long collectInterval = UNCOLLECTED_VALUE;
+  private long totalCount = UNCOLLECTED_VALUE;
+  private String maxTotalCountAgentId = UNKNOWN_AGENT;
+  private long maxTotalCount = UNCOLLECTED_VALUE;
+  private String minTotalCountAgentId = UNKNOWN_AGENT;
+  private long minTotalCount = UNCOLLECTED_VALUE;
+  private long timestamp = Long.MIN_VALUE;
+</code></pre>
+</li>
+</ul>
+<h1 id="ApplicationIndex"><a href="#ApplicationIndex" class="headerlink" title="ApplicationIndex"></a>ApplicationIndex</h1><h2 id="用途-3"><a href="#用途-3" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-3"><a href="#主键-3" class="headerlink" title="主键"></a>主键</h2><p>​    ApplicationName</p>
+<h2 id="列簇-1"><a href="#列簇-1" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] APPLICATION_INDEX_CF_AGENTS = Bytes.toBytes(&quot;Agents&quot;);
+</code></pre>
+<h2 id="列"><a href="#列" class="headerlink" title="列"></a>列</h2><p>​    agentId<br>内容为ServiceType，具体代码</p>
+<pre><code>Put put = new Put(Bytes.toBytes(agentInfo.getApplicationName()));
+byte[] qualifier = Bytes.toBytes(agentInfo.getAgentId());
+byte[] value = Bytes.toBytes(agentInfo.getServiceType());
+
+put.addColumn(APPLICATION_INDEX_CF_AGENTS, qualifier, value);
+</code></pre>
+<h1 id="AgentLifeCycle"><a href="#AgentLifeCycle" class="headerlink" title="AgentLifeCycle"></a>AgentLifeCycle</h1><h2 id="用途-4"><a href="#用途-4" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-4"><a href="#主键-4" class="headerlink" title="主键"></a>主键</h2><pre><code>agentId+reverseTime+reverseEventCounter
+</code></pre>
+<p>具体代码：</p>
+<pre><code>byte[] agentIdKey = Bytes.toBytes(agentId);
+long reverseStartTimestamp = TimeUtils.reverseTimeMillis(startTimestamp);
+long reverseEventCounter = TimeUtils.reverseTimeMillis(eventIdentifier);
+byte[] rowKey = new byte[HBaseTables.AGENT_NAME_MAX_LEN + BytesUtils.LONG_BYTE_LENGTH + BytesUtils.LONG_BYTE_LENGTH];
+BytesUtils.writeBytes(rowKey, 0, agentIdKey);
+int offset = HBaseTables.AGENT_NAME_MAX_LEN;
+BytesUtils.writeLong(reverseStartTimestamp, rowKey, offset);
+offset += BytesUtils.LONG_BYTE_LENGTH;
+BytesUtils.writeLong(reverseEventCounter, rowKey, offset);
+</code></pre>
+<h2 id="列簇-2"><a href="#列簇-2" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] AGENT_LIFECYCLE_CF_STATUS = Bytes.toBytes(&quot;S&quot;);
+</code></pre>
+<h2 id="列-1"><a href="#列-1" class="headerlink" title="列"></a>列</h2><pre><code>public static final byte[] AGENT_LIFECYCLE_CF_STATUS_QUALI_STATES = Bytes.toBytes(&quot;states&quot;);
+</code></pre>
+<p>具体内容为AgentLifeCycleBo，可选项</p>
+<pre><code>private final byte version;
+private final String agentId;
+private final long startTimestamp;
+private final long eventTimestamp;
+private final long eventIdentifier;
+private final AgentLifeCycleState agentLifeCycleState;
+</code></pre>
+<h1 id="AgentEvent"><a href="#AgentEvent" class="headerlink" title="AgentEvent"></a>AgentEvent</h1><h2 id="用途-5"><a href="#用途-5" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-5"><a href="#主键-5" class="headerlink" title="主键"></a>主键</h2><p>​    agentId+reverseTime<br>具体构建代码：</p>
+<pre><code>byte[] agentIdKey = BytesUtils.toBytes(agentId);
+long reverseStartTimestamp = TimeUtils.reverseTimeMillis(eventTimestamp);
+return RowKeyUtils.concatFixedByteAndLong(agentIdKey, HBaseTables.AGENT_NAME_MAX_LEN, reverseStartTimestamp);
+</code></pre>
+<h2 id="列簇-3"><a href="#列簇-3" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] AGENT_EVENT_CF_EVENTS = Bytes.toBytes(&quot;E&quot;)
+</code></pre>
+<h2 id="列-2"><a href="#列-2" class="headerlink" title="列"></a>列</h2><p>列主要是agent的事件类型AgentEventType，可选项：</p>
+<pre><code>AGENT_CONNECTED(10100, &quot;Agent connected&quot;, Void.class, DURATIONAL, AGENT_LIFECYCLE),
+AGENT_PING(10199, &quot;Agent ping&quot;, Void.class, AGENT_LIFECYCLE),
+AGENT_SHUTDOWN(10200, &quot;Agent shutdown&quot;, Void.class, DURATIONAL, AGENT_LIFECYCLE),
+AGENT_UNEXPECTED_SHUTDOWN(10201, &quot;Agent unexpected shutdown&quot;, Void.class, DURATIONAL, AGENT_LIFECYCLE),
+AGENT_CLOSED_BY_SERVER(10300, &quot;Agent connection closed by server&quot;, Void.class, DURATIONAL, AGENT_LIFECYCLE),
+AGENT_UNEXPECTED_CLOSE_BY_SERVER(10301, &quot;Agent connection unexpectedly closed by server&quot;, Void.class, DURATIONAL, AGENT_LIFECYCLE),
+AGENT_DEADLOCK_DETECTED(10401, &quot;Agent deadlock detected&quot;, TDeadlock.class, AGENT_LIFECYCLE),
+USER_THREAD_DUMP(20100, &quot;Thread dump by user&quot;, TCommandThreadDumpResponse.class, USER_REQUEST, THREAD_DUMP),
+OTHER(-1, &quot;Other event&quot;, String.class, AgentEventTypeCategory.OTHER);
+</code></pre>
+<p>内容主要是AgentEventBo，可选项</p>
+<pre><code>private final byte version;
+private final String agentId;
+private final long startTimestamp;
+private final long eventTimestamp;
+private final AgentEventType eventType;
+private byte[] eventBody;
+</code></pre>
+<h1 id="StringMetaData"><a href="#StringMetaData" class="headerlink" title="StringMetaData"></a>StringMetaData</h1><h2 id="用途-6"><a href="#用途-6" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-6"><a href="#主键-6" class="headerlink" title="主键"></a>主键</h2><pre><code>agentId+startTime+stringId
+</code></pre>
+<p>具体代码</p>
+<pre><code>final byte[] buffer = new byte[AGENT_NAME_MAX_LEN + LONG_BYTE_LENGTH + INT_BYTE_LENGTH];
+BytesUtils.writeBytes(buffer, 0, agentBytes)
+long reverseCurrentTimeMillis = TimeUtils.reverseTimeMillis(agentStartTime);
+BytesUtils.writeLong(reverseCurrentTimeMillis, buffer, AGENT_NAME_MAX_LEN);
+BytesUtils.writeInt(keyCode, buffer, AGENT_NAME_MAX_LEN + LONG_BYTE_LENGTH);
+</code></pre>
+<p>组合完后还需要在前面添加前缀</p>
+<pre><code>final byte[] rowKey = getDistributedKey(stringMetaDataBo.toRowKey());
+private byte[] getDistributedKey(byte[] rowKey) &#123;
+    return rowKeyDistributorByHashPrefix.getDistributedKey(rowKey);
+&#125;
+</code></pre>
+<h2 id="列簇-4"><a href="#列簇-4" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] STRING_METADATA_CF_STR = Bytes.toBytes(&quot;Str&quot;)
+</code></pre>
+<h1 id="列-3"><a href="#列-3" class="headerlink" title="列"></a>列</h1><pre><code>private java.lang.String agentId; // required
+private long agentStartTime; // required
+private int stringId; // required
+private java.lang.String stringValue; // required
+</code></pre>
+<h1 id="ApiMetaData"><a href="#ApiMetaData" class="headerlink" title="ApiMetaData"></a>ApiMetaData</h1><h2 id="用途-7"><a href="#用途-7" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-7"><a href="#主键-7" class="headerlink" title="主键"></a>主键</h2><pre><code>AgentId+AgentStartTime+ApiId
+</code></pre>
+<p>组合完后还需要在前面添加前缀</p>
+<pre><code>final byte[] rowKey = getDistributedKey(stringMetaDataBo.toRowKey());
+private byte[] getDistributedKey(byte[] rowKey) &#123;
+    return rowKeyDistributorByHashPrefix.getDistributedKey(rowKey);
+&#125;
+</code></pre>
+<h2 id="列簇-5"><a href="#列簇-5" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] API_METADATA_CF_API = Bytes.toBytes(&quot;Api&quot;);
+</code></pre>
+<h2 id="列-4"><a href="#列-4" class="headerlink" title="列"></a>列</h2><pre><code>public static final byte[] API_METADATA_CF_API_QUALI_SIGNATURE = Bytes.toBytes(&quot;P_api_signature&quot;);
+</code></pre>
+<p>内容:</p>
+<pre><code>private java.lang.String agentId; // required
+private long agentStartTime; // required
+private int apiId; // required
+private java.lang.String apiInfo; // required
+private int line; // optional
+private int type; // optional
+</code></pre>
+<h1 id="SqlMetaData-Ver2"><a href="#SqlMetaData-Ver2" class="headerlink" title="SqlMetaData_Ver2"></a>SqlMetaData_Ver2</h1><h2 id="用途-8"><a href="#用途-8" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-8"><a href="#主键-8" class="headerlink" title="主键"></a>主键</h2><pre><code>AgentId+AgentStartTime+SqlId
+</code></pre>
+<p>组合完后还需要在前面添加前缀</p>
+<pre><code>final byte[] rowKey = getDistributedKey(sqlMetaDataBo.toRowKey());
+private byte[] getDistributedKey(byte[] rowKey) &#123;
+    return rowKeyDistributorByHashPrefix.getDistributedKey(rowKey);
+&#125;
+</code></pre>
+<h2 id="列簇-6"><a href="#列簇-6" class="headerlink" title="列簇"></a>列簇</h2><pre><code>public static final byte[] SQL_METADATA_VER2_CF_SQL = Bytes.toBytes(&quot;Sql&quot;);
+</code></pre>
+<h2 id="列-5"><a href="#列-5" class="headerlink" title="列"></a>列</h2><pre><code>public static final byte[] SQL_METADATA_VER2_CF_SQL_QUALI_SQLSTATEMENT = Bytes.toBytes(&quot;P_sql_statement&quot;);
+</code></pre>
+<p>内容:</p>
+<pre><code>private java.lang.String agentId; // required
+private long agentStartTime; // required
+private int sqlId; // required
+private java.lang.String sql; // required
+</code></pre>
+<h1 id="TraceV2"><a href="#TraceV2" class="headerlink" title="TraceV2"></a>TraceV2</h1><h2 id="用途-9"><a href="#用途-9" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-9"><a href="#主键-9" class="headerlink" title="主键"></a>主键</h2><p>​    AgentId+AgentStartTime+TransactionSequence</p>
+<p>组合完后还需要在前面添加前缀</p>
+<pre><code>final byte[] rowKey = getDistributedKey(stringMetaDataBo.toRowKey());
+private byte[] getDistributedKey(byte[] rowKey) &#123;
+    return rowKeyDistributorByHashPrefix.getDistributedKey(rowKey);
+&#125;
+
+return wrapDistributedRowKey(rowKey);
+private byte[] wrapDistributedRowKey(byte[] rowKey) &#123;
+return rowKeyDistributor.getDistributedKey(rowKey);
+&#125;
+</code></pre>
+<h2 id="列簇-7"><a href="#列簇-7" class="headerlink" title="列簇"></a>列簇</h2><p>​    public static final byte[] TRACE_V2_CF_SPAN = Bytes.toBytes(“S”);  //Span</p>
+<h2 id="列-6"><a href="#列-6" class="headerlink" title="列"></a>列</h2><p>列名的构造代码如下：</p>
+<pre><code>private ByteBuffer encodeQualifier(byte type, String applicationId, String agentId, long agentStartTime, long spanId, SpanEventBo firstEvent) &#123;
+    final Buffer buffer = new AutomaticBuffer(128);
+    buffer.putByte(type);
+    buffer.putPrefixedString(applicationId);
+    buffer.putPrefixedString(agentId);
+    buffer.putVLong(agentStartTime);
+    buffer.putLong(spanId);
+
+    if (firstEvent != null) &#123;
+        buffer.putSVInt(firstEvent.getSequence());
+
+        final byte bitField = SpanEventQualifierBitField.buildBitField(firstEvent);
+        buffer.putByte(bitField);
+        // case : async span
+        if (SpanEventQualifierBitField.isSetAsync(bitField)) &#123;
+            buffer.putInt(firstEvent.getAsyncId());
+            buffer.putVInt(firstEvent.getAsyncSequence());
+        &#125;
+    &#125; else &#123;
+        // simple trace case
+//            buffer.putSVInt((short) -1);
+
+//            byte cfBitField = SpanEventQualifierBitField.setAsync((byte) 0, false);
+//            buffer.putByte(cfBitField);
+    &#125;
+
+    return buffer.wrapByteBuffer();
+&#125;
+</code></pre>
+<p>列的内容如下，主要由SpanBo构造而成</p>
+<pre><code>public ByteBuffer encodeSpanColumnValue(SpanEncodingContext&lt;SpanBo&gt; encodingContext) &#123;
+    final SpanBo span = encodingContext.getValue();
+
+    final SpanBitFiled bitField = SpanBitFiled.build(span);
+
+    final Buffer buffer = new AutomaticBuffer(256);
+
+    final byte version = span.getRawVersion();
+    buffer.putByte(version);
+
+    // bit field
+    buffer.putByte(bitField.getBitField());
+
+
+    final short serviceType = span.getServiceType();
+    buffer.putShort(serviceType);
+
+    switch (bitField.getApplicationServiceTypeEncodingStrategy()) &#123;
+        case PREV_EQUALS:
+            break;
+        case RAW:
+            buffer.putShort(span.getApplicationServiceType());
+            break;
+        default:
+            throw new IllegalStateException(&quot;applicationServiceType&quot;);
+    &#125;
+
+
+    // insert for rowkey
+    // buffer.put(spanID);
+    if (!bitField.isRoot()) &#123;
+        buffer.putLong(span.getParentSpanId());
+    &#125;
+
+    // prevSpanEvent coding
+    final long startTime = span.getStartTime();
+    final long startTimeDelta = span.getCollectorAcceptTime() - startTime;
+    buffer.putVLong(startTimeDelta);
+    buffer.putVInt(span.getElapsed());
+
+
+    buffer.putPrefixedString(span.getRpc());
+
+    buffer.putPrefixedString(span.getEndPoint());
+    buffer.putPrefixedString(span.getRemoteAddr());
+    buffer.putSVInt(span.getApiId());
+
+
+    // BIT flag
+    if (bitField.isSetErrorCode()) &#123;
+        buffer.putInt(span.getErrCode());
+    &#125;
+
+    if (bitField.isSetHasException()) &#123;
+        buffer.putSVInt(span.getExceptionId());
+        buffer.putPrefixedString(span.getExceptionMessage());
+    &#125;
+
+    if (bitField.isSetFlag()) &#123;
+        buffer.putShort(span.getFlag());
+    &#125;
+
+
+    if (bitField.isSetLoggingTransactionInfo()) &#123;
+        buffer.putByte(span.getLoggingTransactionInfo());
+    &#125;
+
+    buffer.putPrefixedString(span.getAcceptorHost());
+
+    if (bitField.isSetAnnotation()) &#123;
+        List&lt;AnnotationBo&gt; annotationBoList = span.getAnnotationBoList();
+        writeAnnotationList(buffer, annotationBoList, encodingContext);
+    &#125;
+
+    final List&lt;SpanEventBo&gt; spanEventBoList = span.getSpanEventBoList();
+    writeSpanEventList(buffer, spanEventBoList, encodingContext);
+
+    return buffer.wrapByteBuffer();
+&#125;
+</code></pre>
+<h1 id="ApplicationTraceIndex"><a href="#ApplicationTraceIndex" class="headerlink" title="ApplicationTraceIndex"></a>ApplicationTraceIndex</h1><h2 id="用途-10"><a href="#用途-10" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-10"><a href="#主键-10" class="headerlink" title="主键"></a>主键</h2><pre><code>applicationName+acceptedTime
+</code></pre>
+<p>代码如下：</p>
+<pre><code>public static byte[] getApplicationTraceIndexRowKey(String applicationName, long timestamp) &#123;
+    if (applicationName == null) &#123;
+        throw new IllegalArgumentException(&quot;agentId must not null&quot;);
+    &#125;
+    final byte[] bApplicationName = BytesUtils.toBytes(applicationName);
+    return RowKeyUtils.concatFixedByteAndLong(bApplicationName, AGENT_NAME_MAX_LEN, TimeUtils.reverseTimeMillis(timestamp));
+&#125;
+</code></pre>
+<h2 id="列簇-8"><a href="#列簇-8" class="headerlink" title="列簇"></a>列簇</h2><p>​    public static final byte[] APPLICATION_TRACE_INDEX_CF_TRACE = Bytes.toBytes(“I”);</p>
+<h2 id="列-7"><a href="#列-7" class="headerlink" title="列"></a>列</h2><p>列名主要通过getVarTransactionId生成：</p>
+<pre><code>public static byte[] getVarTransactionId(TSpan span) &#123;
+    if (span == null) &#123;
+        throw new NullPointerException(&quot;span must not be null&quot;);
+    &#125;
+    final byte[] transactionIdBytes = span.getTransactionId();
+    TransactionId transactionId = TransactionIdUtils.parseTransactionId(transactionIdBytes);
+    String agentId = transactionId.getAgentId();
+    if (agentId == null) &#123;
+        agentId = span.getAgentId();
+    &#125;
+
+    final Buffer buffer= new AutomaticBuffer(32);
+    buffer.putPrefixedString(agentId);
+    buffer.putSVLong(transactionId.getAgentStartTime());
+    buffer.putVLong(transactionId.getTransactionSequence());
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+<p>内容如下：</p>
+<pre><code>    final Buffer buffer = new AutomaticBuffer(10 + AGENT_NAME_MAX_LEN);
+    buffer.putVInt(span.getElapsed());
+    buffer.putSVInt(span.getErr());
+    buffer.putPrefixedString(span.getAgentId());
+    final byte[] value = buffer.getBuffer();
+</code></pre>
+<h1 id="ApplicationMapStatisticsCaller-Ver2"><a href="#ApplicationMapStatisticsCaller-Ver2" class="headerlink" title="ApplicationMapStatisticsCaller_Ver2"></a>ApplicationMapStatisticsCaller_Ver2</h1><h2 id="用途-11"><a href="#用途-11" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-11"><a href="#主键-11" class="headerlink" title="主键"></a>主键</h2><p>​    “APPLICATIONNAME(max 24bytes)” + apptype(2byte) + “TIMESTAMP(8byte)”<br>代码如下：</p>
+<pre><code>public static byte[] makeRowKey(String applicationName, short applicationType, long timestamp) &#123;
+    if (applicationName == null) &#123;
+        throw new NullPointerException(&quot;applicationName must not be null&quot;);
+    &#125;
+    final byte[] applicationNameBytes= BytesUtils.toBytes(applicationName);
+
+    final Buffer buffer = new AutomaticBuffer(2 + applicationNameBytes.length + 2 + 8);
+
+    buffer.putShort((short)applicationNameBytes.length);
+    buffer.putBytes(applicationNameBytes);
+    buffer.putShort(applicationType);
+    long reverseTimeMillis = TimeUtils.reverseTimeMillis(timestamp);
+    buffer.putLong(reverseTimeMillis);
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+<h2 id="列簇-9"><a href="#列簇-9" class="headerlink" title="列簇"></a>列簇</h2><p>​    public static final byte[] MAP_STATISTICS_CALLER_VER2_CF_COUNTER = Bytes.toBytes(“C”);</p>
+<h2 id="列-8"><a href="#列-8" class="headerlink" title="列"></a>列</h2><p>列名如下</p>
+<pre><code>public static byte[] makeColumnName(short serviceType, String applicationName, String destHost, short slotNumber) &#123;
+    if (applicationName == null) &#123;
+        throw new NullPointerException(&quot;applicationName must not be null&quot;);
+    &#125;
+    if (destHost == null) &#123;
+        // throw new NullPointerException(&quot;destHost must not be null&quot;);
+        destHost = &quot;&quot;;
+    &#125;
+    // approximate size of destHost
+    final Buffer buffer = new AutomaticBuffer(BytesUtils.SHORT_BYTE_LENGTH + PinpointConstants.APPLICATION_NAME_MAX_LEN + destHost.length() + BytesUtils.SHORT_BYTE_LENGTH);
+    buffer.putShort(serviceType);
+    buffer.putShort(slotNumber);
+    buffer.put2PrefixedString(applicationName);
+    buffer.putBytes(BytesUtils.toBytes(destHost));
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+<p>主要是统计，内容是数字信息。</p>
+<h1 id="ApplicationMapStatisticsCallee-Ver2"><a href="#ApplicationMapStatisticsCallee-Ver2" class="headerlink" title="ApplicationMapStatisticsCallee_Ver2"></a>ApplicationMapStatisticsCallee_Ver2</h1><h2 id="用途-12"><a href="#用途-12" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-12"><a href="#主键-12" class="headerlink" title="主键"></a>主键</h2><p>​    “APPLICATIONNAME(max 24bytes)” + apptype(2byte) + “TIMESTAMP(8byte)”<br>代码如下：</p>
+<pre><code>public static byte[] makeRowKey(String applicationName, short applicationType, long timestamp) &#123;
+    if (applicationName == null) &#123;
+        throw new NullPointerException(&quot;applicationName must not be null&quot;);
+    &#125;
+    final byte[] applicationNameBytes= BytesUtils.toBytes(applicationName);
+
+    final Buffer buffer = new AutomaticBuffer(2 + applicationNameBytes.length + 2 + 8);
+
+    buffer.putShort((short)applicationNameBytes.length);
+    buffer.putBytes(applicationNameBytes);
+    buffer.putShort(applicationType);
+    long reverseTimeMillis = TimeUtils.reverseTimeMillis(timestamp);
+    buffer.putLong(reverseTimeMillis);
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+<h2 id="列簇-10"><a href="#列簇-10" class="headerlink" title="列簇"></a>列簇</h2><p>​    public static final byte[] MAP_STATISTICS_CALLER_VER2_CF_COUNTER = Bytes.toBytes(“C”);</p>
+<h2 id="列-9"><a href="#列-9" class="headerlink" title="列"></a>列</h2><p>列名如下</p>
+<pre><code>public static byte[] makeColumnName(short serviceType, String applicationName, String destHost, short slotNumber) &#123;
+    if (applicationName == null) &#123;
+        throw new NullPointerException(&quot;applicationName must not be null&quot;);
+    &#125;
+    if (destHost == null) &#123;
+        // throw new NullPointerException(&quot;destHost must not be null&quot;);
+        destHost = &quot;&quot;;
+    &#125;
+    // approximate size of destHost
+    final Buffer buffer = new AutomaticBuffer(BytesUtils.SHORT_BYTE_LENGTH + PinpointConstants.APPLICATION_NAME_MAX_LEN + destHost.length() + BytesUtils.SHORT_BYTE_LENGTH);
+    buffer.putShort(serviceType);
+    buffer.putShort(slotNumber);
+    buffer.put2PrefixedString(applicationName);
+    buffer.putBytes(BytesUtils.toBytes(destHost));
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+<p>主要是统计，内容是数字信息。</p>
+<h1 id="HostApplicationMap-Ver2"><a href="#HostApplicationMap-Ver2" class="headerlink" title="HostApplicationMap_Ver2"></a>HostApplicationMap_Ver2</h1><h2 id="用途-13"><a href="#用途-13" class="headerlink" title="用途"></a>用途</h2><h2 id="主键-13"><a href="#主键-13" class="headerlink" title="主键"></a>主键</h2><p>​    parentApplicationName+parentServiceType+statisticsRowSlot+parentAgentId<br>构建方式：</p>
+<pre><code>byte[] createRowKey0(String parentApplicationName, short parentServiceType, long statisticsRowSlot, String parentAgentId) &#123;
+    final int SIZE = HBaseTables.APPLICATION_NAME_MAX_LEN + 2 + 8;
+    final Buffer rowKeyBuffer = new AutomaticBuffer(SIZE);
+    rowKeyBuffer.putPadString(parentApplicationName, HBaseTables.APPLICATION_NAME_MAX_LEN);
+    rowKeyBuffer.putShort(parentServiceType);
+    rowKeyBuffer.putLong(TimeUtils.reverseTimeMillis(statisticsRowSlot));
+    return rowKeyBuffer.getBuffer();
+&#125;
+</code></pre>
+<h2 id="列簇-11"><a href="#列簇-11" class="headerlink" title="列簇"></a>列簇</h2><p>​    public static final byte[] HOST_APPLICATION_MAP_VER2_CF_MAP = Bytes.toBytes(“M”);</p>
+<p>#列<br>列名</p>
+<pre><code>private byte[] createColumnName(String host, String bindApplicationName, short bindServiceType) &#123;
+    Buffer buffer = new AutomaticBuffer();
+    buffer.putPrefixedString(host);
+    buffer.putPrefixedString(bindApplicationName);
+    buffer.putShort(bindServiceType);
+    return buffer.getBuffer();
+&#125;
+</code></pre>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" title="pinpoint底层存储数据结构" target="_blank" rel="external">http://aidodoo.com/others/pinpoint数据结构/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="(no title)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" title="spark集群的搭建"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

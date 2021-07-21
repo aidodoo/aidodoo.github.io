@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Kafka编程实践-消费者 | Hexo</title>
+  <meta name="description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：     基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka编程实践-消费者">
+<meta property="og:url" content="http://aidodoo.com/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="本系列主要讲解kafka基本设计和原理分析，分如下内容：     基本概念 消息模型 kafka副本同步机制 kafka文件存储机制 kafka数据可靠性和一致性保证 kafka leader选举 kafka消息传递语义 Kafka集群partitions和replicas默认分配解析 kafka安装和日常运维 kafka编程开发-生产者 kafka编程开发-消费者  本文主要实际编程讲解kafk">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-04-12T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="kafka">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-kafka/kafka编程开发-消费者" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kafka编程实践-消费者
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/" class="article-date">
+	  <time datetime="2018-04-12T00:00:00.000Z" itemprop="datePublished">2018-04-12</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/kafka/" rel="tag">kafka</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>本系列主要讲解kafka基本设计和原理分析，分如下内容：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">基本概念</a></li>
+<li><a href="https://aidodoo.com/post/kafka/%E6%B6%88%E6%81%AF%E6%A8%A1%E5%9E%8B/">消息模型</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E5%89%AF%E6%9C%AC%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">kafka副本同步机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%9C%BA%E5%88%B6/">kafka文件存储机制</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E6%95%B0%E6%8D%AE%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%92%8C%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81/">kafka数据可靠性和一致性保证</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka-leader%E9%80%89%E4%B8%BE/">kafka leader选举</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E6%B6%88%E6%81%AF%E4%BC%A0%E9%80%92%E8%AF%AD%E4%B9%89/">kafka消息传递语义</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E9%9B%86%E7%BE%A4partitions%E5%92%8Creplicas%E9%BB%98%E8%AE%A4%E5%88%86%E9%85%8D%E8%A7%A3%E6%9E%90/">Kafka集群partitions和replicas默认分配解析</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E5%AE%89%E8%A3%85%E5%92%8C%E6%97%A5%E5%B8%B8%E8%BF%90%E7%BB%B4/">kafka安装和日常运维</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/">kafka编程开发-生产者</a></li>
+<li><a href="https://aidodoo.com/post/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/">kafka编程开发-消费者</a></li>
+</ul>
+<p>本文主要实际编程讲解kafka生产者相关内容，版本<code>kafka_2.11-0.10.1.0</code>。<br>kafka消费者相对生产者来说，要复杂一些，主要是涉及到消息的拉取，消息的处理，偏移量offset的提交<br>##kafka安装<br>前面博文中均已详细介绍，不再赘述。<br>linux集群安装参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/aidodoo/p/7151949.html">大数据平台搭建-kafka集群的搭建</a><br>window单机版安装参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/aidodoo/p/9298056.html">kafka知识体系50-生产者编程实践</a>   </p>
+<p>##实践<br>###依赖<br><code>kafka 0.10.1.0</code>版本中采用<code>KafkaConsumer</code>对象用来向<code>kafka broker</code>集群拉取消息。<br>编写代码前先引入相关依赖包：</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;
+    &lt;artifactId&gt;kafka_2.11&lt;/artifactId&gt;
+    &lt;version&gt;0.10.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;
+    &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;
+    &lt;version&gt;0.10.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p>###基本概念<br><strong>消费者位置和偏移量</strong><br>消费者的位置表示下一条消息的偏移量，其比消费者在分区中已经消费的消息的偏移量还要大1。<br>提交的偏移量表示消费完成后，安全记录保存的偏移量，也是消费进程失败或者重启后的恢复点。可以同步提交<code>commitSync</code>或者异步提交偏移量<code>commitAsync</code>，也可以让消费者通过线程定时提交偏移量。  </p>
+<p><strong>消费组和订阅主题</strong><br><code>kafka</code>允许多个消费者订阅同一个主题并共享同一个消费组，来实现多个进程来消费和处理消息。其中这些进程可以可以在同一台机器上运行，也可以分布在多台机器上，为处理提供可扩展性和容错能力。<br>组中的每个消费者都可以通过其<code>subscribe</code>方法动态设置要订阅的主题列表 。<code>Kafka</code>将订阅主题中的每条消息传递给每个消费者组中的一个进程。这是通过平衡消费者组中所有成员之间的分区来实现的，这样每个分区就只分配给该组中的一个使用者。因此，如果存在具有四个分区的主题和具有两个进程的使用者组，则每个进程将使用两个分区。<br>当消费者失败或者新增消费者，以及新增分区都会发生消费组内均衡操作。同时当均衡操作发生时，可以通过<code>ConsumerRebalanceListener</code>去监听，以便完成必要的应用程序级逻辑，例如状态清理，手动偏移提交等。</p>
+<p><strong>消费者故障检测</strong><br>消费者在订阅主题后，调用<code>poll</code>方法时将自动加入组，<code>poll</code>方法旨在确保消费者的活力。只要继续调用<code>poll</code>方法，消费者将留在组中并继续从分配的分区中接收消息。在底层，是消费者会定期向服务端发送心跳。当消费者崩溃或者无法再持续的时间内(<code>session.timeout.ms</code>)发送心跳，则消费者被视为死亡，其占用的分区也会被重新分配。<br>此外，消费者可能遇到活锁的情况，即仍在发送心跳，但没有消费消息。<br>为了防止消费者在这种情况下无限期地占用其分区，我们使用该<code>max.poll.interval.ms</code>设置提供了活跃度检测机制。基本上，如果您不至少与配置的最大间隔一样频繁地调用轮询，则客户端将主动离开该组，以便其他使用者可以接管其分区。发生这种情况时，您可能会看到偏移提交失败（如<code>CommitFailedException</code>异常）。这是一种安全机制，可确保只有组中的活动成员才能提交偏移量。<br>消费者提供两个配置设置来控制轮询循环的行为：         </p>
+<ul>
+<li><code>max.poll.interval.ms</code>：通过增加预期轮询之间的间隔，您可以为消费者提供更多时间来处理从中返回的一批记录poll(long)。缺点是增加此值可能会延迟组重新平衡，因为消费者将仅在轮询调用内加入重新平衡。  </li>
+<li><code>max.poll.records</code>：使用此设置可限制从单个调用返回到poll的总记录数。这可以更容易地预测每个轮询间隔内必须处理的最大值。通过调整此值，您可以减少轮询间隔，这将减少组重新平衡的影响。</li>
+</ul>
+<p>###编码实践<br><strong>单线程自动提交偏移量</strong>   </p>
+<pre><code>package com.molyeo.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Properties;
+
+public class SingleKafkaConsumerDemo &#123;
+    static Logger logger= LoggerFactory.getLogger(SingleKafkaConsumerDemo.class.getName());
+    public static void main(String[] args)&#123;
+        Properties props = new Properties();
+        props.put(&quot;bootstrap.servers&quot;,&quot;LAPTOP-2CBRDCI0:9092&quot;);
+        props.put(&quot;group.id&quot;,&quot;mygroup&quot;);
+        props.put(&quot;enable.auto.commit&quot;,&quot;true&quot;);
+        props.put(&quot;auto.commit.interval.ms&quot;,&quot;1000&quot;);
+        props.put(&quot;key.deserializer&quot;,&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
+        props.put(&quot;value.deserializer&quot;,&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
+        KafkaConsumer consumer=new KafkaConsumer(props);
+        consumer.subscribe(Arrays.asList(&quot;TEST&quot;));
+        try&#123;
+            while (true)&#123;
+                ConsumerRecords&lt;String,String&gt; records=consumer.poll(200);
+                for(ConsumerRecord&lt;String,String&gt; record:records)&#123;
+                    logger.info(&quot;topic=&#123;&#125;,offset = &#123;&#125;, key = &#123;&#125;, value = &#123;&#125;&quot;, record.topic(), record.offset(), record.key(), record.value());
+                &#125;
+            &#125;
+        &#125;catch (Exception e)&#123;
+            e.printStackTrace();
+        &#125;finally &#123;
+            consumer.close();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>程序中设置配置<code>enable.auto.commit=true,auto.commit.interval.ms=1000</code>即每秒钟一次的频率自动提交offset的值，这种方式最简单方便。存在的问题是如果我们拉取消息后，如果在处理消息的过程中出现异常，而此时offset值已经更新提交了，会导致消息没有正确处理即已丢失。</p>
+<p><strong>手工提交偏移量</strong><br>针对自动提交偏移量的缺陷，kafka消费者允许我们手工控制何时将记录视为已消耗，并提交其偏移量，这能将消息的拉取和消息的处理过程解耦。</p>
+<pre><code>package com.molyeo.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
+public class ManualOffsetControlDemo &#123;
+    public static void main(String[] args) &#123;
+        Properties props = new Properties();
+        props.put(&quot;bootstrap.servers&quot;, &quot;LAPTOP-2CBRDCI0:9092&quot;);
+        props.put(&quot;group.id&quot;, &quot;mygroup&quot;);
+        props.put(&quot;enable.auto.commit&quot;, &quot;true&quot;);
+        props.put(&quot;auto.commit.interval.ms&quot;, &quot;1000&quot;);
+        props.put(&quot;key.deserializer&quot;, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
+        props.put(&quot;value.deserializer&quot;, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
+        KafkaConsumer&lt;String, String&gt; consumer = new KafkaConsumer&lt;&gt;(props);
+        consumer.subscribe(Arrays.asList(&quot;TEST&quot;));
+        final int minBatchSize = 20;
+        List&lt;ConsumerRecord&lt;String, String&gt;&gt; buffer = new ArrayList&lt;&gt;();
+        while (true) &#123;
+            ConsumerRecords&lt;String, String&gt; records = consumer.poll(100);
+            for (ConsumerRecord&lt;String, String&gt; record : records) &#123;
+                buffer.add(record);
+            &#125;
+            if (buffer.size() &gt;= minBatchSize) &#123;
+                handle(buffer);
+                consumer.commitSync();
+                buffer.clear();
+            &#125;
+        &#125;
+    &#125;
+
+    public static void handle(List&lt;ConsumerRecord&lt;String, String&gt;&gt; recordList) &#123;
+        //do something
+    &#125;
+&#125;
+</code></pre>
+<p>在上面的代码中，我们拉取消息，并将消息放入到缓存中，当消息累计到一定数量后，调用handle方法去处理数据，处理完成后再去提交偏移量。如果在handle处理后，偏移量提交前进程失败了，则下次启动后由于偏移量还是之前的，我们还能再重复消费一次数据。  </p>
+<p>上面的代码中，是将已接收的消息标记为已提交，此外我们还可以明确指标偏移量来更好的控制已提交的记录。如下我们将一个分区的消息接收处理完成后，按照分区去提交偏移量。</p>
+<pre><code> try &#123;
+     while(running) &#123;
+         ConsumerRecords&lt;String, String&gt; records = consumer.poll(Long.MAX_VALUE);
+         for (TopicPartition partition : records.partitions()) &#123;
+             List&lt;ConsumerRecord&lt;String, String&gt;&gt; partitionRecords = records.records(partition);
+             for (ConsumerRecord&lt;String, String&gt; record : partitionRecords) &#123;
+                 System.out.println(record.offset() + &quot;: &quot; + record.value());
+             &#125;
+             long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
+             consumer.commitSync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)));
+         &#125;
+     &#125;
+ &#125; finally &#123;
+   consumer.close();
+ &#125;
+</code></pre>
+<p><strong>多线程并发消费</strong><br>多线程并发消费的时候，尤其得注意KafkaConsumer不是线程安全的。这样每个线程不能共享KafkaConsumer实例，常用的方法是每个线程包含一个KafkaConsumer实例，这样offset的控制则只需要关注本线程，不需要考虑其他线程的情况。</p>
+<pre><code>package com.molyeo.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.WakeupException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/**
+ * Created by zhangkh on 2018/7/9.
+ * auto commit offset
+ * multi thread
+ */
+public class MultiKafkaConsumerDemo &#123;
+    Logger logger = LoggerFactory.getLogger(MultiKafkaConsumerDemo.class.getName());
+
+    public static void main(String[] args) &#123;
+        String topic = &quot;TEST&quot;;
+        String groupId = &quot;mygrouop&quot;;
+        int nThreads = 3;
+        ConsumerGroup consumerGroup = new ConsumerGroup(topic, groupId, nThreads);
+        consumerGroup.run();
+    &#125;
+&#125;
+
+class ConsumerGroup &#123;
+    Logger logger = LoggerFactory.getLogger(ConsumerGroup.class.getName());
+    private ExecutorService executorService;
+    private List&lt;ConsumerTask&gt; consumerTaskList;
+
+    ConsumerGroup(String topic, String groupId, int nThreads) &#123;
+        executorService = Executors.newFixedThreadPool(nThreads);
+        consumerTaskList = new ArrayList&lt;&gt;(nThreads);
+        for (int i = 0; i &lt; nThreads; i++) &#123;
+            consumerTaskList.add(new ConsumerTask(topic, groupId, i));
+        &#125;
+    &#125;
+
+    public void run() &#123;
+        for (ConsumerTask task : consumerTaskList) &#123;
+            executorService.submit(task);
+        &#125;
+    &#125;
+
+    public void shutdown() &#123;
+        if (executorService != null) &#123;
+            executorService.shutdown();
+        &#125;
+        try &#123;
+            if (!executorService.awaitTermination(5000, TimeUnit.MILLISECONDS)) &#123;
+                logger.info(&quot;Timed out waiting for consumer threads to shut down, exiting uncleanly&quot;);
+            &#125;
+        &#125; catch (InterruptedException e) &#123;
+            logger.error(&quot;Interrupted during shutdown, exiting uncleanly&quot;);
+            e.printStackTrace();
+        &#125;
+    &#125;
+&#125;
+
+class ConsumerTask&lt;K, V&gt; implements Runnable &#123;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+
+    Logger logger = LoggerFactory.getLogger(ConsumerTask.class.getName());
+    private final KafkaConsumer consumer;
+    private String topic;
+    private String groupId;
+    private int threadNo;
+
+    public ConsumerTask(String topic, String groupId, int threadNo) &#123;
+        this.topic = topic;
+        this.groupId = groupId;
+        this.threadNo = threadNo;
+        Properties props = getConsumerConfig(groupId);
+        consumer = new KafkaConsumer(props);
+        consumer.subscribe(Arrays.asList(topic));
+    &#125;
+
+    public Properties getConsumerConfig(String groupId) &#123;
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaCommonConfig.BOOTSTRAP_SERVERS);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;true&quot;);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, KafkaCommonConfig.KEY_DESERIALIZER_CLASS);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaCommonConfig.VALUE_DESERIALIZER_CLASS);
+        return props;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        try&#123;
+            while (!closed.get()) &#123;
+                ConsumerRecords&lt;K, V&gt; records = consumer.poll(100);
+                for (ConsumerRecord record : records) &#123;
+                    //TODO do something
+                    logger.info(&quot;&#123;&#125;,threadNo=&#123;&#125;,topic=&#123;&#125;,groupId=&#123;&#125;,offset = &#123;&#125;, key = &#123;&#125;, value = &#123;&#125;&quot;, Thread.currentThread().getName(),threadNo, record.topic(),groupId, record.offset(), record.key(), record.value());
+                &#125;
+            &#125;
+        &#125;catch (WakeupException e)&#123;
+            if (!closed.get()) throw e;
+        &#125;finally &#123;
+            consumer.close();
+        &#125;
+    &#125;
+
+    public void shutdown() &#123;
+        closed.set(true);
+        consumer.wakeup();
+    &#125;
+&#125;
+</code></pre>
+<p>程序输出如下：  </p>
+<pre><code>18/07/12 14:57:24 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 73, key = 0, value = 1531378643884
+18/07/12 14:57:24 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 82, key = 1, value = 1531378644918
+18/07/12 14:57:25 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 45, key = 2, value = 1531378645919
+18/07/12 14:57:26 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 74, key = 3, value = 1531378646919
+18/07/12 14:57:27 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 83, key = 4, value = 1531378647920
+18/07/12 14:57:28 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 46, key = 5, value = 1531378648920
+18/07/12 14:57:29 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 75, key = 6, value = 1531378649920
+18/07/12 14:57:30 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 84, key = 7, value = 1531378650921
+18/07/12 14:57:31 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 47, key = 8, value = 1531378651921
+18/07/12 14:57:32 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 76, key = 9, value = 1531378652922
+18/07/12 14:57:33 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 85, key = 10, value = 1531378653922
+18/07/12 14:57:34 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 48, key = 11, value = 1531378654923
+18/07/12 14:57:35 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 77, key = 12, value = 1531378655923
+18/07/12 14:57:36 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 86, key = 13, value = 1531378656923
+18/07/12 14:57:37 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 49, key = 14, value = 1531378657924
+18/07/12 14:57:38 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 78, key = 15, value = 1531378658924
+18/07/12 14:57:39 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 87, key = 16, value = 1531378659925
+18/07/12 14:57:40 INFO kafka.ConsumerTask: pool-1-thread-3,threadNo=2,topic=TEST,groupId=mygrouop,offset = 50, key = 17, value = 1531378660925
+18/07/12 14:57:41 INFO kafka.ConsumerTask: pool-1-thread-1,threadNo=0,topic=TEST,groupId=mygrouop,offset = 79, key = 18, value = 1531378661926
+18/07/12 14:57:42 INFO kafka.ConsumerTask: pool-1-thread-2,threadNo=1,topic=TEST,groupId=mygrouop,offset = 88, key = 19, value = 1531378662926
+</code></pre>
+<p>从输出看，三个线程各自处理自己分配的分区数据，<code>pool-1-thread-1</code> -&gt;<code>partition 0</code>,<code>pool-1-thread-2</code> -&gt;<code>partition 1</code>,<code>pool-1-thread-3</code> -&gt; <code>partition 2</code>。<br>各位可以去尝试将<code>MultiKafkaConsumerDemo</code>类中的消费者线程数改为4，可以看到有个线程不能消费到数据；如果将线程数改为2，可以看到一个线程消费了两个分区的数据，另一个线程消费了一个分区的数据。这是因为kafka是以分区作为并发单元的。<br>如果要增加消费速度，一方面可以考虑通过增加分区数，进而增加拉取线程的数量；另一方面可以通过缓存机制将消息拉取和消息处理解耦，这样则可以自定义处理线程数量，从而增加吞吐量。<br>此外如果要严格保证有且仅有一次的消费语义，可以通过保存offset到外部存储去实现，如保存到zookeeper或者mysql等。</p>
+<p>本文主要讲述了消息的拉取，消息的处理，偏移量offset的提交，多线程并发消费等。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E6%B6%88%E8%B4%B9%E8%80%85/" title="Kafka编程实践-消费者" target="_blank" rel="external">http://aidodoo.com/kafka/kafka编程开发-消费者/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/others/%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85/" title="基础环境安装"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/kafka/kafka%E7%BC%96%E7%A8%8B%E5%BC%80%E5%8F%91-%E7%94%9F%E4%BA%A7%E8%80%85/" title="Kafka编程实践-生产者 "><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

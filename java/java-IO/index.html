@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Java IO概述 | Hexo</title>
+  <meta name="description" content="Java IO本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：     Files Pipes Network Connections In-memory Buffers (e.g. arrays) System.in, System">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java IO概述">
+<meta property="og:url" content="http://aidodoo.com/java/java-IO/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="Java IO本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。 概述Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下 常用的源数据和目标媒介如下：     Files Pipes Network Connections In-memory Buffers (e.g. arrays) System.in, System">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/IO.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/media.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/source.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/InputStream.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/InputStream201808.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterInputStream.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterInputStream.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/OutputStream.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterOutputStream.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterOutputStream.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Reader.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Writer.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg">
+<meta property="article:published_time" content="2016-04-01T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/IO.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/java/java-IO/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-java/java-IO" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java IO概述
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/java/java-IO/" class="article-date">
+	  <time datetime="2016-04-01T00:00:00.000Z" itemprop="datePublished">2016-04-01</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/java/" rel="tag">java</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/java/java-IO/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="Java-IO"><a href="#Java-IO" class="headerlink" title="Java IO"></a>Java IO</h1><p>本文详细介绍讲述了Java IO的相关内容，主要涉及文件，网络数据流，内存缓冲等的输入输出，版本要求jdk1.8。<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/IO.png"></p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Java的IO包主要关注数据源的读取和输出到目标媒介。示意图如下<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/media.jpg"></p>
+<p>常用的源数据和目标媒介如下：   </p>
+<ul>
+<li>Files</li>
+<li>Pipes</li>
+<li>Network Connections</li>
+<li>In-memory Buffers (e.g. arrays)</li>
+<li>System.in, System.out, System.error</li>
+</ul>
+<p>流从概念上说一个连续的数据流，既可以从流中读取数据，也可以往流中写入数据。主要分为字节流和字符流，字节流指以字节为单位进行读写，字符流指以字符为单位进行读写。</p>
+<p>一个程序需要InputStream或者Reader从数据源读取数据，需要OutputStream或者Writer将数据写入到目标媒介中。示意图如下：  </p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/source.jpg"></p>
+<h2 id="Stream特征和分类"><a href="#Stream特征和分类" class="headerlink" title="Stream特征和分类"></a>Stream特征和分类</h2><p>Java IO针对不同的业务场景，不同的功能，设计了不同的类，各类用途如下：  </p>
+<ul>
+<li>File Access</li>
+<li>Network Access</li>
+<li>Internal Memory Buffer Access</li>
+<li>Inter-Thread Communication (Pipes)</li>
+<li>Buffering</li>
+<li>Filtering</li>
+<li>Parsing</li>
+<li>Reading and Writing Text (Readers / Writers)</li>
+<li>Reading and Writing Primitive Data (long, int etc.)</li>
+<li>Reading and Writing Objects</li>
+</ul>
+<p>通过输入、输出、基于字节或者字符、以及其他比如缓冲、解析之类的特定用途可以将Java IO流进行如下划分： </p>
+<table width="100%" cellspacing="0" cellpadding="5" style="border: 1px solid #aaaaaa;">
+    <tr><td >&nbsp;</td>
+        <td  colspan="2">Byte Based</td>
+        <td colspan="2">Character Based</td>
+    </tr>
+    <tr><td >&nbsp;</td>
+        <td >Input</td>
+        <td >Output</td>
+        <td >Input</td>
+        <td >Output</td>
+    </tr>
+    <tr><td >Basic</td>
+        <td >InputStream</td>
+        <td >OutputStream</td>
+        <td >Reader<br/>InputStreamReader</td>
+        <td >Writer<br/>OutputStreamWriter</td>
+    </tr>
+    <tr><td >Arrays</td>
+        <td >ByteArrayInputStream</td>
+        <td >ByteArrayOutputStream</td>
+        <td >CharArrayReader</td>
+        <td >CharArrayWriter</td>
+    </tr>
+    <tr><td >Files</td>
+        <td >FileInputStream<br/>RandomAccessFile</td>
+        <td >FileOutputStream<br/>RandomAccessFile</td>
+        <td >FileReader</td>
+        <td >FileWriter</td>
+    </tr>
+    <tr><td >Pipes</td>
+        <td >PipedInputStream</td>
+        <td >PipedOutputStream</td>
+        <td >PipedReader</td>
+        <td >PipedWriter</td>
+    </tr>
+    <tr><td >Buffering</td>
+        <td >BufferedInputStream</td>
+        <td >BufferedOutputStream</td>
+        <td >BufferedReader</td>
+        <td >BufferedWriter</td>
+    </tr>
+    <tr><td >Filtering</td>
+        <td >FilterInputStream</td>
+        <td >FilterOutputStream</td>
+        <td >FilterReader</td>
+        <td >FilterWriter</td>
+    </tr>
+    <tr><td >Parsing</td>
+        <td >PushbackInputStream<br/>StreamTokenizer</td>
+        <td >&nbsp;</td>
+        <td >PushbackReader<br/>LineNumberReader</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr><td >Strings</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >StringReader</td>
+        <td >StringWriter</td>
+    </tr>
+    <tr><td >Data</td>
+        <td >DataInputStream</td>
+        <td >DataOutputStream</td>
+        <td >&nbsp;</td>
+        <td ><br/></td>
+    </tr>
+    <tr><td >Data - Formatted</td>
+        <td >&nbsp;</td>
+        <td >PrintStream</td>
+        <td >&nbsp;</td>
+        <td >PrintWriter</td>
+    </tr>
+    <tr><td >Objects</td>
+        <td >ObjectInputStream</td>
+        <td >ObjectOutputStream</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+    <tr><td >Utilities</td>
+        <td >SequenceInputStream<br/></td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+        <td >&nbsp;</td>
+    </tr>
+</table>
+
+<h2 id="File类"><a href="#File类" class="headerlink" title="File类"></a>File类</h2><p>在讨论Stream的具体使用前，我们先看看IO库里面的File类。 Java文件类以抽象的方式代表文件名和目录路径名。该类主要用于文件和目录的创建、文件的查找和文件的删除等，但File对象却不能直接访问文件内容本身，要查看内容，则需要使用IO流。<br>通过以下构造方法创建一个File对象。</p>
+<ul>
+<li><p>通过给定的父抽象路径名和子路径名字符串创建一个新的File实例。<br>File(URI uri) </p>
+</li>
+<li><p>通过将给定路径名字符串转换成抽象路径名来创建一个新 File 实例。<br>File(URI uri) </p>
+</li>
+<li><p>根据 parent 路径名字符串和 child 路径名字符串创建一个新 File 实例。<br>File(URI uri) </p>
+</li>
+<li><p>通过将给定的 file: URI 转换成一个抽象路径名来创建一个新的 File 实例。</p>
+<p>File(URI uri)    </p>
+<p>由于其方法均比较简单，不再罗列，具体见<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/">https://docs.oracle.com/javase/8/docs/api/</a>。一个具体的实例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileDemo</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(FileDemo.class.getName());</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        File path = <span class="keyword">new</span> File(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (path.isDirectory()) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root: directory is &#123;&#125;&quot;</span>, path.getAbsolutePath());</span><br><span class="line">            String[] list = path.list();</span><br><span class="line">            Arrays.sort(list, String.CASE_INSENSITIVE_ORDER);</span><br><span class="line">            <span class="keyword">for</span> (String dirItem : list) &#123;</span><br><span class="line">                File file = <span class="keyword">new</span> File(path, dirItem);</span><br><span class="line">                <span class="keyword">if</span> (file.isDirectory()) &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a directory&quot;</span>, dirItem);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a file&quot;</span>, dirItem);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root is not a directory&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看当前项目，按照字典顺序排序后，再判断其子路径是文件还是目录，并输出相关结果。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">18/07/19 17:35:12 INFO io.FileDemo: root: directory is D:\workspace_spark\SparkInAction\.</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: .idea is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: data is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: libs is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: out is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: pom.xml is a file</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: spark-warehouse is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: SparkInAction.iml is a file</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: src is a directory</span><br><span class="line">18/07/19 17:35:12 INFO io.FileDemo: child: target is a directory</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="InputStream和OutputStream"><a href="#InputStream和OutputStream" class="headerlink" title="InputStream和OutputStream"></a>InputStream和OutputStream</h2><h3 id="全局类图"><a href="#全局类图" class="headerlink" title="全局类图"></a>全局类图</h3><p>  在前面表格中，罗列了<code>Java IO</code>中的流，可以看到相对复杂。我们先看字节流的层次关系。  </p>
+<p>  整体的层次关系如下：  </p>
+<p>  <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/InputStream.jpg"></p>
+<p>  在上面的层次图中，为简便区分，用蓝色表示接口，红色表示抽象类，绿色表示类。</p>
+<p>  <code>jdk1.8</code>中，主要通过5个接口来定义区别不同的流，分别是<code>Closeable</code>,<code>Flushable</code>,<code>Readable</code>,<code>Appendable</code>。其中<code>Closeable</code>的父类<code>AutoCloseable</code>接口主要是用于基于<code>try-with-resource</code>的异常处理。</p>
+<p>  <code>InputStream</code>实现<code>Closeable</code>接口,而<code>Closeable</code>的父类<code>AutoCloseable</code>接口主要是用于基于<code>try-with-resource</code>的异常处理，在后续的示例代码中将会说明。 </p>
+<h3 id="InputStream类图"><a href="#InputStream类图" class="headerlink" title="InputStream类图"></a>InputStream类图</h3><p>  具体看<code>InputStream</code>的类图如下：</p>
+<p>  <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/InputStream201808.png"></p>
+<p>  <code>InputStream</code>实现<code>Closeable</code>接口，并有五个子类，而其子类<code>FilterInputStream</code>作为装饰功能类，类图如下：</p>
+<p>  <img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterInputStream.png"></p>
+<h3 id="输入流使用基本流程"><a href="#输入流使用基本流程" class="headerlink" title="输入流使用基本流程"></a>输入流使用基本流程</h3><p>  我们先看一个从文件读取的实例，以了解IO流的使用流程。</p>
+<p>  我们将上文判断当前项目下的文件是file还是directory的例子改写一下，改写读取当前项目文件夹为data并且以data开头的文件，并输出文件内容：</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ByteBasedStream</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(ByteBasedStream.class.getName());</span><br><span class="line">	    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        File path = <span class="keyword">new</span> File(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (path.isDirectory()) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root: directory is &#123;&#125;&quot;</span>, path.getAbsolutePath());</span><br><span class="line">            String[] list;</span><br><span class="line">            list = path.list(<span class="keyword">new</span> DirFilter(<span class="string">&quot;d.*&quot;</span>));</span><br><span class="line">            logger.info(<span class="string">&quot;File after first filter:&quot;</span>);</span><br><span class="line">            <span class="keyword">for</span> (String dirItem : list) &#123;</span><br><span class="line">                File file = <span class="keyword">new</span> File(path, dirItem);</span><br><span class="line">                <span class="keyword">if</span> (file.isDirectory()) &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a directory&quot;</span>, dirItem);</span><br><span class="line">                    String[] childList = file.list(<span class="keyword">new</span> DirFilter(<span class="string">&quot;data*.txt&quot;</span>));</span><br><span class="line">                    logger.info(<span class="string">&quot;File after second filter&quot;</span>);</span><br><span class="line">                    <span class="keyword">for</span> (String childItem : childList) &#123;</span><br><span class="line">                        File childFile = <span class="keyword">new</span> File(file, childItem);</span><br><span class="line">                        <span class="keyword">if</span> (childFile.isFile()) &#123;</span><br><span class="line">                            logger.info(<span class="string">&quot;Secondary child: &#123;&#125; is a file&quot;</span>, childItem);</span><br><span class="line">                            logger.info(<span class="string">&quot;start read file &#123;&#125;&quot;</span>, childFile.getCanonicalPath());</span><br><span class="line">                            read(childFile);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a file&quot;</span>, dirItem);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root is not a directory&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    InputStream inputStream = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        inputStream = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">        <span class="keyword">int</span> byteData = inputStream.read();</span><br><span class="line">        <span class="keyword">while</span> (byteData != -<span class="number">1</span>) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, byteData, (<span class="keyword">char</span>) byteData);</span><br><span class="line">            byteData = inputStream.read();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (FileNotFoundException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (inputStream != <span class="keyword">null</span>) &#123;</span><br><span class="line">            inputStream.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  其中data.txt文件内容为<code>Hadoop</code>,程序运行日志如下：</p>
+  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: root: directory is D:\workspace_spark\SparkInAction\.</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: File after first filter:</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: child: data is a directory</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: File after second filter</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: Secondary child: data.txt is a file</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: start read file D:\workspace_spark\SparkInAction\data\data.txt</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=72, char result=H</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=97, char result=a</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=100, char result=d</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=111, char result=o</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=111, char result=o</span><br><span class="line">18/08/04 22:19:58 INFO io.ByteBasedStream: byteData=112, char result=p</span><br></pre></td></tr></table></figure>
+
+<p><strong>read()</strong></p>
+<p>自定义的<code>read</code>方法输入文件，然后我们构造<code>FileInputStream</code>实例，通过循环调用<code>read()</code>方法从<code>FileInputStream</code>流中读取一个字节的内容。<br>    int byteData=inputStream.read();<br>数据读取后可以将返回的<code>int</code>类型转换成<code>char</code>类型。<br>    char aChar = (char) data;<br>如果到达流末尾时，<code>read</code>方法返回-1。此时则可以关闭流。</p>
+<p><strong>read(byte[])</strong></p>
+<p><code>InputStream</code>包含了2个从<code>InputStream</code>中读取数据并将数据存储到缓冲数组中的<code>read()</code>方法，他们分别是：<br>    int read(byte[])<br>    int read(byte, int offset, int length)<br>一次性读取一个字节数组的方式，比一次性读取一个字节的方式快的多，所以，尽可能使用这两个方法代替<code>read()</code>方法。<br><code>read(byte[])</code>方法会尝试读取与给定字节数组容量一样大的字节数，返回值说明了已经读取过的字节数。如果<code>InputStream</code>内可读的数据不足以填满字节数组，那么数组剩余的部分将包含本次读取之前的数据。记得检查有多少数据实际被写入到了字节数组中。<br><code>read(byte, int offset, int length)</code>方法同样将数据读取到字节数组中，不同的是，该方法从数组的<code>offset</code>位置开始，并且最多将<code>length</code>个字节写入到数组中。同样地，<code>read(byte, int offset, int length)</code>方法返回一个<code>int</code>变量，告诉你已经有多少字节已经被写入到字节数组中，所以请记得在读取数据前检查上一次调用<code>read(byte, int offset, int length)</code>的返回值。<br>这两个方法都会在读取到达到流末尾时返回-1。</p>
+<h3 id="IO流异常处理"><a href="#IO流异常处理" class="headerlink" title="IO流异常处理"></a>IO流异常处理</h3><p>在读取文件的那个例子中，我们看read方法真实有效的代码知识try中的一部分，而实际我们写了很多异常处理的模板方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    InputStream inputStream = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        inputStream = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">        <span class="keyword">int</span> byteData = inputStream.read();</span><br><span class="line">        <span class="keyword">while</span> (byteData != -<span class="number">1</span>) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, byteData, (<span class="keyword">char</span>) byteData);</span><br><span class="line">            byteData = inputStream.read();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (FileNotFoundException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (inputStream != <span class="keyword">null</span>) &#123;</span><br><span class="line">            inputStream.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 在这段代码中共有4个地方可能会抛出异常，分别是<code>new FileInputStream(file)</code>，<code>inputStream.read()</code>，<code>inputStream.read()</code>，<code>inputStream.close()</code>。  </p>
+<p>想象一下，从try块内部抛出异常。然后finally执行该块，而从finally块抛出的异常如果我们不捕获的话，将在调用堆栈中向上传播。<br><code>try-catch-finally</code>结构显示的关闭流显得单调乏味，并且异常捕获模板代码众多，看着一点都不优雅。在<code>java7</code>后可以使用<code>try-with-resource</code>结构来处理，示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read1</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException</span>&#123;</span><br><span class="line">    <span class="keyword">try</span>(InputStream inputStream=<span class="keyword">new</span> FileInputStream(file))&#123;</span><br><span class="line">        <span class="keyword">int</span> byteData = inputStream.read();</span><br><span class="line">        <span class="keyword">while</span> (byteData != -<span class="number">1</span>) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, byteData, (<span class="keyword">char</span>) byteData);</span><br><span class="line">            byteData = inputStream.read();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在<code>read1</code>方法中实现了和<code>read</code>方法一样的功能，但代码显得简洁明了。其中在<code>try()</code>括号内创建了<code>FileInputStream</code>这个资源，当程序执行离开<code>try&#123;&#125;</code>块时，该资源将会自动关闭。如果try()括号内有多个资源，资源将按与括号内创建/列出顺序相反的顺序关闭。   </p>
+<p>IO流中，资源之所以会自动关闭，是因为IO流(包括<code>InputStream</code>,<code>OutputStream</code>,<code>Reader</code>,<code>Writer</code>)均实现了<code>AutoClosable</code>接口，具体可参考全局类图。我们也可以将自定义类实现<code>AutoClosable</code>接口，然后<br>与<code>try-with-resource</code>结构一起使用。</p>
+<h3 id="FilterInputStream"><a href="#FilterInputStream" class="headerlink" title="FilterInputStream"></a>FilterInputStream</h3><p>FilterInputStream主要有4个子类，可以用来修改InputStream的内部行为。</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterInputStream.png"></p>
+<p>4个字类添加的功能如下：</p>
+<table>
+
+<pre><code>&lt;tr&gt;&lt;td &gt;类名&lt;/td&gt;
+
+    &lt;td &gt;功能&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;DataInputStream&lt;/td&gt;
+
+    &lt;td &gt;与DataOutputStream配合使用，以一种&quot;可携带的方式(portable fashion)&quot;从流里读取基础类型&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;BufferedInputStream&lt;/td&gt;
+
+    &lt;td &gt;从缓冲区读取，而不是每次要用数据的时候都要进行物理读取&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;LineNumberInputStream&lt;/td&gt;
+
+    &lt;td &gt;跟踪输入流的行号；有getLineNumber( )和setLineNumber(int)方法&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;PushbackInputStream&lt;/td&gt;
+
+    &lt;td &gt;有一个&quot;弹压单字节&quot;的缓冲区，这样你就能把最后读到的那个字节再压回去。&lt;/td&gt;
+
+&lt;/tr&gt;
+</code></pre>
+</table>
+
+<p>我们用BufferedInputStream给FileInputStream方法添加缓存区，改写后的read方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">readWithBuffer</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>(FileInputStream fileInputStream=<span class="keyword">new</span> FileInputStream(file);</span><br><span class="line"></span><br><span class="line">        BufferedInputStream input=<span class="keyword">new</span> BufferedInputStream(fileInputStream);</span><br><span class="line"></span><br><span class="line">    )&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> byteData = input.read();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (byteData != -<span class="number">1</span>) &#123;</span><br><span class="line"></span><br><span class="line">            logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, byteData, (<span class="keyword">char</span>) byteData);</span><br><span class="line"></span><br><span class="line">            byteData = input.read();</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="OutputStream类图"><a href="#OutputStream类图" class="headerlink" title="OutputStream类图"></a>OutputStream类图</h3><p><code>OutputStream</code>的层次关系如下:  </p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/OutputStream.png"></p>
+<p><code>OutputStream</code>实现<code>Closeable</code>和<code>Flushable</code>接口,其装饰功能子类<code>FilterOutputStream</code>，类图如下：</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterOutputStream.png"></p>
+<h3 id="输出流基本使用流程"><a href="#输出流基本使用流程" class="headerlink" title="输出流基本使用流程"></a>输出流基本使用流程</h3><p>输出流往往和某些数据的目标媒介相关联，比如文件，网络连接，管道等，如下将字符串<code>apache</code>写入当前项目<code>data</code>目录下的<code>output.txt</code>文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Created by zhangkh on 2018/8/5.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BytedBasedOutputStream</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(ByteBasedInputStream.class.getName());</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        File path = <span class="keyword">new</span> File(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        File file = <span class="keyword">new</span> File(path, <span class="string">&quot;data/output.txt&quot;</span>);</span><br><span class="line">        logger.info(file.getAbsolutePath());</span><br><span class="line">        write(file, <span class="string">&quot;apache&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(File file, String content)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> (FileOutputStream output = <span class="keyword">new</span> FileOutputStream(file)) &#123;</span><br><span class="line">            <span class="keyword">byte</span>[] bytesArray = content.getBytes();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; bytesArray.length; i++) &#123;</span><br><span class="line">                output.write(bytesArray[i]);</span><br><span class="line">                logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, bytesArray[i], (<span class="keyword">char</span>) bytesArray[i]);</span><br><span class="line">            &#125;</span><br><span class="line">            output.flush();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序输出如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: D:\workspace_spark\SparkInAction\.\data\output.txt</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=97, char result=a</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=112, char result=p</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=97, char result=a</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=99, char result=c</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=104, char result=h</span><br><span class="line">18/08/05 13:00:23 INFO io.BytedBasedOutputStream: byteData=101, char result=e</span><br></pre></td></tr></table></figure>
+
+<p>OutputStream常用方法如下。<br><strong>write(byte[])</strong> </p>
+<p><code>OutputStream</code>同样包含了将字节数据中全部或者部分数据写入到输出流中的方法，分别是<code>write(byte[])</code>和<code>write(byte[], int offset, int length)</code>。<br><code>write(byte[])</code>把字节数组中所有数据写入到输出流中。<br><code>write(byte[], int offset, int length)</code>把字节数据中从<code>offset</code>位置开始，<code>length</code>个字节的数据写入到输出流。<br><strong>flush()</strong><br><code>OutputStream</code>的<code>flush()</code>方法将所有写入到<code>OutputStream</code>的数据冲刷到相应的目标媒介中。比如，如果输出流是<code>FileOutputStream</code>，那么写入到其中的数据可能并没有真正写入到磁盘中。即使所有数据都写入到了<code>FileOutputStream</code>，这些数据还是有可能保留在内存的缓冲区中。通过调用<code>flush()</code>方法，可以把缓冲区内的数据刷新到磁盘(或者网络，以及其他任何形式的目标媒介)中。<br><strong>close()</strong><br>当你结束数据写入时，需要关闭<code>OutputStream</code>。通过调用<code>close()</code>可以达到这一点。因为<code>OutputStream</code>的各种<code>write()</code>方法可能会抛出<code>IO</code>异常，所以你需要把调用<code>close()</code>的关闭操作方在<code>finally</code>块中执行。如果使用基于<code>try-with-resource</code>的异常处理程序则由于实现了<code>AutoCloseable</code>接口，不用显示关闭。</p>
+<h3 id="FilterOutputStream"><a href="#FilterOutputStream" class="headerlink" title="FilterOutputStream"></a>FilterOutputStream</h3><p>FilterOutputStream主要有3个子类，可以用来修改OutputStream的内部行为。</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/FilterOutputStream.png"></p>
+<p>3个字类添加的功能如下：</p>
+<table>
+
+<pre><code>&lt;tr&gt;&lt;td &gt;类名&lt;/td&gt;
+
+    &lt;td &gt;功能&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;DataOutputStream&lt;/td&gt;
+
+    &lt;td &gt;与DataInputStream配合使用，可以用可携带的方式往流里写基本类型&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;BufferedOutputStream&lt;/td&gt;
+
+    &lt;td &gt;写入缓冲区，而不是每次往流里写数据，都要进行物理操作&lt;/td&gt;
+
+&lt;/tr&gt;
+
+&lt;tr&gt;&lt;td &gt;PrintStream&lt;/td&gt;
+
+    &lt;td &gt;负责生成带格式的输出。DataOutputStrem负责数据的存储，而PrintStream负责数据的显示。&lt;/td&gt;
+</code></pre>
+</table>
+
+<p>我们用<code>BufferedOutputStream</code>给<code>FileOutputStream</code>方法添加缓存区，改写后的<code>write</code>方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">writeWithBuffer</span><span class="params">(File file, String content)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> (FileOutputStream fileOutputStream = <span class="keyword">new</span> FileOutputStream(file);</span><br><span class="line">         BufferedOutputStream output=<span class="keyword">new</span> BufferedOutputStream(fileOutputStream)</span><br><span class="line">        ) &#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytesArray = content.getBytes();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; bytesArray.length; i++) &#123;</span><br><span class="line">            output.write(bytesArray[i]);</span><br><span class="line">            logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, bytesArray[i], (<span class="keyword">char</span>) bytesArray[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        output.flush();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Reader和Writer"><a href="#Reader和Writer" class="headerlink" title="Reader和Writer"></a>Reader和Writer</h2><h3 id="Reader类图"><a href="#Reader类图" class="headerlink" title="Reader类图"></a>Reader类图</h3><p>Reader类图如下,Reader实现Readable和Closeable接口，根据不同的功能有众多的子类。<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Reader.png"><br>子类必须实现的方法只有 read() 和 close()</p>
+<p><strong>read()</strong></p>
+<p> public int read() throws IOException<br>用于读取单个字符。在字符可用、发生 I/O 错误或者已到达流的末尾前，此方法一直阻塞。用于支持高效的单字符输入的子类应重写此方法。<br>返回：作为整数读取的字符，范围在 0 到 65535 之间 ( 0x00-0xffff)，如果已到达流的末尾，则返回 -1</p>
+<p><strong>read(char[] cbuf,int off,int len)</strong><br>    public abstract int read(char[] cbuf,int off,int len) throws IOException<br>将字符读入数组的某一部分。在某个输入可用、发生 I/O 错误或者到达流的末尾前，此方法一直阻塞。<br>    参数：  </p>
+<p>​        cbuf - 目标缓冲区<br>​        off - 开始存储字符处的偏移量<br>​        len - 要读取的最多字符数<br>​    返回：<br>​      读取的字符数，如果已到达流的末尾，则返回 -1<br>​    抛出：<br>​       IOException - 如果发生 I/O 错误</p>
+<h3 id="输入字符流使用流程"><a href="#输入字符流使用流程" class="headerlink" title="输入字符流使用流程"></a>输入字符流使用流程</h3><p>这里我们还是读取当前项目data目录下的data.txt文件，示例代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Created by zhangkh on 2018/8/5.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CharacterBasedReader</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(CharacterBasedReader.class.getName());</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        File path = <span class="keyword">new</span> File(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (path.isDirectory()) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root: directory is &#123;&#125;&quot;</span>, path.getAbsolutePath());</span><br><span class="line">            String[] list;</span><br><span class="line"></span><br><span class="line">            list = path.list(<span class="keyword">new</span> DirFilter(<span class="string">&quot;d.*&quot;</span>));</span><br><span class="line">            logger.info(<span class="string">&quot;File after first filter:&quot;</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (String dirItem : list) &#123;</span><br><span class="line">                File file = <span class="keyword">new</span> File(path, dirItem);</span><br><span class="line">                <span class="keyword">if</span> (file.isDirectory()) &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a directory&quot;</span>, dirItem);</span><br><span class="line">                    String[] childList = file.list(<span class="keyword">new</span> DirFilter(<span class="string">&quot;data*.txt&quot;</span>));</span><br><span class="line">                    logger.info(<span class="string">&quot;File after second filter&quot;</span>);</span><br><span class="line">                    <span class="keyword">for</span> (String childItem : childList) &#123;</span><br><span class="line"></span><br><span class="line">                        File childFile = <span class="keyword">new</span> File(file, childItem);</span><br><span class="line">                        <span class="keyword">if</span> (childFile.isFile()) &#123;</span><br><span class="line">                            logger.info(<span class="string">&quot;Secondary child: &#123;&#125; is a file&quot;</span>, childItem);</span><br><span class="line">                            logger.info(<span class="string">&quot;start read file &#123;&#125;&quot;</span>, childFile.getCanonicalPath());</span><br><span class="line">                            read(childFile);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    logger.info(<span class="string">&quot;child: &#123;&#125; is a file&quot;</span>, dirItem);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;root is not a directory&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">(File file)</span> <span class="keyword">throws</span> IOException</span>&#123;</span><br><span class="line">        <span class="keyword">try</span>(FileReader reader=<span class="keyword">new</span> FileReader(file))&#123;</span><br><span class="line">            <span class="keyword">int</span> byteData = reader.read();</span><br><span class="line">            <span class="keyword">while</span> (byteData != -<span class="number">1</span>) &#123;</span><br><span class="line">                logger.info(<span class="string">&quot;byteData=&#123;&#125;, char result=&#123;&#125;&quot;</span>, byteData, (<span class="keyword">char</span>) byteData);</span><br><span class="line">                byteData = reader.read();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    输出结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: root: directory is D:\workspace_spark\SparkInAction\.</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: File after first filter:</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: child: data is a directory</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: File after second filter</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: Secondary child: data.txt is a file</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: start read file D:\workspace_spark\SparkInAction\data\data.txt</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=72, char result=H</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=97, char result=a</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=100, char result=d</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=111, char result=o</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=111, char result=o</span><br><span class="line">18/08/05 18:45:15 INFO io.CharacterBasedReader: byteData=112, char result=p</span><br></pre></td></tr></table></figure>
+
+
+
+<p> 需要注意的是，Java内部使用UTF8编码表示字符串。输入流中一个字节可能并不等同于一个UTF8字符</p>
+<p>，如果你从输入流中以字节为单位读取UTF8编码的文本，并且尝试将读取到的字节转换成字符，你可能会得不到预期的结果。</p>
+<p>如果输入的文件不是UTF8编码的话，由于FileReader不能指定编码，则需要利用字节流，然后利用转换流将字节流转换为字符流。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">InputStream inputStream = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;D:\workspace_spark\SparkInAction\data\data.txt&quot;</span>);</span><br><span class="line">Reader reader = <span class="keyword">new</span> InputStreamReader(inputStream, <span class="string">&quot;UTF-8&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Writer类图"><a href="#Writer类图" class="headerlink" title="Writer类图"></a>Writer类图</h3><p><code>Writer</code>的类图如下，主要实现<code>Appendable</code>,<code>Flushable</code>,<code>Closeable</code>接口，根据不同的功能有众多的子类。</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/Writer.png"></p>
+<p>主要的api接口如下：</p>
+<p><strong>write(String str)</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">public void write(String str)  throws IOException</span><br><span class="line"></span><br><span class="line">写入字符串。</span><br><span class="line"></span><br><span class="line">参数：</span><br><span class="line"></span><br><span class="line">str - 要写入的字符串</span><br><span class="line"></span><br><span class="line">抛出：</span><br><span class="line"></span><br><span class="line">IOException - 如果发生 I/O 错误</span><br></pre></td></tr></table></figure>
+
+<p><strong>write(String str,int off,int len)</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public void write(String str,int off,int len) throws IOException</span><br><span class="line"></span><br><span class="line">写入字符串的某一部分。</span><br><span class="line"></span><br><span class="line">参数：</span><br><span class="line"></span><br><span class="line">str - 字符串</span><br><span class="line"></span><br><span class="line">off - 相对初始写入字符的偏移量</span><br><span class="line"></span><br><span class="line">len - 要写入的字符数</span><br><span class="line"></span><br><span class="line">抛出：</span><br><span class="line"></span><br><span class="line">IndexOutOfBoundsException - 如果 off 或 len 为负，或者 off+len 为负或大于给定字符串的长度</span><br><span class="line"></span><br><span class="line">IOException - 如果发生 I/O 错误</span><br></pre></td></tr></table></figure>
+
+<p><strong>flush()</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public abstract void flush() throws IOException</span><br><span class="line"></span><br><span class="line">刷新该流的缓冲。如果该流已保存缓冲区中各种 write() 方法的所有字符，则立即将它们写入预期目标。然后，如果该目标是另一个字符或字节流，则将其刷新。因此，一次 flush() 调用将刷新 Writer 和 OutputStream 链中的所有缓冲区。</span><br><span class="line"></span><br><span class="line">如果此流的预期目标是由底层操作系统提供的一个抽象（如一个文件），则刷新该流只能保证将以前写入到流的字节传递给操作系统进行写入，但不保证能将这些字节实际写入到物理设备（如磁盘驱动器）。</span><br><span class="line"></span><br><span class="line">抛出：</span><br><span class="line"></span><br><span class="line">IOException - 如果发生 I/O 错误</span><br></pre></td></tr></table></figure>
+
+<h3 id="输出字符流使用流程"><a href="#输出字符流使用流程" class="headerlink" title="输出字符流使用流程"></a>输出字符流使用流程</h3><p>输出流往往和某些数据的目标媒介相关联，比如文件，网络连接，管道等，如下将字符串apache写入当前项目data目录下的output.txt文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileWriter;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Created by zhangkh on 2018/8/5.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CharacterBasedWriter</span> </span>&#123;</span><br><span class="line">	<span class="keyword">static</span> Logger logger = LoggerFactory.getLogger(CharacterBasedWriter.class.getName());</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	File path = <span class="keyword">new</span> File(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">	File file = <span class="keyword">new</span> File(path, <span class="string">&quot;data/output.txt&quot;</span>);</span><br><span class="line">	logger.info(file.getAbsolutePath());</span><br><span class="line">	write(file, <span class="string">&quot;apache&quot;</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(File file, String content)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">	<span class="keyword">try</span> (FileWriter output = <span class="keyword">new</span> FileWriter(file)) &#123;</span><br><span class="line">		output.write(content);</span><br><span class="line">		output.flush();</span><br><span class="line">	&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例中以文件作为参数构造实例FileWriter,将会新写入的内容将会覆盖原文件。以下的构造函数取文件名和一个布尔变量作为参数，布尔值表明你是想追加还是覆盖该文件。例子如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Writer writer = <span class="keyword">new</span> FileWriter(file, <span class="keyword">true</span>); <span class="comment">//appends to file</span></span><br><span class="line">Writer writer = <span class="keyword">new</span> FileWriter(file, <span class="keyword">false</span>); <span class="comment">//overwrites file</span></span><br></pre></td></tr></table></figure>
+<p>调用write方法写入具体的值，调用flush接口刷新缓冲区，将数据流传递给操作系统进行写入。<br>需要注意的是，上述输出的内容编码格式为UTF8,如果要输出其他编码格式，和Reader一样，要利用字节流，然后转换为字符流后以便于操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">OutputStream outputStream = <span class="keyword">new</span> FileOutputStream(file,charsetName);    </span><br><span class="line">Writer writer = <span class="keyword">new</span> OutputStreamWriter(outputStream);    </span><br><span class="line">writer.write(<span class="string">&quot;apache&quot;</span>);    </span><br><span class="line">writer.close();</span><br></pre></td></tr></table></figure>
+<h3 id="字节流和字符流转换"><a href="#字节流和字符流转换" class="headerlink" title="字节流和字符流转换"></a>字节流和字符流转换</h3><p><strong>输入字节流转换</strong>  </p>
+<p><code>InputStreamReader</code>是字节流通向字符流的桥梁：它使用指定的 charset 读取字节并将其解码为字符。它使用的字符集可以由名称指定或显式给定，或者可以接受平台默认的字符集,即<code>UTF-8</code>编码。<br><code>InputStreamReader</code>的构造函数输入字节流</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InputStreamReader</span><span class="params">(InputStream in)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(in);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        sd = StreamDecoder.forInputStreamReader(in, <span class="keyword">this</span>, (String)<span class="keyword">null</span>); <span class="comment">// ## check lock object</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">        <span class="comment">// The default encoding should always be available</span></span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过调用<code>StreamDecoder</code>类的<code>forInputStreamReader</code>方法，设置var2为null<br> 进而调用类<code>Charset</code>的<code>defaultCharSet</code>方法，设置编码格式为UTF-8。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Charset <span class="title">defaultCharset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (defaultCharset == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (Charset.class) &#123;</span><br><span class="line">            String csn = AccessController.doPrivileged(</span><br><span class="line">                <span class="keyword">new</span> GetPropertyAction(<span class="string">&quot;file.encoding&quot;</span>));</span><br><span class="line">            Charset cs = lookup(csn);</span><br><span class="line">            <span class="keyword">if</span> (cs != <span class="keyword">null</span>)</span><br><span class="line">                defaultCharset = cs;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                defaultCharset = forName(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> defaultCharset;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其他指定编码格式的构造函数如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InputStreamReader</span><span class="params">(InputStream in, String charsetName)</span> <span class="keyword">throws</span> UnsupportedEncodingException</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InputStreamReader</span><span class="params">(InputStream in, Charset cs)</span> </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InputStreamReader</span><span class="params">(InputStream in, CharsetDecoder dec)</span> </span></span><br></pre></td></tr></table></figure>
+<p>每次调用 <code>InputStreamReader</code> 中的一个 <code>read()</code> 方法都会导致从底层输入流读取一个或多个字节。要启用从字节到字符的有效转换，可以提前从底层流读取更多的字节，使其超过满足当前读取操作所需的字节。   </p>
+<p>为了达到最高效率，可要考虑在<code>BufferedReader</code>内包装<code>InputStreamReader</code>。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">BufferedReader in = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(System.in));</span><br></pre></td></tr></table></figure>
+<p>如下我们看一个实例，从控制台输入字符串，并将输入字节流转换为字符流。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.molyeo.java.io;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.BufferedReader;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStreamReader;</span><br><span class="line"><span class="keyword">import</span> java.io.UnsupportedEncodingException;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Created by zhangkh on 2018/8/22.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StreamTransform</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        String readStr = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">try</span> (InputStreamReader inputStreamReader = <span class="keyword">new</span> InputStreamReader(System.in, <span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">             BufferedReader bufferReader = <span class="keyword">new</span> BufferedReader(inputStreamReader)</span><br><span class="line">            ) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;Please enter a string&quot;</span>);</span><br><span class="line">            readStr = bufferReader.readLine();</span><br><span class="line">            System.out.println(<span class="string">&quot;The input is &quot;</span> + Integer.valueOf(readStr));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NumberFormatException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>输出字节流转换</strong>  </p>
+<p><code>OutputStreamWriter</code> 是字符流通向字节流的桥梁：可使用指定的 <code>charset</code> 将要写入流中的字符编码成字节。它使用的字符集可以由名称指定或显式给定，否则将接受平台默认的字符集。   </p>
+<p>每次调用 <code>write()</code> 方法都会导致在给定字符（或字符集）上调用编码转换器。在写入底层输出流之前，得到的这些字节将在缓冲区中累积。可以指定此缓冲区的大小，不过，默认的缓冲区对多数用途来说已足够大。注意，传递给 <code>write()</code> 方法的字符没有缓冲。   </p>
+<p>为了获得最高效率，可考虑将 <code>OutputStreamWriter</code> 包装到 <code>BufferedWriter</code> 中，以避免频繁调用转换器。例如：</p>
+<pre><code>Writer out = new BufferedWriter(new OutputStreamWriter(System.out));
+</code></pre>
+<h2 id="Java-IO-的一般使用原则-："><a href="#Java-IO-的一般使用原则-：" class="headerlink" title="Java IO 的一般使用原则 ："></a>Java IO 的一般使用原则 ：</h2><h3 id="按数据来源或去向"><a href="#按数据来源或去向" class="headerlink" title="按数据来源或去向"></a>按数据来源或去向</h3><p>文件： FileInputStream, FileOutputStream,FileReader, FileWriter  </p>
+<p>byte[] ： ByteArrayInputStream, ByteArrayOutputStream  </p>
+<p>Char[]: CharArrayReader, CharArrayWriter </p>
+<p>String: StringBufferInputStream, StringBufferOuputStream，StringReader, StringWriter</p>
+<p>网络数据流： InputStream, OutputStream, Reader, Writer</p>
+<h3 id="按是否格式化输出"><a href="#按是否格式化输出" class="headerlink" title="按是否格式化输出"></a>按是否格式化输出</h3><p>格式化输出： PrintStream, PrintWriter   </p>
+<h3 id="按是否要缓冲"><a href="#按是否要缓冲" class="headerlink" title="按是否要缓冲"></a>按是否要缓冲</h3><p>缓冲： BufferedInputStream, BufferedOutputStream, BufferedReader, BufferedWriter</p>
+<h3 id="按数据格式"><a href="#按数据格式" class="headerlink" title="按数据格式"></a>按数据格式</h3><p>二进制格式（只要不能确定是纯文本的） : InputStream, OutputStream 及其所有带 Stream 结束的子类。   </p>
+<p>纯文本格式（含纯英文与汉字或其他编码方式）； Reader, Writer 及其所有带 Reader, Writer 的子类。</p>
+<p>本文详细介绍讲述了Java IO的相关内容，涉及到字节流和字符流的设计，使用原则等。</p>
+<p>本文参考：   </p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-io/index.html">http://tutorials.jenkov.com/java-io/index.html</a></p>
+<hr>
+<p>关于作者   </p>
+<p>爱编程、爱钻研、爱分享、爱生活   </p>
+<p>关注分布式、高并发、数据挖掘    </p>
+<p>如需捐赠，请扫码</p>
+<img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/sqm/sqm.jpg" width=256 height=256 />
+
+<p>​    </p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/java/java-IO/" title="Java IO概述" target="_blank" rel="external">http://aidodoo.com/java/java-IO/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/" title="JAVA并发概念、基础接口以及Thread"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/about/" title="About"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

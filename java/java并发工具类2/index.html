@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>并发工具类二 | Hexo</title>
+  <meta name="description" content="并发工具类本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。 Semaphore基本概念和用途Semaphore常称信号量，其维护了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发工具类二">
+<meta property="og:url" content="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/index.html">
+<meta property="og:site_name" content="aidodoo">
+<meta property="og:description" content="并发工具类本系列文章主要讲解Java并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：    目录列表如下：     java并发-基础概念和Thread java并发-同步和锁 java并发工具类1 java并发工具类2 java并发工具类3  本文主要以实例讲解Semaphore、阻塞队列等内容。 Semaphore基本概念和用途Semaphore常称信号量，其维护了">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/BlockQueue1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueue1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter3.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/sqm.jpg">
+<meta property="article:published_time" content="2016-04-06T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-11T11:54:37.000Z">
+<meta property="article:author" content="aidodoo">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="aidodoo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/aidodoo" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">aidodoo</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> ShangHai, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="Search" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="Type something..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">Home</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">Archives</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">Categories</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">Tags</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">Repository</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">Books</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">Links</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">About</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">Board</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hbase/" rel="tag">hbase</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java/" rel="tag">java</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kafka/" rel="tag">kafka</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/others/" rel="tag">others</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/spark/" rel="tag">spark</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/zookeeper/" rel="tag">zookeeper</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/hadoop/" style="font-size: 13px;">hadoop</a> <a href="/tags/hbase/" style="font-size: 13px;">hbase</a> <a href="/tags/java/" style="font-size: 13.5px;">java</a> <a href="/tags/kafka/" style="font-size: 14px;">kafka</a> <a href="/tags/others/" style="font-size: 13.5px;">others</a> <a href="/tags/spark/" style="font-size: 13px;">spark</a> <a href="/tags/zookeeper/" style="font-size: 13px;">zookeeper</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Archive</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">April 2014</a><span class="archive-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/%E8%99%9A%E6%8B%9F%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E8%A3%85/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.946Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/linux%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/python%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="title">(no title)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-07-21T07:30:01.931Z" itemprop="datePublished">2021-07-21</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/pinpoint%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="title">pinpoint底层存储数据结构</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-07T00:00:00.000Z" itemprop="datePublished">2019-06-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/others/spark%E9%9B%86%E7%BE%A4%E7%9A%84%E6%90%AD%E5%BB%BA/" class="title">spark集群的搭建</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-06-06T00:00:00.000Z" itemprop="datePublished">2019-06-06</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-java/java并发工具类2" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      并发工具类二
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/" class="article-date">
+	  <time datetime="2016-04-06T00:00:00.000Z" itemprop="datePublished">2016-04-06</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/java/" rel="tag">java</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/#comments" class="article-comment-link">Comments</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="并发工具类"><a href="#并发工具类" class="headerlink" title="并发工具类"></a>并发工具类</h1><p>本系列文章主要讲解<code>Java</code>并发相关的内容，包括同步、锁、信号量、阻塞队列、线程池等，整体思维导图如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/concurrent2.png">   </p>
+<p>目录列表如下：   </p>
+<ul>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%92%8CThread/">java并发-基础概念和Thread</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91-%E5%90%8C%E6%AD%A5%E5%92%8C%E9%94%81/">java并发-同步和锁</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/">java并发工具类1</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/">java并发工具类2</a></li>
+<li><a href="https://aidodoo.com/post/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/">java并发工具类3</a></li>
+</ul>
+<p>本文主要以实例讲解<code>Semaphore</code>、阻塞队列等内容。</p>
+<h2 id="Semaphore"><a href="#Semaphore" class="headerlink" title="Semaphore"></a>Semaphore</h2><h3 id="基本概念和用途"><a href="#基本概念和用途" class="headerlink" title="基本概念和用途"></a>基本概念和用途</h3><p><code>Semaphore</code>常称信号量，其维护了一个许可集，可以用来控制线程并发数。线程调用<code>acquire()</code>方法去或者许可证，然后执行相关任务，任务完成后，调用<code>release()</code>方法释放该许可证，让其他阻塞的线程可以运行。<br><code>Semaphore</code>可以用于流量控制，尤其是一些公共资源有限的场景，比如数据库连接。假设我们上面的账户余额管理中的账户修改操作涉及到去更改<code>mysql</code>数据库,为了避免数据库并发太大，我们进行相关限制。<br><strong>常用方法</strong><br><code>Semaphore(int permits)</code>：构造方法，初始化许可证数量<br><code>void acquire()</code>：获取许可证<br><code>void release()</code>：释放许可证<br><code>int availablePermits()</code> ：返回此信号量中当前可用的许可证数。<br><code>int getQueueLength()</code>：返回正在等待获取许可证的线程数。<br><code>boolean hasQueuedThreads()</code> ：是否有线程正在等待获取许可证。<br><code>void reducePermits(int reduction)</code> ：减少reduction个许可证。是个protected方法。<br><code>Collection getQueuedThreads()</code> ：返回所有等待获取许可证的线程集合。是个protected方法。</p>
+<h3 id="运行示例"><a href="#运行示例" class="headerlink" title="运行示例"></a>运行示例</h3><p>虽然在代码中设置了<code>20</code>个线程去运行，但同时设置了许可证的数量为<code>5</code>，因而实际的最大并发数还是<code>5</code>。   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aidodoo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/9/9.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SemaphoreDemo</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">		Semaphore semaphore=<span class="keyword">new</span> Semaphore(<span class="number">5</span>);</span><br><span class="line">		ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">20</span>);</span><br><span class="line">		Account account=<span class="keyword">new</span> Account();</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">20</span>;i++)&#123;</span><br><span class="line">			SpenderWithSemaphore spender = <span class="keyword">new</span> SpenderWithSemaphore(account, semaphore);</span><br><span class="line">			executorService.submit(spender);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		executorService.shutdown();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SpenderWithSemaphore</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> Account account;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> Semaphore semaphore;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">SpenderWithSemaphore</span><span class="params">(Account account, Semaphore semaphore)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.account = account;</span><br><span class="line">		<span class="keyword">this</span>.semaphore = semaphore;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">try</span>&#123;</span><br><span class="line">			semaphore.acquire();</span><br><span class="line">			System.out.println(String.format(<span class="string">&quot;%s get a premit at time %s,change and save data to mysql&quot;</span>,Thread.currentThread().getName(),System.currentTimeMillis()/<span class="number">1000</span>));</span><br><span class="line">			Thread.sleep(<span class="number">2000</span>);</span><br><span class="line">		&#125;<span class="keyword">catch</span> (InterruptedException e)&#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;<span class="keyword">finally</span> &#123;</span><br><span class="line"><span class="comment">//            System.out.println(String.format(&quot;%s release a premit&quot;,Thread.currentThread().getName()));</span></span><br><span class="line">			semaphore.release();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取许可证后，模拟操作<code>mysql</code>，我们让线程睡眠<code>2</code>秒，程序输出如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">pool-<span class="number">1</span>-thread-<span class="number">2</span> get a premit at time <span class="number">1536480858</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">5</span> get a premit at time <span class="number">1536480858</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">3</span> get a premit at time <span class="number">1536480858</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">4</span> get a premit at time <span class="number">1536480858</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">1</span> get a premit at time <span class="number">1536480858</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">8</span> get a premit at time <span class="number">1536480860</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">7</span> get a premit at time <span class="number">1536480860</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">6</span> get a premit at time <span class="number">1536480860</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">9</span> get a premit at time <span class="number">1536480860</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">10</span> get a premit at time <span class="number">1536480860</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">11</span> get a premit at time <span class="number">1536480862</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">13</span> get a premit at time <span class="number">1536480862</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">12</span> get a premit at time <span class="number">1536480862</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">14</span> get a premit at time <span class="number">1536480862</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">15</span> get a premit at time <span class="number">1536480862</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">16</span> get a premit at time <span class="number">1536480864</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">17</span> get a premit at time <span class="number">1536480864</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">19</span> get a premit at time <span class="number">1536480864</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">18</span> get a premit at time <span class="number">1536480864</span>,change and save data to mysql</span><br><span class="line">pool-<span class="number">1</span>-thread-<span class="number">20</span> get a premit at time <span class="number">1536480864</span>,change and save data to mysql</span><br></pre></td></tr></table></figure>
+<p>可以看到前面<code>5</code>个线程同一时间<code>1536480858</code>获得许可证，然后执行操作，并不是<code>20</code>个线程一起操作，这样能降低对<code>mysql</code>数据库的影响。<br>如果把上面<code>Semaphore</code>的构造方法中的许可证数量改为<code>20</code>，大家可以看到<code>20</code>个线程的运行时间基本一致。  </p>
+<h3 id="源码实现"><a href="#源码实现" class="headerlink" title="源码实现"></a>源码实现</h3><p><code>Semaphore</code>实现直接基于<code>AQS</code>，有公平和非公平两种模式。公平模式即按照调用<code>acquire()</code>的顺序依次获得许可证，遵循<code>FIFO</code>(先进先出)，非公平模式是抢占式的，谁先抢到先使用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Semaphore</span><span class="params">(<span class="keyword">int</span> permits, <span class="keyword">boolean</span> fair)</span> </span>&#123;</span><br><span class="line">	sync = fair ? <span class="keyword">new</span> FairSync(permits) : <span class="keyword">new</span> NonfairSync(permits);</span><br><span class="line">&#125;</span><br><span class="line">java</span><br><span class="line">**获取许可证**     </span><br><span class="line">`acquire()`方法最终调用父类`AQS`中的`acquireSharedInterruptibly`方法。    </span><br><span class="line">```<span class="function">java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">acquireSharedInterruptibly</span><span class="params">(<span class="keyword">int</span> arg)</span></span></span><br><span class="line"><span class="function">		<span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (Thread.interrupted())</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> InterruptedException();</span><br><span class="line">	<span class="keyword">if</span> (tryAcquireShared(arg) &lt; <span class="number">0</span>)        	    <span class="comment">//(1)</span></span><br><span class="line">		doAcquireSharedInterruptibly(arg);		<span class="comment">//(2)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):调用<code>tryAcquireShared</code>，尝试去获取许可证<br>(2):如果获取失败，则调用<code>doAcquireSharedInterruptibly</code>，将线程加入到等待队列中<br><code>tryAcquireShared</code>方法由<code>Semaphore</code>的内部类，同时也是<code>AQS</code>的子类去实现，即<code>NonfairSync</code>和<code>FairSync</code>，下面我们以<code>NonfairSync</code>为例说明其实现。 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">int</span> <span class="title">tryAcquireShared</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> nonfairTryAcquireShared(acquires);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而<code>nonfairTryAcquireShared</code>方法如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">int</span> <span class="title">nonfairTryAcquireShared</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		<span class="keyword">int</span> available = getState();				<span class="comment">//(1)</span></span><br><span class="line">		<span class="keyword">int</span> remaining = available - acquires;	<span class="comment">//(2)</span></span><br><span class="line">		<span class="keyword">if</span> (remaining &lt; <span class="number">0</span> ||</span><br><span class="line">			compareAndSetState(available, remaining)) (<span class="number">3</span>)</span><br><span class="line">			<span class="keyword">return</span> remaining;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):获取<code>state</code>的值，也就是总许可证数量<br>(2):计算本次申请后，剩余的许可证数量<br>(3):如果剩余的许可证数量大于<code>0</code>且通过<code>CAS</code>将<code>state</code>的值修改成功后，返回剩余的许可证数量,否则继续循环阻塞。     </p>
+<p><strong>释放许可证</strong><br><code>release()</code>方法的调用最终会调用父类<code>AQS</code>的<code>releaseShared()</code>方法：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">releaseShared</span><span class="params">(<span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (tryReleaseShared(arg)) &#123;		<span class="comment">//(1)</span></span><br><span class="line">		doReleaseShared();				<span class="comment">//(2)</span></span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):尝试释放许可证<br>(2):如果释放许可证成功，则通知阻塞的线程，让其执行<br><code>tryReleaseShared</code>方法很简单，基本上是<code>nonfairTryAcquireShared</code>的逆过程，即增加许可证的数量，并通过<code>CAS</code>修改<code>state</code>的值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryReleaseShared</span><span class="params">(<span class="keyword">int</span> releases)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (;;) &#123;</span><br><span class="line">		<span class="keyword">int</span> current = getState();</span><br><span class="line">		<span class="keyword">int</span> next = current + releases;</span><br><span class="line">		<span class="keyword">if</span> (next &lt; current) <span class="comment">// overflow</span></span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">&quot;Maximum permit count exceeded&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (compareAndSetState(current, next))</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="BlockingQueue"><a href="#BlockingQueue" class="headerlink" title="BlockingQueue"></a>BlockingQueue</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>阻塞队列主要是解决如何高效安全传输数据的问题，此外能降低程序耦合度，让代码逻辑更加清晰。<br>其继承了<code>Queue</code>，并在其基础上支持了两个附加的操作：   </p>
+<ul>
+<li>当队列为空时，获取元素的线程会阻塞，等待队列变为非空</li>
+<li>当队列满时，添加元素的线程会阻塞，等待队列可用   </li>
+</ul>
+<p>比较典型的使用场景是生产者和消费者。<br><code>BlockingQueue</code>根据对于不能立即满足但可能在将来某一时刻可以满足的操作，提供了不同的处理方法，进而导致众多的<code>api</code>操作：   </p>
+<table BORDER CELLPADDING=3 CELLSPACING=1>
+    <tr>
+        <td></td>
+        <td ALIGN=CENTER>Throws exception</td>
+        <td ALIGN=CENTER>Special value</td>
+        <td ALIGN=CENTER>Blocks</td>
+        <td ALIGN=CENTER>Times out</td>
+    </tr>
+    <tr>
+        <td><b>Insert</b></td>
+        <td>add(e)</td>
+        <td>offer(e)</td>
+        <td>put(e)</td>
+        <td>offer(e, time, unit)</td>
+    </tr>
+    <tr>
+        <td><b>Remove</b></td>
+        <td>remove()</td>
+        <td>poll()</td>
+        <td>take()</td>
+        <td>poll(time, unit)</td>
+    </tr>
+    <tr>
+        <td><b>Examine</b></td>
+        <td>element()</td>
+        <td>peek()}</td>
+        <td>not applicable</td>
+        <td>not applicable</td>
+    </tr>
+</table>
+`Throws exception`:指当阻塞队列满时候，再往队列里插入元素，会抛出`IllegalStateException`异常。当队列为空时，从队列里获取元素时会抛出`NoSuchElementException`异常   
+`Special value`:插入方法会返回是否成功，成功则返回`true`。移除方法，则是从队列里拿出一个元素，如果没有则返回`null`   
+`Blocks`：当阻塞队列满时，如果生产者线程往队列里`put`元素，队列会一直阻塞生产者线程，直到拿到数据，或者响应中断退出。当队列空时，消费者线程试图从队列里`take`元素，队列也会阻塞消费者线程，直到队列可用。   
+`Time out`：当阻塞队列满时，队列会阻塞生产者线程一段时间，如果超过一定的时间，生产者线程就会退出。
+
+<h3 id="整体架构和类图"><a href="#整体架构和类图" class="headerlink" title="整体架构和类图"></a>整体架构和类图</h3><p><code>Java</code>并发包根据不同的结构和功能提供了不同的阻塞队列，整体类图如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/BlockQueue1.png"><br>其中<code>BlockingQueue</code>有如下子类：</p>
+<ul>
+<li><code>ArrayBlockingQueue</code> ：一个由数组结构组成的有界阻塞队列。</li>
+<li><code>DelayQueue</code>：一个使用优先级队列实现的无界阻塞队列。</li>
+<li><code>PriorityBlockingQueue</code> ：一个支持优先级排序的无界阻塞队列。</li>
+<li><code>SynchronousQueue</code>：一个不存储元素的阻塞队列。</li>
+<li><code>LinkedBlockingQueue</code> ：一个由链表结构组成的有界阻塞队列。    </li>
+</ul>
+<p>其中<code>BlockingDeque</code>有一个子类：</p>
+<ul>
+<li><code>LinkedBlockingDeque</code>：一个由链表结构组成的双向阻塞队列。<br><code>BlockingDeque</code>作为双端队列，针对头部元素，还提供了如下方法：</li>
+</ul>
+<table border="" cellpadding="3" cellspacing="1"> 
+    <tr> 
+     <td  align="CENTER" colspan="5"> <b>First Element (Head)</b></td> 
+    </tr> 
+    <tr> 
+     <td></td> 
+     <td >Throws exception</td> 
+     <td >Special value</td> 
+     <td >Blocks</td> 
+     <td >Times out</td> 
+    </tr> 
+    <tr> 
+     <td><b>Insert</b></td> 
+     <td>addFirst(e)</td> 
+     <td>offerFirst(e)</td> 
+     <td>putFirst(e)</td> 
+     <td>offerFirst(e, time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Remove</b></td> 
+     <td>removeFirst()</td> 
+     <td>pollFirst()</td> 
+     <td>takeFirst()</td> 
+     <td>pollFirst(time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Examine</b></td> 
+     <td>getFirst()</code></td> 
+     <td>peekFirst()</code></td> 
+     <td>not applicable</td> 
+     <td>not applicable</td> 
+    </tr>
+</table>
+
+<p>针对尾部元素</p>
+<table>    
+    <tr> 
+     <td  align="CENTER" colspan="5"> <b>Last Element (Tail)</b></td> 
+    </tr> 
+    <tr> 
+     <td></td> 
+     <td >Throws exception</td> 
+     <td >Special value</td> 
+     <td >Blocks</td> 
+     <td >Times out</td> 
+    </tr> 
+    <tr> 
+     <td><b>Insert</b></td> 
+     <td>addLast(e)</td> 
+     <td>offerLast(e)</td> 
+     <td>putLast(e)</td> 
+     <td>offerLast(e, time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Remove</b></td> 
+     <td>removeLast()</code></td> 
+     <td>pollLast()</code></td> 
+     <td>takeLast()</code></td> 
+     <td>pollLast(time, unit)</td> 
+    </tr> 
+    <tr> 
+     <td><b>Examine</b></td> 
+     <td>getLast()</code></td> 
+     <td>peekLast()</code></td> 
+     <td>not applicable</td> 
+     <td>not applicable</td> 
+    </tr> 
+  </table>
+
+<h3 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h3><p>一个典型的生产者和消费者实例如下，一个<code>BlockingQueue</code>可以安全地与多个生产者和消费者一起使用，<code>Producer</code>线程调用<code>NumerGenerator</code>.<code>getNextNumber()</code>生成自增整数，不断地写入数字，然后<code>Consumer</code>循环消费。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aidodoo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ArrayBlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.BlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Executors;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/7/17.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BlockingQueueDemo</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">		BlockingQueue queue = <span class="keyword">new</span> ArrayBlockingQueue(<span class="number">1024</span>,<span class="keyword">true</span>);</span><br><span class="line">		ExecutorService executorService = Executors.newFixedThreadPool(<span class="number">20</span>);</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++) &#123;</span><br><span class="line">			executorService.submit(<span class="keyword">new</span> Producer(queue));</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">			executorService.submit(<span class="keyword">new</span> Consumer(queue));</span><br><span class="line">		&#125;</span><br><span class="line">		Thread.sleep(<span class="number">30</span> * <span class="number">1000L</span>);</span><br><span class="line">		executorService.shutdown();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Producer</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">	Logger logger = LoggerFactory.getLogger(Producer.class.getName());</span><br><span class="line">	<span class="keyword">protected</span> BlockingQueue queue = <span class="keyword">null</span>;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Producer</span><span class="params">(BlockingQueue queue)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.queue = queue;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++)&#123;</span><br><span class="line">				<span class="keyword">int</span> num = NumerGenerator.getNextNumber();</span><br><span class="line">				queue.put(num);</span><br><span class="line">				Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">				logger.info(<span class="string">&quot;&#123;&#125; producer put &#123;&#125;&quot;</span>, Thread.currentThread().getName(), num);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">​	</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Consumer</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">	Logger logger = LoggerFactory.getLogger(Consumer.class.getName());</span><br><span class="line"></span><br><span class="line">	<span class="keyword">protected</span> BlockingQueue queue = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Consumer</span><span class="params">(BlockingQueue queue)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.queue = queue;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			<span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">				<span class="keyword">int</span> ele = (<span class="keyword">int</span>) queue.take();</span><br><span class="line">				logger.info(<span class="string">&quot;&#123;&#125; Consumer take &#123;&#125;&quot;</span>, Thread.currentThread().getName(), ele);</span><br><span class="line">				Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NumerGenerator</span></span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> AtomicInteger count = <span class="keyword">new</span> AtomicInteger();</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Integer <span class="title">getNextNumber</span><span class="params">()</span></span>&#123;</span><br><span class="line">		<span class="keyword">return</span> count.incrementAndGet();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序输出如下：     </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">33</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">6</span> Consumer take <span class="number">1</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">33</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">7</span> Consumer take <span class="number">2</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">33</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">8</span> Consumer take <span class="number">3</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">3</span> producer put <span class="number">3</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">2</span> producer put <span class="number">2</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">1</span> producer put <span class="number">1</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">5</span> producer put <span class="number">5</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">4</span> producer put <span class="number">4</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">6</span> Consumer take <span class="number">4</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">8</span> Consumer take <span class="number">5</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">34</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">7</span> Consumer take <span class="number">6</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">3</span> producer put <span class="number">6</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">1</span> producer put <span class="number">8</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">2</span> producer put <span class="number">7</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">5</span> producer put <span class="number">9</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">4</span> producer put <span class="number">10</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">6</span> Consumer take <span class="number">7</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">8</span> Consumer take <span class="number">8</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">35</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">7</span> Consumer take <span class="number">9</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">1</span> producer put <span class="number">12</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">3</span> producer put <span class="number">11</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">5</span> producer put <span class="number">14</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">4</span> producer put <span class="number">15</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Producer: pool-<span class="number">1</span>-thread-<span class="number">2</span> producer put <span class="number">13</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">6</span> Consumer take <span class="number">10</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">8</span> Consumer take <span class="number">11</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">36</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">7</span> Consumer take <span class="number">12</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">37</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">6</span> Consumer take <span class="number">13</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">37</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">7</span> Consumer take <span class="number">14</span></span><br><span class="line"><span class="number">18</span>/09/<span class="number">10</span> <span class="number">14</span>:<span class="number">34</span>:<span class="number">37</span> INFO concurrent.Consumer: pool-<span class="number">1</span>-thread-<span class="number">8</span> Consumer take <span class="number">15</span></span><br></pre></td></tr></table></figure>
+<p>其他<code>BlockingQueue</code>子类的使用可参考对应的<code>Java</code> <code>Api</code>。</p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>由于<code>BlockingQueue</code>相关的子类众多，我们仅以<code>ArrayBlockingQueue</code>从源码角度分析相关实现。<br><strong>构造方法</strong><br><code>ArrayBlockingQueue</code>中定义的成员变量如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Object[] items; </span><br><span class="line"><span class="keyword">int</span> takeIndex;</span><br><span class="line"><span class="keyword">int</span> putIndex;</span><br><span class="line"><span class="keyword">int</span> count;</span><br><span class="line"><span class="keyword">final</span> ReentrantLock lock;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition notEmpty;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Condition notFull;</span><br><span class="line"><span class="keyword">transient</span> Itrs itrs = <span class="keyword">null</span></span><br></pre></td></tr></table></figure>
+<p>各变量的解释如下，以便了解后续的代码：</p>
+<ul>
+<li><code>items</code>用于存储具体的元素</li>
+<li><code>takeIndex</code>元素索引,用于记录下次获取元素的位置</li>
+<li><code>putIndex</code>元素索引，用于记录下次插入元素的位置</li>
+<li><code>count</code>用于记录当前队列中元素的个数</li>
+<li><code>notEmpty</code>条件变量，此处为获取元素的条件，即队列不能为空，否则线程阻塞</li>
+<li><code>notFull</code>条件变量，此处为插入元素的条件，即队列不能已满，否则线程阻塞</li>
+<li><code>itrs</code>用于维护迭代器相关内容</li>
+</ul>
+<p>内部结构如下：</p>
+<p><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueue1.png"></p>
+<p>构造方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ArrayBlockingQueue</span><span class="params">(<span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>(capacity, <span class="keyword">false</span>);	<span class="comment">//(1)								</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ArrayBlockingQueue</span><span class="params">(<span class="keyword">int</span> capacity, <span class="keyword">boolean</span> fair)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (capacity &lt;= <span class="number">0</span>)</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">	<span class="keyword">this</span>.items = <span class="keyword">new</span> Object[capacity];		<span class="comment">//(2)				</span></span><br><span class="line">	lock = <span class="keyword">new</span> ReentrantLock(fair);</span><br><span class="line">	notEmpty = lock.newCondition();     	<span class="comment">//(3)</span></span><br><span class="line">	notFull =  lock.newCondition();	    	<span class="comment">//(4)</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ArrayBlockingQueue</span><span class="params">(<span class="keyword">int</span> capacity, <span class="keyword">boolean</span> fair,</span></span></span><br><span class="line"><span class="params"><span class="function">						  Collection&lt;? extends E&gt; c)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>(capacity, fair);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;</span><br><span class="line">	lock.lock(); <span class="comment">// Lock only for visibility, not mutual exclusion</span></span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			<span class="keyword">for</span> (E e : c) &#123;					<span class="comment">//(5)</span></span><br><span class="line">				checkNotNull(e);</span><br><span class="line">				items[i++] = e;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">catch</span> (ArrayIndexOutOfBoundsException ex) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">		&#125;</span><br><span class="line">		count = i;</span><br><span class="line">		putIndex = (i == capacity) ? <span class="number">0</span> : i;</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):默认情况下，非公平模式，即抢占式<br>(2):数组初始化<br>(3)/(4):条件变量初始化<br>(5):如果构造方法中，含有初始化集合的话，则将对应元素添加到内部数组，并更改<code>count</code>和<code>putIndex</code>的值。   </p>
+<p><strong>插入数据</strong><br>插入数据，我们主要看<code>put()</code>方法的实现，重点看生产者和消费者插入和获取数据时，线程何时阻塞，同时又何时唤醒。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(E e)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">	checkNotNull(e);						<span class="comment">//(1)</span></span><br><span class="line">	<span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock;   <span class="comment">//(2)</span></span><br><span class="line">	lock.lockInterruptibly();</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="keyword">while</span> (count == items.length)</span><br><span class="line">			notFull.await(); 				<span class="comment">//(3)</span></span><br><span class="line">		enqueue(e);</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();		 				<span class="comment">//(4)</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">enqueue</span><span class="params">(E x)</span> </span>&#123;</span><br><span class="line"><span class="keyword">final</span> Object[] items = <span class="keyword">this</span>.items;</span><br><span class="line">	items[putIndex] = x;				    <span class="comment">//(5)</span></span><br><span class="line">	<span class="keyword">if</span> (++putIndex == items.length)         <span class="comment">//(6)</span></span><br><span class="line">		putIndex = <span class="number">0</span>;</span><br><span class="line">	count++;								<span class="comment">//(7)</span></span><br><span class="line">	notEmpty.signal();						<span class="comment">//(8)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(<code>1</code>):非空检查，插入的元素不能为<code>null</code>,否则抛出<code>NullPointerException</code><br>(<code>2</code>):获取互斥锁<br>(<code>3</code>):如果当前队列的元素个数等于队列总长度，即队列已满，则通过条件变量，释放和<code>notFull</code>相关的锁，当前线程阻塞。当前线程唤醒的条件如下：   </p>
+<ul>
+<li>其他某个线程调用此 <code>Condition</code> 的 <code>signal()</code> 方法，并且碰巧将当前线程选为被唤醒的线程；</li>
+<li>或者其他某个线程调用此 <code>Condition</code> 的 <code>signalAll()</code> 方法；</li>
+<li>或者其他某个线程中断当前线程，且支持中断线程的挂起；</li>
+<li>或者发生“虚假唤醒”</li>
+</ul>
+<p>(5):如果队列未满，则将元素添加的<code>putIndex</code>索引的位置<br>(6):<code>putIndex</code>增加<code>1</code>后和队列长度相等，即已到达队列尾部，则<code>putIndex</code>置<code>0</code><br>(7):队列已有元素数量加<code>1</code><br>(8):通知<code>notEmpty</code>条件变量，唤醒等待获取元素的线程<br>(4):释放互斥锁<br>可以看到<code>ArrayBlockingQueue</code>每次插入元素后，都会去唤醒等待获取元素的线程。</p>
+<p><strong>获取数据</strong><br><code>take()</code>方法源码如下： </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">	<span class="keyword">final</span> ReentrantLock lock = <span class="keyword">this</span>.lock; 	<span class="comment">//(1)</span></span><br><span class="line">	lock.lockInterruptibly();</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="keyword">while</span> (count == <span class="number">0</span>)					</span><br><span class="line">			notEmpty.await();				<span class="comment">//(2)</span></span><br><span class="line">		<span class="keyword">return</span> dequeue();</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();						<span class="comment">//(9)</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> E <span class="title">dequeue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">final</span> Object[] items = <span class="keyword">this</span>.items;</span><br><span class="line">	<span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">	E x = (E) items[takeIndex];				<span class="comment">//(3)</span></span><br><span class="line">	items[takeIndex] = <span class="keyword">null</span>;				<span class="comment">//(4)</span></span><br><span class="line">	<span class="keyword">if</span> (++takeIndex == items.length)</span><br><span class="line">		takeIndex = <span class="number">0</span>;						<span class="comment">//(5)</span></span><br><span class="line">	count--;								<span class="comment">//(6)</span></span><br><span class="line">	<span class="keyword">if</span> (itrs != <span class="keyword">null</span>)</span><br><span class="line">		itrs.elementDequeued();				<span class="comment">//(7)</span></span><br><span class="line">	notFull.signal();						<span class="comment">//(8)</span></span><br><span class="line">	<span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):获取互斥锁<br>(2):如果<code>count</code>为<code>0</code>，即队列为空，则释放互斥锁，然后挂起当前线程<br>(3):根据<code>takeIndex</code>索引到数组中获取具体的值,并赋值给<code>x</code><br>(4):赋值完成后，<code>takeIndex</code>索引位置数据置<code>null</code>，便于回收<br>(5):<code>takeIndex</code>加<code>1</code>，然后和队列长度比较，如果相等，即已经读取到队列尾部，<code>takeIndex</code>置<code>0</code><br>(6):获取后，将队列元素个数<code>count</code>减<code>1</code><br>(7):维护和<code>queue</code>相关的迭代器<br>(8):唤醒等待插入元素的线程<br>(9):释放互斥锁<br>可以看到<code>ArrayBlockingQueue</code>每次获取元素后，都会唤醒等待插入元素的线程。</p>
+<p><strong>迭代器</strong><br>在分析源码前，我们先看在一个迭代器的示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aidodoo.java.concurrent;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Iterator;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ArrayBlockingQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.BlockingQueue;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zhangkh on 2018/9/10.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayBlockingQueueIterDemo</span> </span>&#123;</span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</span><br><span class="line">			BlockingQueue&lt;String&gt; queue=<span class="keyword">new</span> ArrayBlockingQueue(<span class="number">5</span>);</span><br><span class="line">			queue.put(<span class="string">&quot;hadoop&quot;</span>);</span><br><span class="line">			queue.put(<span class="string">&quot;spark&quot;</span>);</span><br><span class="line">			queue.put(<span class="string">&quot;storm&quot;</span>);</span><br><span class="line">			queue.put(<span class="string">&quot;flink&quot;</span>);</span><br><span class="line"></span><br><span class="line">			Iterator&lt;String&gt; iterator1 = queue.iterator();</span><br><span class="line">			System.out.println( queue.take());</span><br><span class="line">			System.out.println(queue.take());</span><br><span class="line">			System.out.println(queue.take());</span><br><span class="line">			System.out.println();</span><br><span class="line">			<span class="keyword">while</span>(iterator1.hasNext()) &#123;</span><br><span class="line">				System.out.println(iterator1.next());</span><br><span class="line">			&#125;</span><br><span class="line">			System.out.println();</span><br><span class="line">			Iterator&lt;String&gt; iterator2 = queue.iterator();</span><br><span class="line">			<span class="keyword">while</span>(iterator2.hasNext()) &#123;</span><br><span class="line">				System.out.println(iterator2.next());</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序输出如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">hadoop</span><br><span class="line">spark</span><br><span class="line">storm</span><br><span class="line"></span><br><span class="line">hadoop</span><br><span class="line">flink</span><br><span class="line"></span><br><span class="line">flink</span><br></pre></td></tr></table></figure>
+<p>我们结合这个示例来具体分析数据插入和获取时，内部成员变量的值<br>当分别插入<code>hadoop</code>、<code>spark</code>、<code>storm</code>、<code>flink</code>四个元素后，内部变量的值如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter2.png"><br>此时，<code>ArrayBlockingQueue</code>的成员变量的值<code>itrs</code>为<code>null</code>。<br>调用<code>iterator()</code>方法后,源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Iterator&lt;E&gt; <span class="title">iterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> Itr(); 					<span class="comment">//(1)</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Itr() &#123;</span><br><span class="line">	lastRet = NONE;</span><br><span class="line">	<span class="keyword">final</span> ReentrantLock lock = ArrayBlockingQueue.<span class="keyword">this</span>.lock;</span><br><span class="line">	lock.lock();							<span class="comment">//(2)</span></span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> (count == <span class="number">0</span>) &#123;					<span class="comment">//(3)</span></span><br><span class="line">			cursor = NONE;</span><br><span class="line">			nextIndex = NONE;</span><br><span class="line">			prevTakeIndex = DETACHED;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">final</span> <span class="keyword">int</span> takeIndex = ArrayBlockingQueue.<span class="keyword">this</span>.takeIndex;</span><br><span class="line">			prevTakeIndex = takeIndex;</span><br><span class="line">			nextItem = itemAt(nextIndex = takeIndex);	<span class="comment">//(4)</span></span><br><span class="line">			cursor = incCursor(takeIndex);				<span class="comment">//(5)</span></span><br><span class="line">			<span class="keyword">if</span> (itrs == <span class="keyword">null</span>) &#123;</span><br><span class="line">				itrs = <span class="keyword">new</span> Itrs(<span class="keyword">this</span>);					<span class="comment">//(6)</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				itrs.register(<span class="keyword">this</span>); 					<span class="comment">//(7)</span></span><br><span class="line">				itrs.doSomeSweeping(<span class="keyword">false</span>);</span><br><span class="line">			&#125;</span><br><span class="line">			prevCycles = itrs.cycles;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();									<span class="comment">//(8)</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(1):调用内部类<code>Itr</code>的构造方法<br>(2):获取外部类即<code>ArrayBlockingQueue</code>的锁<br>(3):没有没有元素，初始化变量值。内部类<code>Itr</code>的成员变量如下：    </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Index to look for new nextItem; NONE at end */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> cursor;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Element to be returned by next call to next(); null if none */</span></span><br><span class="line"><span class="keyword">private</span> E nextItem;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Index of nextItem; NONE if none, REMOVED if removed elsewhere */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> nextIndex;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Last element returned; null if none or not detached. */</span></span><br><span class="line"><span class="keyword">private</span> E lastItem;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Index of lastItem, NONE if none, REMOVED if removed elsewhere */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> lastRet;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Previous value of takeIndex, or DETACHED when detached */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> prevTakeIndex;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Previous value of iters.cycles */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> prevCycles;</span><br></pre></td></tr></table></figure>
+<p>(4):将外部类的<code>takeIndex</code>赋值给内部类<code>nextIndex</code>，并获取数组具体的值赋值给<code>nextItem</code><br>(5):计算游标<code>cursor</code>的下个值，其中<code>incCursor</code>方法如下：   </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">incCursor</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// assert lock.getHoldCount() == 1;</span></span><br><span class="line">	<span class="keyword">if</span> (++index == items.length)</span><br><span class="line">		index = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">if</span> (index == putIndex)</span><br><span class="line">		index = NONE;</span><br><span class="line">	<span class="keyword">return</span> index;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>(6):注册，主要是维护链表<br>(7):清理<code>itrs</code><br>(8):释放外部类的互斥锁<br>在上面的示例中，调用<code>iterator()</code>方法后，<code>Itr</code>的内部变量值如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter3.png"></p>
+<p>由于后面三次调用了<code>queue</code>.<code>take()</code>，依次输出<code>hadoop</code>、<code>spark</code>、<code>storm</code>后，相关成员变量的值见图片标识，重点关注<code>takeIndex</code>=<code>3</code>。</p>
+<p>当调用<code>next()</code>方法时，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">final</span> E x = nextItem;</span><br><span class="line">	<span class="keyword">if</span> (x == <span class="keyword">null</span>)</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> NoSuchElementException();</span><br><span class="line">	<span class="keyword">final</span> ReentrantLock lock = ArrayBlockingQueue.<span class="keyword">this</span>.lock;</span><br><span class="line">	lock.lock();</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> (!isDetached())			<span class="comment">//(1)</span></span><br><span class="line">			incorporateDequeues();</span><br><span class="line">		lastRet = nextIndex;</span><br><span class="line">		<span class="keyword">final</span> <span class="keyword">int</span> cursor = <span class="keyword">this</span>.cursor;</span><br><span class="line">		<span class="keyword">if</span> (cursor &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">			nextItem = itemAt(nextIndex = cursor);</span><br><span class="line">			<span class="keyword">this</span>.cursor = incCursor(cursor);</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			nextIndex = NONE;</span><br><span class="line">			nextItem = <span class="keyword">null</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">		lock.unlock();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中(1)处的<code>isDetached</code>方法如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isDetached</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">// assert lock.getHoldCount() == 1;</span></span><br><span class="line">	<span class="keyword">return</span> prevTakeIndex &lt; <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于我们示例中初始化<code>Itr</code>的时候的<code>prevTakeIndex</code>为<code>0</code>，故<code>isDetached</code>返回为<code>false</code>,程序将调用<code>incorporateDequeues</code>方法，根据注释我们也知道，该方法主要是调整和迭代器相关的内部索引。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Adjusts indices to incorporate all dequeues since the last</span></span><br><span class="line"><span class="comment"> * operation on this iterator.  Call only from iterating thread.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">incorporateDequeues</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">int</span> cycles = itrs.cycles;</span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">int</span> takeIndex = ArrayBlockingQueue.<span class="keyword">this</span>.takeIndex;</span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">int</span> prevCycles = <span class="keyword">this</span>.prevCycles;</span><br><span class="line">	<span class="keyword">final</span> <span class="keyword">int</span> prevTakeIndex = <span class="keyword">this</span>.prevTakeIndex;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (cycles != prevCycles || takeIndex != prevTakeIndex) &#123;</span><br><span class="line">		<span class="keyword">final</span> <span class="keyword">int</span> len = items.length;</span><br><span class="line">		<span class="comment">// how far takeIndex has advanced since the previous</span></span><br><span class="line">		<span class="comment">// operation of this iterator</span></span><br><span class="line">		<span class="keyword">long</span> dequeues = (cycles - prevCycles) * len</span><br><span class="line">			+ (takeIndex - prevTakeIndex);</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Check indices for invalidation</span></span><br><span class="line">		<span class="keyword">if</span> (invalidated(lastRet, prevTakeIndex, dequeues, len))</span><br><span class="line">			lastRet = REMOVED;</span><br><span class="line">		<span class="keyword">if</span> (invalidated(nextIndex, prevTakeIndex, dequeues, len))</span><br><span class="line">			nextIndex = REMOVED;</span><br><span class="line">		<span class="keyword">if</span> (invalidated(cursor, prevTakeIndex, dequeues, len))</span><br><span class="line">			cursor = takeIndex;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (cursor &lt; <span class="number">0</span> &amp;&amp; nextIndex &lt; <span class="number">0</span> &amp;&amp; lastRet &lt; <span class="number">0</span>)</span><br><span class="line">			detach();</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">this</span>.prevCycles = cycles;</span><br><span class="line">			<span class="keyword">this</span>.prevTakeIndex = takeIndex;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意<code>cursor</code> = <code>takeIndex</code>这句代码，将外部内的<code>takeIndex</code>赋值给<code>cursor</code>,这样子将队列和迭代器数据读取进行了同步。<br>对于<code>iterator1</code>,第一次调用<code>next()</code>方法时，<code>cursor</code>被赋值为<code>3</code>首先将<code>nextItem</code>的值保持在<code>x</code>变量中，即<code>hadoop</code>字符串。<br>然后设置<code>nextItem</code>和<code>cursor</code>的值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nextItem = itemAt(nextIndex = cursor);</span><br><span class="line"><span class="keyword">this</span>.cursor = incCursor(cursor);</span><br></pre></td></tr></table></figure>
+<p>设置完成后，<code>nextItem</code>为<code>flink</code>,<code>cursor</code>为-<code>1</code>。<br>最后返回保存在<code>x</code>变量中的值，即返回<code>hadoop</code>字符串。<br>第二次调用<code>next()</code>方法时，输出的值即上次保存的<code>nextItem</code>值，即<code>flink</code>字符串。<br>迭代器运行过程中，相关变量内容如下：<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/ArrayBlockingQueueIter4.png"><br>至于<code>iterator2</code>迭代器，各位可以自己去分析，不再赘述。   </p>
+<p>本文主要以实例讲解<code>Semaphore</code>、阻塞队列，并分析了相关核心源码实现。</p>
+<p>本文参考</p>
+<p><a target="_blank" rel="noopener" href="http://it-ebooks.info/book/3916/">Java 7 Concurrency Cookbook</a></p>
+<p><a target="_blank" rel="noopener" href="http://ifeve.com/concurrency-modle-seven-week-1/">concurrency-modle-seven-week</a></p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-concurrency/concurrency-models.html">java-concurrency</a></p>
+<p><a target="_blank" rel="noopener" href="http://tutorials.jenkov.com/java-util-concurrent/lock.html">java-util-concurrent</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/">java se 8 apidoc</a></p>
+<hr>
+<p>关于作者<br>爱编程、爱钻研、爱分享、爱生活<br>关注分布式、高并发、数据挖掘<br>如需捐赠，请扫码<br><img src="https://raw.githubusercontent.com/aidodoo/blogpic/master/java/sqm.jpg" width=256 height=256 /></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://aidodoo.com/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB2/" title="并发工具类二" target="_blank" rel="external">http://aidodoo.com/java/java并发工具类2/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/aidodoo" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/aidodoo" target="_blank"><span class="text-dark">aidodoo</span><small class="ml-1x">Java Developer</small></a></h3>
+        <div>爱编程、爱钻研、爱分享、爱生活。关注分布式、高并发、数据挖掘</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB3/" title="并发工具类三"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;Newer</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/java/java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB1/" title="并发工具类一"><span>Older&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>$</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>Maybe you could buy me a cup of coffee.</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open alipay app scan this qrcode, buy me a coffee!</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="Scan Qrcode" title="Scan" />
+              </div>
+              <p class="text-muted mv">Scan this qrcode</p>
+              <p class="text-grey">Open wechat app scan this qrcode, buy me a coffee!</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> alipay</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> wechat payment</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/aidodoo" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/aidodoo" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
